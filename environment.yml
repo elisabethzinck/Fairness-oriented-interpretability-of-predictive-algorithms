@@ -1,0 +1,8 @@
+name: fairness-oriented-interpretability-of-predictive-algorithms
+dependencies:
+    - python=3.8
+    - pytorch
+    - numpy
+    - pandas
+    - matplotlib
+    - notebook
