@@ -1,7 +1,7 @@
 #%% Initialization
 import pandas as pd
-input_path = '..\\..\\data\\raw\\german_credit\\german.data'
-output_path = '..\\..\\data\\processed\\german_credit.csv'
+input_path = 'data\\raw\\german_credit\\german.data'
+output_path = 'data\\processed\\german_credit.csv'
 # The data was downloaded from 
 # https://archive.ics.uci.edu/ml/machine-learning-databases/statlog/german/
 # Link from Fairness definitions explained article
