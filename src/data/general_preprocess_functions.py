@@ -17,4 +17,4 @@ def one_hot_encode_mixed_data(X):
     # Concatenating into a final data frame 
     X_final = pd.concat([X_num, X_cat_one_hot], axis = 1)
 
-    return(X_final)
+    return X_final 

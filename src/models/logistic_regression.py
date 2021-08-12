@@ -15,7 +15,7 @@ if __name__ == "__main__":
     data.head()
     n = data.shape[0]
     
-    X = data[data.columns.difference(['credit_score','sex'])]
+    X = data[data.columns.difference(['credit_score'])]
     X = one_hot_encode_mixed_data(X)
 
     # Generate random classifications
@@ -35,6 +35,7 @@ if __name__ == "__main__":
         model_type='Logistic Regression')
     fair_log_reg.get_confusion_matrix()
     fair_log_reg.plot_confusion_matrix()
+    fair_log_reg.get_rates()
 
     fair_rand = EvaluationTool(
         y = data.credit_score, 
@@ -43,3 +44,4 @@ if __name__ == "__main__":
         model_type='Random')
     fair_rand.get_confusion_matrix()
     fair_rand.plot_confusion_matrix()
+    fair_rand.TPR
