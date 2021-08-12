@@ -2,29 +2,17 @@
 import pandas as pd
 import random
 from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
+from sklearn.linear_model import LogisticRegression
 import matplotlib.pyplot as plt
 import seaborn as sns
 
 #%%
-
-file_path = 'data\\processed\\german_credit.csv'
-data = pd.read_csv(file_path)
-data.head()
-n = data.shape[0]
-
-# Generate random classifications
-preds = random.choices([0,1], k = n)
-data['prediction'] = preds
-
-# Do this in preprocessing instead? 
-data['credit_score'] = data.credit_score - 1 
-
-#%%
 class EvaluationTool:
-    def __init__(self, y, c, a):
+    def __init__(self, y, c, a, model_type = None):
         self.y = y
         self.c = c
         self.a = a
+        self.model_type = model_type
 
         self.classifier = pd.DataFrame({'y': y, 'a': a, 'c': c})
         self.sens_grps = self.a.unique()
@@ -65,6 +53,8 @@ class EvaluationTool:
         
         n_grps = len(self.sens_grps)
         plt.figure(figsize = (15,5))
+        if self.model_type != None:
+            plt.suptitle(f'Model: {self.model_type}')
         for i, grp in enumerate(self.sens_grps):
             n_obs = sum(sum(self.cm[grp]))
             
@@ -80,11 +70,27 @@ class EvaluationTool:
         plt.show()
 #%%
 
-fair = EvaluationTool(
-    y = data.credit_score, 
-    c = data.prediction, 
-    a = data.sex)
-fair.get_confusion_matrix()
-fair.plot_confusion_matrix()
+
+#%%
+if __name__ == "__main__":
+    file_path = 'data\\processed\\german_credit.csv'
+    data = pd.read_csv(file_path)
+    data.head()
+    n = data.shape[0]
+
+    # Generate random classifications
+    preds = random.choices([0,1], k = n)
+    data['prediction'] = preds
+
+    # Making logistic regression 
+    log_reg = LogisticRegression(penalty='none')
+
+    fair = EvaluationTool(
+        y = data.credit_score, 
+        c = data.prediction, 
+        a = data.sex)
+    fair.get_confusion_matrix()
+    fair.plot_confusion_matrix()
+
 
 #%%
