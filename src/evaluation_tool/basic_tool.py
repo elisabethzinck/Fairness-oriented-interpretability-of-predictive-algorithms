@@ -79,78 +79,6 @@ class EvaluationTool:
                                }
         return self.rates
 
-    def TPR(self):
-        if self.cm == None:
-           self.get_confusion_matrix()
-        self.TPR = {}   
-        for grp in self.sens_grps:
-            TP, FN, _, _ = self.cm[grp].values()
-            self.TPR[grp] = TP/(TP+FN)
-        return self.TPR
-    
-    def FNR(self):
-        if self.cm == None:
-           self.get_confusion_matrix()
-        self.FNR = {}   
-        for grp in self.sens_grps:
-            TP, FN, _, _ = self.cm[grp].values()
-            self.FNR[grp] = FN/(TP+FN)
-        return self.FNR
-
-    def TNR(self):
-        if self.cm == None:
-           self.get_confusion_matrix()
-        self.TNR = {}   
-        for grp in self.sens_grps:
-            _, _, FP, TN = self.cm[grp].values()
-            self.TNR[grp] = TN/(TN+FP)
-        return self.TNR
-
-    def FPR(self):
-        if self.cm == None:
-           self.get_confusion_matrix()
-        self.FPR = {}   
-        for grp in self.sens_grps:
-            _, _, FP, TN = self.cm[grp].values()
-            self.FPR[grp] = FP/(TN+FP)
-        return self.FPR
-
-    def PPV(self):
-        if self.cm == None:
-            self.get_confusion_matrix()
-        self.PPV = {}
-        for grp in self.sens_grps:
-            TP, _, FP, _ = self.cm[grp].values()
-            self.PPV[grp] = TP/(TP+FP)
-        return self.PPV
-        
-    def FDR(self):
-        if self.cm == None:
-            self.get_confusion_matrix()
-        self.FDR = {}
-        for grp in self.sens_grps:
-            TP, _, FP, _ = self.cm[grp].values()
-            self.FDR[grp] = FP/(TP+FP)
-        return self.FDR
-
-    def NPV(self):
-        if self.cm == None:
-            self.get_confusion_matrix()
-        self.NPV = {}
-        for grp in self.sens_grps:
-            _, FN, _, TN = self.cm[grp].values()
-            self.NPV[grp] = TN/(TN+FN)
-        return self.NPV
-    
-    def FOR(self):
-        if self.cm == None:
-            self.get_confusion_matrix()
-        self.FOR = {}
-        for grp in self.sens_grps:
-            _, FN, _, TN = self.cm[grp].values()
-            self.FOR[grp] = FN/(TN+FN)
-        return self.FOR
-
     def false_negative_error_rate_balance(self):
         if self.rates == None:
            self.get_rates()
@@ -170,16 +98,10 @@ class EvaluationTool:
     def separation(self):
         if self.rates == None:
            self.get_rates()
-        seperation_status = None
-        FPR_list = [self.rates[grp]['TPR'] for grp in self.sens_grps]
-        
-        FPR_status = (abs(np.diff(TPR_list).squeeze()) < self.tol
-
-
-
-        self.rates['female']['FPR']
-        return abs(np.diff(list(self.TPR.values())).squeeze()) < self.tol
-
+        if self.false_positive_error_rate_balance() and self.false_negative_error_rate_balance():
+            return True 
+        else:
+            return False 
 
 
 #%%

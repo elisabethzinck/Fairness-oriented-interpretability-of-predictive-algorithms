@@ -32,10 +32,12 @@ if __name__ == "__main__":
         y = data.credit_score, 
         c = data.logistic_regression_prediction, 
         a = data.sex,
+        tol = 0.01,
         model_type='Logistic Regression')
     fair_log_reg.get_confusion_matrix()
     fair_log_reg.plot_confusion_matrix()
     fair_log_reg.get_rates()
+    fair_log_reg.separation()
 
     fair_rand = EvaluationTool(
         y = data.credit_score, 
@@ -44,4 +46,3 @@ if __name__ == "__main__":
         model_type='Random')
     fair_rand.get_confusion_matrix()
     fair_rand.plot_confusion_matrix()
-    fair_rand.TPR
