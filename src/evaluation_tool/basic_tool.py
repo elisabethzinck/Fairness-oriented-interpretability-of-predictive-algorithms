@@ -6,6 +6,7 @@ from sklearn.linear_model import LogisticRegression
 import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
+import pprint
 
 #%% Helper functions
 def max_abs_diff(l):
@@ -141,7 +142,8 @@ if __name__ == "__main__":
     fair = EvaluationTool(
         y = data.credit_score, 
         c = data.logistic_regression_prediction, 
-        a = data.sex)
+        a = data.sex, 
+        model_type='Logistic Regression')
 
     fair.plot_confusion_matrix()
     print(fair.get_rates_overview())
