@@ -8,3 +8,6 @@ dependencies:
     - scikit-learn
     - matplotlib
     - seaborn
+    - pip
+    - pip:
+        - "--editable ."
