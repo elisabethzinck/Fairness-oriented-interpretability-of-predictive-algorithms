@@ -7,9 +7,15 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
 
+#%% Helper functions
+def max_abs_diff(l):
+    """Returns the maximum pairwise absolute difference between the elements in l"""
+    out = max([abs(x-y) for x in l for y in l])
+    return(out)
+
 #%%
 class EvaluationTool:
-    def __init__(self, y, c, a, model_type = None, tol = 0.01):
+    def __init__(self, y, c, a, model_type = None, tol = 0.03):
         self.y = y
         self.c = c
         self.a = a
@@ -19,8 +25,10 @@ class EvaluationTool:
         self.classifier = pd.DataFrame({'y': y, 'a': a, 'c': c})
         self.sens_grps = self.a.unique()
 
+        self.get_confusion_matrix()
+        self.get_rates()
+
     def get_confusion_matrix(self):
-        # Alternative way to do it (and much smarter...)
         self.cm_sklearn = {}
         for grp in self.sens_grps:
             df_group = self.classifier[self.classifier.a == grp]
@@ -37,9 +45,6 @@ class EvaluationTool:
         return self.cm
             
     def plot_confusion_matrix(self):
-        if self.cm == None:
-            self.get_confusion_matrix()
-        
         plt.figure(figsize = (15,5))
         if self.model_type != None:
             plt.suptitle(f'Model: {self.model_type}')
@@ -63,12 +68,11 @@ class EvaluationTool:
         plt.show()
 
     def get_rates(self):
-        if self.cm == None:
-           self.get_confusion_matrix()
         self.rates = {}   
         for grp in self.sens_grps:
             TP, FN, FP, TN = self.cm[grp].values()
-            self.rates[grp] = {'TPR': TP/(TP + FN), 
+            self.rates[grp] = {'PR': (TP + FP)/(TP + FN + FP + TN),
+                               'TPR': TP/(TP + FN), 
                                'FNR': FN/(TP + FN), 
                                'TNR': TN/(TN + FP), 
                                'FPR': FP/(TN + FP),
@@ -79,52 +83,69 @@ class EvaluationTool:
                                }
         return self.rates
 
-    def false_negative_error_rate_balance(self):
-        if self.rates == None:
-           self.get_rates()
-        FNR_list = [self.rates[grp]['FNR'] for grp in self.sens_grps]
-        FNR_status = abs(np.diff(FNR_list).squeeze()) < self.tol
-        return FNR_status 
+    def get_rates_overview(self):
+        rates_overview = pd.DataFrame(
+            [["PR", "1-NR"],
+            ["TPR", "1-FNR"],
+            ["TNR", "1-FPR"],
+            ["PPV", "1-FDR"],
+            ["NPV", "1-FOR"]],
+            columns = ["rate", "rate_equiv"]
+        )
 
-    # aka equal opportunity
-    def false_positive_error_rate_balance(self):
-        if self.rates == None:
-           self.get_rates()
-        FPR_list = [self.rates[grp]['FPR'] for grp in self.sens_grps]
-        FPR_status = abs(np.diff(FPR_list).squeeze()) < self.tol
-        return FPR_status 
+        for grp in fair.sens_grps:
+            rates_overview[grp] = [
+                fair.rates[grp][rate] 
+                for rate in rates_overview.rate]
+        
+        # To do: Code diff for != 2 sens_grps
+        rates_overview['abs_diff'] = abs(rates_overview[fair.sens_grps[0]] - rates_overview[fair.sens_grps[1]])
+        return rates_overview
 
-    # aka equalized odds 
-    def separation(self):
-        if self.rates == None:
-           self.get_rates()
-        if self.false_positive_error_rate_balance() and self.false_negative_error_rate_balance():
-            return True 
-        else:
-            return False 
+
+    def get_obs_crit(self):
+        fair.obs_crit = {}
+        all_obs_crit = {
+            'independence': ['PR'],
+            # To do: Include conditional statistical parity? 
+            'separation': ['FPR', 'FNR'],
+            'false_positive_error_rate': ['FPR'],
+            'false_negative_error_rate': ['FNR'],
+            'sufficiency': ['PPV', 'NPV'],
+            'predictive_parity': ['NPV']}
+
+
+        for crit in all_obs_crit:
+            fair.obs_crit[crit] = {}
+            fair.obs_crit[crit]['values'] = {}
+            fair.obs_crit[crit]['max_diff'] = 0
+            for val in all_obs_crit[crit]:
+                fair.obs_crit[crit]['values'][val] = {}
+                for grp in fair.sens_grps:
+                    fair.obs_crit[crit]['values'][val][grp] = fair.rates[grp][val]
+                
+                diff = max_abs_diff(fair.obs_crit[crit]['values'][val].values())
+                fair.obs_crit[crit]['max_diff'] = max(diff, fair.obs_crit[crit]['max_diff'])
+            fair.obs_crit[crit]['passed'] = fair.obs_crit[crit]['max_diff'] < fair.tol
+        
+        return fair.obs_crit
 
 
 
 #%%
 if __name__ == "__main__":
-    file_path = 'data\\processed\\german_credit.csv'
+    file_path = 'data\\processed\\german_credit_pred.csv'
     data = pd.read_csv(file_path)
     data.head()
-    n = data.shape[0]
-
-    # Generate random classifications
-    preds = random.choices([0,1], k = n)
-    data['prediction'] = preds
-
-    # Making logistic regression 
-    log_reg = LogisticRegression(penalty='none')
 
     fair = EvaluationTool(
         y = data.credit_score, 
-        c = data.prediction, 
+        c = data.logistic_regression_prediction, 
         a = data.sex)
-    fair.get_confusion_matrix()
+
     fair.plot_confusion_matrix()
+    print(fair.get_rates_overview())
+    obs_crit = fair.get_obs_crit()
 
-
-#%%
+    pprint.pprint(obs_crit)
+# %%
