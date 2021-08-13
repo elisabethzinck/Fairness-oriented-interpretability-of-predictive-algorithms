@@ -10,7 +10,7 @@ import os
 if __name__ == "__main__":
     print(os.getcwd())
     file_path = 'data\\processed\\german_credit.csv'
-    output_path = 'data\\processed\\german_credit_predictions.csv'
+    output_path = 'data\\processed\\german_credit_pred.csv'
     data = pd.read_csv(file_path)
     data.head()
     n = data.shape[0]
@@ -25,16 +25,5 @@ if __name__ == "__main__":
     data["logistic_regression_prediction"] = log_reg.predict(X)
 
     data.to_csv(output_path, index = False)
-
-    fair_log_reg = EvaluationTool(
-        y = data.credit_score, 
-        c = data.logistic_regression_prediction, 
-        a = data.sex,
-        tol = 0.01,
-        model_type='Logistic Regression')
-    fair_log_reg.get_confusion_matrix()
-    fair_log_reg.plot_confusion_matrix()
-    fair_log_reg.get_rates()
-    fair_log_reg.separation()
 
 # %%
