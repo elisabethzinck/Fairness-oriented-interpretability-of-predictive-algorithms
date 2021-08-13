@@ -59,7 +59,8 @@ df = df[
     (df.personal_status_sex != 'A95')]
 
 #%% making target binary 
-df['credit_score'] = df.credit_score - 1 
+# (Bad,Good) credit score -> (0,1) in new definition
+df['credit_score'] = df.credit_score % 2
 
 #%% Writing processed data
 df.to_csv(output_path, index = False)
