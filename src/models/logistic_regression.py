@@ -1,7 +1,6 @@
 #%%
 import pandas as pd
 from sklearn.linear_model import LogisticRegression
-from sklearn.preprocessing import OneHotEncoder
 from src.evaluation_tool.basic_tool import EvaluationTool 
 from src.data.general_preprocess_functions import one_hot_encode_mixed_data
 import random

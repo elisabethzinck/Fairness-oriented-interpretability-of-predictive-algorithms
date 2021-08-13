@@ -1,7 +1,7 @@
 #%%
 import pandas as pd
 import random
-from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
+from sklearn.metrics import confusion_matrix
 from sklearn.linear_model import LogisticRegression
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -103,8 +103,6 @@ class EvaluationTool:
         else:
             return False 
 
-
-#%%
 
 
 #%%
