@@ -4,3 +4,4 @@ data/raw/fairml_traffic_stops/NC_cleaned.csv
 .vscode/settings.json
 ~$*
 *.pyc
+/src.egg-info
