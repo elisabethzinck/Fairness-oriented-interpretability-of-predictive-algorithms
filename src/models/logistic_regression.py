@@ -20,7 +20,7 @@ if __name__ == "__main__":
 
     # Making logistic regression 
     # To do: Research why logreg gives Convergence Warning
-    log_reg = LogisticRegression(penalty='none')
+    log_reg = LogisticRegression(penalty='l2')
     log_reg.fit(X, data.credit_score)
     data["logistic_regression_prediction"] = log_reg.predict(X)
 

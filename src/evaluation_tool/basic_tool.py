@@ -1,14 +1,12 @@
 #%%
 import pandas as pd
-import random
-from pandas.io.formats.style import Styler
 from sklearn.metrics import confusion_matrix
-from sklearn.linear_model import LogisticRegression
 import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
 import pprint
-import os
+import plotnine as p9
+
 
 #%% Helper functions
 def max_abs_diff(l):
@@ -147,12 +145,13 @@ if __name__ == "__main__":
         a = data.sex, 
         model_type='Logistic Regression')
 
-    #fair.plot_confusion_matrix()
-    #print(fair.get_rates_overview())
+    fair.plot_confusion_matrix()
+    print(fair.get_rates_overview())
     obs_crit = fair.get_obs_crit()
 
-    #pprint.pprint(obs_crit)
+    pprint.pprint(obs_crit)
 
+#%%
     sns.set_theme(style = 'whitegrid')
     plt.figure(figsize = (10,3))
     p = sns.lmplot(
@@ -183,6 +182,36 @@ if __name__ == "__main__":
     plt.title('Hej')
     plt.show()
 
+#%%
+    tol_ribbon = pd.DataFrame({'x':[0,1], 
+                                     'ymin':[0-fair.tol, 1-fair.tol],
+                                     'ymax':[0+fair.tol, 1+fair.tol]}
+                                    )
+    grp0 = str(fair.sens_grps[0])
+    grp1 = str(fair.sens_grps[1])
+    xy_min = min(fair.get_rates_overview().min()[[grp0,grp1]])
+    xy_max = max(fair.get_rates_overview().max()[[grp0,grp1]])
+    xy_lims = (xy_min-0.1, xy_max+0.1)
+
+    p9.ggplot() + \
+        p9.geom_point(fair.get_rates_overview(), p9.aes(x=grp0, y=grp1), color = 'steelblue', size = 4) + \
+        p9.labs(title = f'Rates: {str.capitalize(grp0)} vs. {str.capitalize(grp1)}',
+            x = str.capitalize(grp0), y = str.capitalize(grp1)) + \
+        p9.geom_ribbon(tol_ribbon, p9.aes(x='x', ymin='ymin', ymax='ymax'), alpha = 0.2) + \
+        p9.geom_abline(p9.aes(intercept = 0, slope = 1), color = 'grey', linetype = 'dashed') + \
+        p9.coord_cartesian(xlim = xy_lims, ylim = xy_lims) + \
+        p9.theme_minimal() + \
+        p9.scale_color_brewer(type='qual', palette=8, direction=1) + \
+        p9.geom_text(fair.get_rates_overview(),
+                     p9.aes(x=grp0, y=grp1, label='rate'),
+                     color='black',
+                     size=9, 
+                     alpha=0.8, 
+                     nudge_y=.02) +\
+        p9.theme(legend_position='none',
+                 figure_size=(5,5), 
+                 aspect_ratio=1)
+        
 
 # %%
 
