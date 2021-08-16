@@ -10,4 +10,5 @@ dependencies:
     - seaborn
     - pip
     - pip:
+        - plotnine
         - "--editable ."
