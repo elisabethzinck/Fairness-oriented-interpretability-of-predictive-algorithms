@@ -1,12 +1,14 @@
 #%%
 import pandas as pd
 import random
+from pandas.io.formats.style import Styler
 from sklearn.metrics import confusion_matrix
 from sklearn.linear_model import LogisticRegression
 import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
 import pprint
+import os
 
 #%% Helper functions
 def max_abs_diff(l):
@@ -145,9 +147,42 @@ if __name__ == "__main__":
         a = data.sex, 
         model_type='Logistic Regression')
 
-    fair.plot_confusion_matrix()
-    print(fair.get_rates_overview())
+    #fair.plot_confusion_matrix()
+    #print(fair.get_rates_overview())
     obs_crit = fair.get_obs_crit()
 
-    pprint.pprint(obs_crit)
+    #pprint.pprint(obs_crit)
+
+    sns.set_theme(style = 'whitegrid')
+    plt.figure(figsize = (10,3))
+    p = sns.lmplot(
+        data = fair.get_rates_overview(),
+        fit_reg=False,
+        x=fair.sens_grps[0], 
+        y=fair.sens_grps[1], 
+        hue='rate',
+        scatter_kws={'s':50}, 
+        line_kws={'font':{'size':20}}
+        )
+    p.axes[0,0].fill_between(x=[0,1], 
+                             y1=[0-fair.tol, 1-fair.tol], 
+                             y2=[0+fair.tol, 1+fair.tol],
+                             alpha=0.1, 
+                             color=(0.1,0.1,0.1))
+    p.axes[0,0].axline(xy1=(0,0),
+                       slope=1,
+                       color=(0.1,0.1,0.1),
+                       alpha=0.3,
+                       linestyle='--')
+    plt.xlabel(str.capitalize(fair.sens_grps[0]))
+    plt.ylabel(str.capitalize(fair.sens_grps[1]))
+    plt.xlim(fair.get_rates_overview().min()[fair.sens_grps[0]]-0.01, 
+                         fair.get_rates_overview().max()[fair.sens_grps[0]]+0.01)
+    plt.ylim(fair.get_rates_overview().min()[fair.sens_grps[1]]-0.01, 
+                         fair.get_rates_overview().max()[fair.sens_grps[1]]+0.01)
+    plt.title('Hej')
+    plt.show()
+
+
 # %%
+
