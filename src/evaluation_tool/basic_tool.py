@@ -28,6 +28,7 @@ class EvaluationTool:
 
         self.get_confusion_matrix()
         self.get_rates()
+        self.get_rates_overview()
 
     def get_confusion_matrix(self):
         self.cm_sklearn = {}
@@ -93,13 +94,13 @@ class EvaluationTool:
             columns = ["rate", "rate_equiv"]
         )
 
-        for grp in fair.sens_grps:
+        for grp in self.sens_grps:
             rates_overview[grp] = [
-                fair.rates[grp][rate] 
+                self.rates[grp][rate] 
                 for rate in rates_overview.rate]
         
         # To do: Code diff for != 2 sens_grps
-        rates_overview['abs_diff'] = abs(rates_overview[fair.sens_grps[0]] - rates_overview[fair.sens_grps[1]])
+        rates_overview['abs_diff'] = abs(rates_overview[self.sens_grps[0]] - rates_overview[self.sens_grps[1]])
         self.rates_overview = rates_overview
         return rates_overview
 
@@ -144,7 +145,7 @@ class EvaluationTool:
         p = p9.ggplot() + \
             p9.geom_point(
                 self.rates_overview, p9.aes(x=grp0, y=grp1), 
-                color = 'steelblue', size = 4) + \
+                color = 'steelblue', size = 3) + \
             p9.labs(
                 title = f'Rates: {str.capitalize(grp0)} vs. {str.capitalize(grp1)}',
                 x = str.capitalize(grp0), 
@@ -158,7 +159,7 @@ class EvaluationTool:
             p9.coord_cartesian(xlim = xy_lims, ylim = xy_lims) + \
             p9.theme_minimal() + \
             p9.scale_color_brewer(type='qual', palette=8, direction=1) + \
-            p9.geom_text(fair.rates_overview,
+            p9.geom_text(self.rates_overview,
                         p9.aes(x=grp0, y=grp1, label='rate'),
                         color='black',
                         size=9, 
@@ -179,7 +180,7 @@ if __name__ == "__main__":
 
     fair = EvaluationTool(
         y = data.credit_score, 
-        c = data.logistic_regression_prediction, 
+        c = data.log_reg_pred, 
         a = data.sex, 
         model_type='Logistic Regression')
 
