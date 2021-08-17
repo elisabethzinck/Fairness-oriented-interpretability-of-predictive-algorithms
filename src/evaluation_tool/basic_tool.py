@@ -37,7 +37,6 @@ class EvaluationTool:
                 y_true = df_group.y, 
                 y_pred = df_group.c)
         
-        # extracting sklearn metrics to dict 
         self.cm = {}
         for grp in self.cm_sklearn.keys():
             TN, FP, FN, TP = self.cm_sklearn[grp].ravel()
@@ -101,6 +100,7 @@ class EvaluationTool:
         
         # To do: Code diff for != 2 sens_grps
         rates_overview['abs_diff'] = abs(rates_overview[fair.sens_grps[0]] - rates_overview[fair.sens_grps[1]])
+        self.rates_overview = rates_overview
         return rates_overview
 
 
@@ -108,7 +108,6 @@ class EvaluationTool:
         fair.obs_crit = {}
         all_obs_crit = {
             'independence': ['PR'],
-            # To do: Include conditional statistical parity? 
             'separation': ['FPR', 'FNR'],
             'false_positive_error_rate': ['FPR'],
             'false_negative_error_rate': ['FNR'],
@@ -131,6 +130,45 @@ class EvaluationTool:
         
         return fair.obs_crit
 
+    def plot_rates(self):
+        tol_ribbon = pd.DataFrame({
+            'x':[0,1], 
+            'ymin':[0-self.tol, 1-self.tol],
+            'ymax':[0+self.tol, 1+self.tol]})
+        grp0 = self.sens_grps[0]
+        grp1 = self.sens_grps[1]
+        xy_min = min(self.rates_overview.min()[[grp0,grp1]])
+        xy_max = max(self.rates_overview.max()[[grp0,grp1]])
+        xy_lims = (xy_min-0.1, xy_max+0.1)
+
+        p = p9.ggplot() + \
+            p9.geom_point(
+                self.rates_overview, p9.aes(x=grp0, y=grp1), 
+                color = 'steelblue', size = 4) + \
+            p9.labs(
+                title = f'Rates: {str.capitalize(grp0)} vs. {str.capitalize(grp1)}',
+                x = str.capitalize(grp0), 
+                y = str.capitalize(grp1)) + \
+            p9.geom_ribbon(
+                tol_ribbon, p9.aes(x='x', ymin='ymin', ymax='ymax'), 
+                alpha = 0.2) + \
+            p9.geom_abline(
+                p9.aes(intercept = 0, slope = 1), 
+                color = 'grey', linetype = 'dashed') + \
+            p9.coord_cartesian(xlim = xy_lims, ylim = xy_lims) + \
+            p9.theme_minimal() + \
+            p9.scale_color_brewer(type='qual', palette=8, direction=1) + \
+            p9.geom_text(fair.rates_overview,
+                        p9.aes(x=grp0, y=grp1, label='rate'),
+                        color='black',
+                        size=9, 
+                        alpha=0.8, 
+                        nudge_y=.02) +\
+            p9.theme(legend_position='none',
+                    figure_size=(5,5), 
+                    aspect_ratio=1) 
+        return p
+
 
 
 #%%
@@ -150,68 +188,9 @@ if __name__ == "__main__":
     obs_crit = fair.get_obs_crit()
 
     pprint.pprint(obs_crit)
-
-#%%
-    sns.set_theme(style = 'whitegrid')
-    plt.figure(figsize = (10,3))
-    p = sns.lmplot(
-        data = fair.get_rates_overview(),
-        fit_reg=False,
-        x=fair.sens_grps[0], 
-        y=fair.sens_grps[1], 
-        hue='rate',
-        scatter_kws={'s':50}, 
-        line_kws={'font':{'size':20}}
-        )
-    p.axes[0,0].fill_between(x=[0,1], 
-                             y1=[0-fair.tol, 1-fair.tol], 
-                             y2=[0+fair.tol, 1+fair.tol],
-                             alpha=0.1, 
-                             color=(0.1,0.1,0.1))
-    p.axes[0,0].axline(xy1=(0,0),
-                       slope=1,
-                       color=(0.1,0.1,0.1),
-                       alpha=0.3,
-                       linestyle='--')
-    plt.xlabel(str.capitalize(fair.sens_grps[0]))
-    plt.ylabel(str.capitalize(fair.sens_grps[1]))
-    plt.xlim(fair.get_rates_overview().min()[fair.sens_grps[0]]-0.01, 
-                         fair.get_rates_overview().max()[fair.sens_grps[0]]+0.01)
-    plt.ylim(fair.get_rates_overview().min()[fair.sens_grps[1]]-0.01, 
-                         fair.get_rates_overview().max()[fair.sens_grps[1]]+0.01)
-    plt.title('Hej')
-    plt.show()
-
-#%%
-    tol_ribbon = pd.DataFrame({'x':[0,1], 
-                                     'ymin':[0-fair.tol, 1-fair.tol],
-                                     'ymax':[0+fair.tol, 1+fair.tol]}
-                                    )
-    grp0 = str(fair.sens_grps[0])
-    grp1 = str(fair.sens_grps[1])
-    xy_min = min(fair.get_rates_overview().min()[[grp0,grp1]])
-    xy_max = max(fair.get_rates_overview().max()[[grp0,grp1]])
-    xy_lims = (xy_min-0.1, xy_max+0.1)
-
-    p9.ggplot() + \
-        p9.geom_point(fair.get_rates_overview(), p9.aes(x=grp0, y=grp1), color = 'steelblue', size = 4) + \
-        p9.labs(title = f'Rates: {str.capitalize(grp0)} vs. {str.capitalize(grp1)}',
-            x = str.capitalize(grp0), y = str.capitalize(grp1)) + \
-        p9.geom_ribbon(tol_ribbon, p9.aes(x='x', ymin='ymin', ymax='ymax'), alpha = 0.2) + \
-        p9.geom_abline(p9.aes(intercept = 0, slope = 1), color = 'grey', linetype = 'dashed') + \
-        p9.coord_cartesian(xlim = xy_lims, ylim = xy_lims) + \
-        p9.theme_minimal() + \
-        p9.scale_color_brewer(type='qual', palette=8, direction=1) + \
-        p9.geom_text(fair.get_rates_overview(),
-                     p9.aes(x=grp0, y=grp1, label='rate'),
-                     color='black',
-                     size=9, 
-                     alpha=0.8, 
-                     nudge_y=.02) +\
-        p9.theme(legend_position='none',
-                 figure_size=(5,5), 
-                 aspect_ratio=1)
-        
+    p = fair.plot_rates()
+    p
+      
 
 # %%
 
