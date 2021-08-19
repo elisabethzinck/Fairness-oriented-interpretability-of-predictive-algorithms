@@ -198,6 +198,8 @@ class EvaluationTool:
         p = p9.ggplot(p9.aes(x='fpr', y='tpr')) + \
             p9.geom_line(self.roc, p9.aes(color = 'sens_grp')) + \
             p9.geom_point(chosen_threshold, size = 3, shape = 'x') + \
+            p9.geom_abline(
+                p9.aes(intercept = 0, slope = 1), color = 'grey', linetype= '--') + \
             p9.labs(
                 x = 'False positive rate', 
                 y = 'True positive rate', 
@@ -230,3 +232,4 @@ if __name__ == "__main__":
     #p
     p = fair.plot_roc()
     p
+# %%
