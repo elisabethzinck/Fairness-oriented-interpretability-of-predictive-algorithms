@@ -1,6 +1,6 @@
 #%%
 import pandas as pd
-from sklearn.metrics import confusion_matrix
+from sklearn.metrics import confusion_matrix, roc_curve
 import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
@@ -16,10 +16,11 @@ def max_abs_diff(l):
 
 #%%
 class EvaluationTool:
-    def __init__(self, y, c, a, model_type = None, tol = 0.03):
+    def __init__(self, y, c, a, r, model_type = None, tol = 0.03):
         self.y = y
         self.c = c
         self.a = a
+        self.r = r
         self.model_type = model_type
         self.tol = tol
 
@@ -29,6 +30,7 @@ class EvaluationTool:
         self.get_confusion_matrix()
         self.get_rates()
         self.get_rates_overview()
+        self.get_roc()
 
     def get_confusion_matrix(self):
         self.cm_sklearn = {}
@@ -170,9 +172,43 @@ class EvaluationTool:
                     aspect_ratio=1) 
         return p
 
+    def get_roc(self):
+        roc_list = []
+        for i, grp in enumerate(data.sex.unique()):
+            data_grp = data[data.sex == grp]
+            fpr, tpr, thresholds = roc_curve(
+                y_true = data_grp.credit_score, 
+                y_score = data_grp.log_reg_prob)
+            roc_list.append(pd.DataFrame({
+                'fpr': fpr, 
+                'tpr': tpr, 
+                'threshold': thresholds,
+                'sens_grp': grp}))
+        roc = pd.concat(roc_list).reset_index()
+        self.roc = roc
+        return roc
+
+    def plot_roc(self):
+        # Get points on ROC curves corresponding to threshold = 0.5
+        # To do: Expand to arbitrary thresholds + add legend for thresholds
+        roc_half = self.roc[(0.50 < self.roc.threshold)]
+        chosen_threshold = roc_half.loc[
+            roc_half.groupby('sens_grp').threshold.idxmin()]
+
+        p = p9.ggplot(p9.aes(x='fpr', y='tpr')) + \
+            p9.geom_line(self.roc, p9.aes(color = 'sens_grp')) + \
+            p9.geom_point(chosen_threshold, size = 3, shape = 'x') + \
+            p9.labs(
+                x = 'False positive rate', 
+                y = 'True positive rate', 
+                color = 'Group')   
+
+        return p 
+        
 
 
-#%%
+
+#%% Main
 if __name__ == "__main__":
     file_path = 'data\\processed\\german_credit_pred.csv'
     data = pd.read_csv(file_path)
@@ -182,16 +218,15 @@ if __name__ == "__main__":
         y = data.credit_score, 
         c = data.log_reg_pred, 
         a = data.sex, 
+        r = data.log_reg_prob,
         model_type='Logistic Regression')
 
-    fair.plot_confusion_matrix()
-    print(fair.get_rates_overview())
-    obs_crit = fair.get_obs_crit()
+    #fair.plot_confusion_matrix()
+    #print(fair.get_rates_overview())
+    #obs_crit = fair.get_obs_crit()
 
-    pprint.pprint(obs_crit)
-    p = fair.plot_rates()
+    #pprint.pprint(obs_crit)
+    #p = fair.plot_rates()
+    #p
+    p = fair.plot_roc()
     p
-      
-
-# %%
-
