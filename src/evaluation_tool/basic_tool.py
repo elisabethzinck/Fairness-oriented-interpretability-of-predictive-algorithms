@@ -1,4 +1,5 @@
 #%%
+from itertools import groupby
 import pandas as pd
 from sklearn.metrics import confusion_matrix, roc_curve
 import matplotlib.pyplot as plt
@@ -16,15 +17,15 @@ def max_abs_diff(l):
 
 #%%
 class EvaluationTool:
-    def __init__(self, y, c, a, r, model_type = None, tol = 0.03):
+    def __init__(self, y, y_hat, a, r, model_type = None, tol = 0.03):
         self.y = y
-        self.c = c
+        self.y_hat = y_hat
         self.a = a
         self.r = r
         self.model_type = model_type
         self.tol = tol
 
-        self.classifier = pd.DataFrame({'y': y, 'a': a, 'c': c})
+        self.classifier = pd.DataFrame({'y': y, 'a': a, 'y_hat': y_hat})
         self.sens_grps = self.a.unique()
 
         self.get_confusion_matrix()
@@ -38,7 +39,7 @@ class EvaluationTool:
             df_group = self.classifier[self.classifier.a == grp]
             self.cm_sklearn[grp] = confusion_matrix(
                 y_true = df_group.y, 
-                y_pred = df_group.c)
+                y_pred = df_group.y_hat)
         
         self.cm = {}
         for grp in self.cm_sklearn.keys():
@@ -206,7 +207,37 @@ class EvaluationTool:
                 color = 'Group')   
 
         return p 
-        
+
+
+    def plot_calibration(self, bins = 10):
+            #binning and grouping by sensitive attribute to calculate calibration
+        data_grouped = (
+            pd.DataFrame({'y_hat': self.y_hat,
+                        'r': self.r,
+                        'sens_grps': self.a,
+                        'bin': pd.cut(self.r, bins = np.linspace(0,1,num = bins))})
+            .assign(bin_center = lambda x: [x.bin[i].mid for i in range(x.shape[0])])
+            .groupby(['sens_grps', 'bin_center'])
+            .agg(r_bin_mean = ('r', lambda x: np.mean(x)),
+                r_bin_se = ('r', lambda x: np.std(x)/np.sqrt(len(x))))
+            .assign(r_bin_lwr = lambda x: x['r_bin_mean']-2*x['r_bin_se'],
+                    r_bin_upr = lambda x: x['r_bin_mean']+2*x['r_bin_se'])
+            .reset_index()
+            )
+
+        p = p9.ggplot(data_grouped) + \
+            p9.geom_pointrange(p9.aes(x='bin_center',
+                                    y ='r_bin_mean',
+                                    ymin='r_bin_lwr',
+                                    ymax='r_bin_upr',
+                                    color = 'sens_grps')) +\
+            p9.geom_line(p9.aes(x='bin_center', y='r_bin_mean', color='sens_grps')) + \
+            p9.geom_abline(p9.aes(intercept=0, slope=1), color ='grey', linetype='--') + \
+            p9.labs(title = 'Calibration by Group',
+                    x = 'Predicted Probability', 
+                    y = 'True Probability $\pm$ 2$\cdot$SE', 
+                    color = 'Group') 
+        return p
 
 
 
@@ -218,7 +249,7 @@ if __name__ == "__main__":
 
     fair = EvaluationTool(
         y = data.credit_score, 
-        c = data.log_reg_pred, 
+        y_hat = data.log_reg_pred, 
         a = data.sex, 
         r = data.log_reg_prob,
         model_type='Logistic Regression')
@@ -232,4 +263,7 @@ if __name__ == "__main__":
     #p
     p = fair.plot_roc()
     p
-# %%
+
+    # Creating sufficiency plot 
+    p2 = fair.plot_calibration()
+    p2
