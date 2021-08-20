@@ -212,31 +212,33 @@ class EvaluationTool:
     def plot_calibration(self, bins = 10):
             #binning and grouping by sensitive attribute to calculate calibration
         data_grouped = (
-            pd.DataFrame({'y_hat': self.y_hat,
+            pd.DataFrame({'y': self.y,
                         'r': self.r,
                         'sens_grps': self.a,
                         'bin': pd.cut(self.r, bins = np.linspace(0,1,num = bins))})
             .assign(bin_center = lambda x: [x.bin[i].mid for i in range(x.shape[0])])
             .groupby(['sens_grps', 'bin_center'])
-            .agg(r_bin_mean = ('r', lambda x: np.mean(x)),
-                r_bin_se = ('r', lambda x: np.std(x)/np.sqrt(len(x))))
-            .assign(r_bin_lwr = lambda x: x['r_bin_mean']-2*x['r_bin_se'],
-                    r_bin_upr = lambda x: x['r_bin_mean']+2*x['r_bin_se'])
+            .agg(y_bin_mean = ('y', lambda x: np.mean(x)),
+                y_bin_se = ('y', lambda x: np.std(x)/np.sqrt(len(x))))
+            .assign(y_bin_lwr = lambda x: x['y_bin_mean']-2*x['y_bin_se'],
+                    y_bin_upr = lambda x: x['y_bin_mean']+2*x['y_bin_se'])
             .reset_index()
             )
 
         p = p9.ggplot(data_grouped) + \
             p9.geom_pointrange(p9.aes(x='bin_center',
-                                    y ='r_bin_mean',
-                                    ymin='r_bin_lwr',
-                                    ymax='r_bin_upr',
+                                    y ='y_bin_mean',
+                                    ymin='y_bin_lwr',
+                                    ymax='y_bin_upr',
                                     color = 'sens_grps')) +\
-            p9.geom_line(p9.aes(x='bin_center', y='r_bin_mean', color='sens_grps')) + \
+            p9.geom_line(p9.aes(
+                x = 'bin_center', y = 'y_bin_mean', color = 'sens_grps')) + \
             p9.geom_abline(p9.aes(intercept=0, slope=1), color ='grey', linetype='--') + \
             p9.labs(title = 'Calibration by Group',
                     x = 'Predicted Probability', 
                     y = 'True Probability $\pm$ 2$\cdot$SE', 
-                    color = 'Group') 
+                    color = 'Group') +\
+            p9.coord_cartesian(xlim = [0,1], ylim = [0,1])
         return p
 
 
@@ -252,7 +254,7 @@ if __name__ == "__main__":
         y_hat = data.log_reg_pred, 
         a = data.sex, 
         r = data.log_reg_prob,
-        model_type='Logistic Regression')
+        model_type='Logistic Regression',tol = 0.05)
 
     #fair.plot_confusion_matrix()
     #print(fair.get_rates_overview())
@@ -267,3 +269,5 @@ if __name__ == "__main__":
     # Creating sufficiency plot 
     p2 = fair.plot_calibration()
     p2
+
+# %%
