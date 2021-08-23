@@ -219,9 +219,10 @@ class EvaluationTool:
             .assign(bin_center = lambda x: [x.bin[i].mid for i in range(x.shape[0])])
             .groupby(['sens_grps', 'bin_center'])
             .agg(y_bin_mean = ('y', lambda x: np.mean(x)),
-                y_bin_se = ('y', lambda x: np.std(x)/np.sqrt(len(x))))
-            .assign(y_bin_lwr = lambda x: x['y_bin_mean']-2*x['y_bin_se'],
-                    y_bin_upr = lambda x: x['y_bin_mean']+2*x['y_bin_se'])
+                y_bin_se = ('y', lambda x: np.std(x)/np.sqrt(len(x))),
+                bin_size = ('y', lambda x: len(x)))
+            .assign(y_bin_lwr = lambda x: x['y_bin_mean']-x['y_bin_se'],
+                    y_bin_upr = lambda x: x['y_bin_mean']+x['y_bin_se'])
             .reset_index()
             )
 
@@ -236,7 +237,7 @@ class EvaluationTool:
             p9.geom_abline(p9.aes(intercept=0, slope=1), color ='grey', linetype='--') + \
             p9.labs(title = 'Calibration by Group',
                     x = 'Predicted Probability', 
-                    y = 'True Probability $\pm$ 2$\cdot$SE', 
+                    y = 'True Probability $\pm$ $\cdot$SE', 
                     color = 'Group') +\
             p9.coord_cartesian(xlim = [0,1], ylim = [0,1])
         return p
@@ -263,11 +264,11 @@ if __name__ == "__main__":
     #pprint.pprint(obs_crit)
     #p = fair.plot_rates()
     #p
-    p = fair.plot_roc()
-    p
+    #p = fair.plot_roc()
+    #p
 
     # Creating sufficiency plot 
-    p2 = fair.plot_calibration()
-    p2
+    #p2 = fair.plot_calibration()
+    #p2
 
 # %%
