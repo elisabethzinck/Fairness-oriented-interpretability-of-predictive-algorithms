@@ -27,7 +27,8 @@ def plot_confusion_matrix(TP, FN, FP, TN):
         plt.show()
 
 #%%
-def plot_playground(TP, FN, FP, TN, alpha, beta):
+def plot_playground(TP, FN, FP, TN, alpha):
+        beta = 1-alpha
         n = TP + FN + FP + TN
         rates = {
             'FNR': FN/(TP + FN), 
@@ -38,10 +39,11 @@ def plot_playground(TP, FN, FP, TN, alpha, beta):
         measures = {
             '(alpha*FP + beta*FN)/n': 
                 (alpha*FP + beta*FN)/n,
-            '(alpha*FPR + beta*FNR)': 
-                alpha*rates['FPR'] + beta*rates['FNR'],
-            '(alpha*FDR + beta*FOR)': 
-                alpha*rates['FDR'] + beta*rates['FOR']}
+            #'(alpha*FPR + beta*FNR)': 
+            #    alpha*rates['FPR'] + beta*rates['FNR'],
+            #'(alpha*FDR + beta*FOR)': 
+            #    alpha*rates['FDR'] + beta*rates['FOR'],
+            '(ny': 1/4*(alpha*rates['FPR'] + beta*rates['FNR'] + alpha*rates['FDR'] + beta*rates['FOR'])}
 
         measures.update(rates) # Add two dicts together
 
@@ -54,6 +56,7 @@ def plot_playground(TP, FN, FP, TN, alpha, beta):
         #    p9.geom_col(p9.aes(x = 'measure', y = 'val')) + \
         #    p9.coord_flip()
         plt.barh(y = measures_df['measure'], width = measures_df['val'])
+        plt.xlim(xmin = 0, xmax  = 1)
         plt.show()
 #%% Simple interactive plot with confusion matrix
 
@@ -68,12 +71,11 @@ interactive_plot
 # %%
 our_playground = interactive(
     plot_playground,
-    TP=(0,10),
-    FP=(0,10),
-    TN=(0,10),
-    FN=(0,10),
-    alpha = (0,1, 0.1),
-    beta = (0,1, 0.1))
+    TP=(0,100),
+    FP=(0,100),
+    TN=(0,100),
+    FN=(0,100),
+    alpha = (0,1, 0.1))
 our_playground
 
 # %%
