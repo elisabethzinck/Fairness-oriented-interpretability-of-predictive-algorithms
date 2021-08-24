@@ -47,6 +47,22 @@ class EvaluationTool:
             self.cm[grp] = {'TP': TP, 'FN': FN, 'FP': FP, 'TN': TN}
         
         return self.cm
+
+    def calculate_weighted_error_difference(self, w_fp):
+        avg_w_error = {}
+        for grp in self.sens_grps:
+            cm_grp = self.cm[grp]
+            n_grp = sum(cm_grp.values())
+            avg_w_error[grp] = (w_fp*cm_grp['FP'] + (1-w_fp)*cm_grp['FN'])/n_grp
+
+        unfairness = pd.DataFrame({
+            'grp': avg_w_error.keys(), 
+            'avg_w_error':  avg_w_error.values()
+        })
+        min_err = min(unfairness['avg_w_error'])
+        unfairness['perc_diff'] = (unfairness['avg_w_error']-min_err)/abs(min_err)*100
+
+        return unfairness
             
     def plot_confusion_matrix(self):
         plt.figure(figsize = (15,5))
@@ -90,10 +106,10 @@ class EvaluationTool:
     def get_rates_overview(self):
         rates_overview = pd.DataFrame(
             [["PR", "1-NR"],
-            ["TPR", "1-FNR"],
-            ["TNR", "1-FPR"],
-            ["PPV", "1-FDR"],
-            ["NPV", "1-FOR"]],
+            ["FNR", "1-TPR"],
+            ["FPR", "1-TNR"],
+            ["FDR", "1-PPV"],
+            ["FOR", "1-NPV"]],
             columns = ["rate", "rate_equiv"]
         )
 
@@ -257,6 +273,8 @@ if __name__ == "__main__":
         r = data.log_reg_prob,
         model_type='Logistic Regression',tol = 0.05)
 
+    fair.calculate_weighted_error_difference(0.01)
+
     #fair.plot_confusion_matrix()
     #print(fair.get_rates_overview())
     #obs_crit = fair.get_obs_crit()
@@ -270,5 +288,8 @@ if __name__ == "__main__":
     # Creating sufficiency plot 
     #p2 = fair.plot_calibration()
     #p2
+
+
+
 
 # %%
