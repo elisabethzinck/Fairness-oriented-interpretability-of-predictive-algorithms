@@ -6,7 +6,6 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import KFold
 from sklearn.preprocessing import StandardScaler
 
-from src.evaluation_tool.basic_tool import EvaluationTool 
 from src.data.general_preprocess_functions import one_hot_encode_mixed_data
 
 #%%
@@ -43,6 +42,6 @@ if __name__ == "__main__":
         df.loc[test_idx, 'log_reg_pred'] = log_reg.predict(X_test)
         df.loc[test_idx, 'log_reg_prob'] = log_reg.predict_proba(X_test)[:,1] 
     
-    
+
     df.to_csv(output_path, index = False)
 
