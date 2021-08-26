@@ -67,6 +67,24 @@ class FairKit:
                 'FOR': FN/(TN + FN)
                 }
 
+    def get_l1_data(self, w_fp):
+        """Get data used for first layer of evaluation
+        
+        Args:
+            w_fp (float): False positive error weight
+        """
+        df = (pd.DataFrame(self.cm)
+            .T.reset_index()
+            .rename(columns = {'index':'grp'})
+            .assign(
+                N = lambda x: x.TP + x.FN + x.FP + x.TN,
+                PP = lambda x: x.TP + x.FP,
+                avg_w_error = lambda x: (w_fp*x.FP + (1-w_fp)*x.FN)/x.N))
+        min_err = min(df.avg_w_error)
+        df['perc_diff'] = (df.avg_w_error-min_err)/abs(min_err)*100
+
+        return df
+
     def l1_plot(self):
         pass
 
@@ -176,6 +194,3 @@ if __name__ == "__main__":
         model_type='Logistic Regression')
     fair.create_fake_example()
     fair.l2_plot()
-
-
-# %%
