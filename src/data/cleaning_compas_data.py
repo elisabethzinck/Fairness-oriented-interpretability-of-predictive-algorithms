@@ -4,8 +4,8 @@ import matplotlib.pyplot as plt
 
 if __name__ == "__main__":
     raw_file_path = 'data\\raw\\compas-scores-two-years.csv'
-    processed_file_path = 'data\\processed\\compas-scores-two-years-subset.csv'
-    processed_file_path_preds = 'data\\processed\\compas-scores-two-years-pred.csv'
+    processed_file_path = 'data\\processed\\compas\\compas-scores-two-years-subset.csv'
+    processed_file_path_preds = 'data\\processed\\compas\\compas-scores-two-years-pred.csv'
     
     compas_raw = pd.read_csv(raw_file_path)
     compas_raw.head()
@@ -50,7 +50,7 @@ if __name__ == "__main__":
 
     # Dropping irrelevant columns and writing to csv 
     compas_subset = compas_subset[compas_subset.columns.difference(['violent_recid', 'decile_score.1'])]
-    compas_subset.to_csv(processed_file_path)
+    compas_subset.to_csv(processed_file_path, index = False)
 
     # Data frame with predictions 
     pred = compas_subset[['id', 'sex', 'age', 'age_cat', 'race', 
@@ -58,9 +58,10 @@ if __name__ == "__main__":
                          'v_decile_score', 'v_score_text',
                          'two_year_recid']]
     
-    pred.assign(pred_high = [int(pred.score_text.iloc[i] == 'High') for i in range(pred.shape[0])], 
+    pred = pred.assign(pred_high = [int(pred.score_text.iloc[i] == 'High') for i in range(pred.shape[0])], 
                 v_pred_high = [int(pred.v_score_text.iloc[i] == 'High') for i in range(pred.shape[0])],
                 pred_medium_high = [int(pred.score_text.iloc[i] != 'Low') for i in range(pred.shape[0])],
                 v_pred_medium_high = [int(pred.v_score_text.iloc[i] != 'Low') for i in range(pred.shape[0])])
-
-    pred.to_csv(processed_file_path_preds)            
+    print(pred.columns)
+    
+    pred.to_csv(processed_file_path_preds, index=False)            

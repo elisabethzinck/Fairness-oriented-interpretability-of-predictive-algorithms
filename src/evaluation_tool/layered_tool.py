@@ -1,10 +1,12 @@
 #%%
 import pandas as pd
 import numpy as np
+import itertools
 
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mtick
 import seaborn as sns
+import plotly.graph_objects as go
 
 from sklearn.metrics import confusion_matrix, roc_curve
 
@@ -67,7 +69,7 @@ class FairKit:
                 'FOR': FN/(TN + FN)
                 }
 
-    def get_l1_data(self, w_fp):
+    def l1_get_data(self, w_fp = 0.5):
         """Get data used for first layer of evaluation
         
         Args:
@@ -77,9 +79,9 @@ class FairKit:
             .T.reset_index()
             .rename(columns = {'index':'grp'})
             .assign(
-                N = lambda x: x.TP + x.FN + x.FP + x.TN,
+                n = lambda x: x.TP + x.FN + x.FP + x.TN,
                 PP = lambda x: x.TP + x.FP,
-                avg_w_error = lambda x: (w_fp*x.FP + (1-w_fp)*x.FN)/x.N))
+                avg_w_error = lambda x: (w_fp*x.FP + (1-w_fp)*x.FN)/x.n))
         min_err = min(df.avg_w_error)
         df['perc_diff'] = (df.avg_w_error-min_err)/abs(min_err)*100
 
@@ -177,14 +179,11 @@ class FairKit:
 
 
 
-
-
-
 #%% Main
 if __name__ == "__main__":
     file_path = 'data\\processed\\german_credit_pred.csv'
     data = pd.read_csv(file_path)
-    data.head()
+    #data.head()
 
     fair = FairKit(
         y = data.credit_score, 
@@ -192,5 +191,60 @@ if __name__ == "__main__":
         a = data.sex, 
         r = data.log_reg_prob,
         model_type='Logistic Regression')
-    fair.create_fake_example()
-    fair.l2_plot()
+    #fair.create_fake_example()
+    #fair.l2_plot()
+    fair.l2_ratio_subplot()
+
+    compas_file_path = 'data\\processed\\compas\\compas-scores-two-years-pred.csv'
+    compas = pd.read_csv(compas_file_path)
+    compas.head()
+
+    fair_compas = FairKit(
+        y = compas.two_year_recid, 
+        y_hat = compas.pred_medium_high, 
+        a = compas.age_cat, 
+        r = compas.decile_score,
+        model_type='COMPAS Decile Scores')
+    #fair_compas.l2_plot()
+
+
+    # Plotting spider plot 
+
+    # Extracting rates for each group 
+    discrim_rates = ['FPR', 'FNR', 'FDR', 'FOR']
+    name_map = {}
+    rel_rates = pd.DataFrame({'rate': discrim_rates})
+    for i, grp in enumerate(fair_compas.sens_grps):
+        grp_lab = 'grp' + str(i)
+        name_map[grp_lab] = grp
+        rel_rates[grp_lab] = [
+            fair_compas.rates[grp][rate] for rate in rel_rates.rate
+            ]
+
+    # ratio of each group's rate vs. minimum rate across groups 
+    for grp in name_map.keys():
+        pair_name = grp + "_vs_min_rate_ratio"
+        assign_dict = {pair_name: lambda x: (x[grp] - x[list(name_map.keys())].min(axis = 1))/abs(x[list(name_map.keys())].min(axis = 1))*100}
+        rel_rates = rel_rates.assign(**assign_dict)
+    rel_rates = rel_rates.assign(grp_w_min_rate = lambda x: x[list(name_map.keys())].idxmin(axis = 1))
+    rel_rates['grp_w_min_rate_name'] = [name_map[i] for i in rel_rates.grp_w_min_rate]
+
+    fig = go.Figure() 
+    for i in [0, 2, 3]:
+        fig.add_trace(go.Scatterpolar(
+        r=list(rel_rates.filter(regex= 'vs').iloc[i]),
+        theta=fair_compas.sens_grps,
+        fill='toself',
+        name = rel_rates.rate[i]
+        ))
+    
+    fig.update_layout(
+    polar=dict(
+        radialaxis=dict(
+        visible=True
+        ),
+    ),
+    showlegend=True
+    )
+
+    fig.show()
