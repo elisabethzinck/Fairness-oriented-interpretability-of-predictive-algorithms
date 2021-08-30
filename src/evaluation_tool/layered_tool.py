@@ -1,10 +1,12 @@
 #%%
+from matplotlib import gridspec
 import pandas as pd
 import numpy as np
 import math
 
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mtick
+from matplotlib.gridspec import GridSpec
 import seaborn as sns
 import plotly.graph_objects as go
 
@@ -191,7 +193,8 @@ class FairKit:
 
         return self.rel_rates
 
-    def l2_ratio_radar_subplot(self, as_subplot = True):
+    def l2_ratio_radar_subplot(self, as_subplot = True, tol = 0.05, axes = None):
+        
         if (self.rel_rates is None) | (self.name_map is None):
             self.l2_get_relative_rates()
 
@@ -206,16 +209,22 @@ class FairKit:
         angles_x = [n/n_groups*2*np.pi for n in range(n_groups)]
         angles_x += angles_x[:1]
         angles_all = np.linspace(0, 2*np.pi)
-        
-        fig = plt.figure(figsize = (10,8))
+
+        fig = plt.figure(figsize = (8,8))
         if as_subplot == False:
-            ax = fig.add_subplot(1, 1, 1, polar = True)
+            if axes is None:
+                ax = fig.add_subplot(1,1,1, polar = True)
+            else: 
+                ax = axes[0]
             ax.set_theta_offset(np.pi/2)
             ax.set_theta_direction(-1)
 
         for i, rate in enumerate(self.rel_rates.rate.tolist()):
             if as_subplot:
-                ax = fig.add_subplot(2, 2, i+1, polar = True)
+                if axes is None:
+                    ax = fig.add_subplot(2, 2, i+1, polar = True)
+                else: 
+                    ax = axes[i]
                 ax.set_theta_offset(np.pi/2)
                 ax.set_theta_direction(-1)
             
@@ -223,8 +232,7 @@ class FairKit:
             rate_vals += rate_vals[:1]
             ax.plot(angles_x, rate_vals, c = rate_cols[i], linewidth = 4, label = rate)
             ax.fill(angles_x, rate_vals, rate_cols[i], alpha=0.5)
-            tol = 5
-            ax.fill(angles_all, np.ones(len(angles_all))*tol, "#2a475e", alpha = 0.7)
+            ax.fill(angles_all, np.ones(len(angles_all))*tol*100, "#2a475e", alpha = 0.7)
 
             if as_subplot:
                 # putting x labels as sensitive groups 
@@ -238,7 +246,7 @@ class FairKit:
                 ax.set_yticklabels(ytick_labels)
                 # Remove spines
                 ax.spines["polar"].set_color("none")
-                legend = ax.legend(loc=(1, 0), frameon=False)
+                legend = ax.legend(loc=(0, 0), frameon=False)
             else:
                 # putting x labels as sensitive groups 
                 ax.set_xticks(angles_x[:-1])
@@ -247,16 +255,32 @@ class FairKit:
                 # Remove spines
                 ax.spines["polar"].set_color("none")
                 # Adding tolerance 
-                tol = 5
-                ax.fill(angles_all, np.ones(len(angles_all))*tol, "#2a475e", alpha = 0.7)
-                legend = ax.legend(loc=(1, 0), frameon=False)
-        return ax
+                ax.fill(angles_all, np.ones(len(angles_all))*tol*100, "#2a475e", alpha = 0.7)
+                legend = ax.legend(loc=(0, 0), frameon=False)
+        return fig
 
-    def l2_plot(self):
-        f, (ax1, ax2) = plt.subplots(1, 2, figsize=(10,5))
-        self.l2_ratio_subplot(axis = ax1)
-        self.l2_rate_subplot(axis = ax2)
-        f.subplots_adjust(wspace = 0.5, right = 1)
+    def l2_plot(self, as_subplot = True):
+        if(len(self.sens_grps) <= 2):
+            f, (ax1, ax2) = plt.subplots(1, 2, figsize=(10,5))
+            self.l2_ratio_subplot(axis = ax1)
+            self.l2_rate_subplot(axis = ax2)
+            f.subplots_adjust(wspace = 0.5, right = 1)
+        else:
+            f = plt.figure(figsize = (15,10))
+            if as_subplot: 
+                gs = GridSpec(nrows = 2, ncols = 3)
+                ax_list = [f.add_subplot(gs[0,0], polar = True),
+                           f.add_subplot(gs[0,1], polar = True), 
+                           f.add_subplot(gs[1,0], polar = True),
+                           f.add_subplot(gs[1,1], polar = True),
+                           f.add_subplot(gs[:,2])]
+            else:
+                gs = GridSpec(nrows = 1, ncols = 2)
+                ax_list = [f.add_subplot(gs[0,0], polar = True),
+                           f.add_subplot(gs[0,1])]
+
+            self.l2_rate_subplot(axis = ax_list[-1])
+            self.l2_ratio_radar_subplot(axes = ax_list, as_subplot=as_subplot)
 
     def create_fake_example(self):
         """Modifies rate to show discrimination of women"""
@@ -288,11 +312,11 @@ if __name__ == "__main__":
     fair_compas = FairKit(
         y = compas.two_year_recid, 
         y_hat = compas.pred_medium_high, 
-        a = compas.race, 
+        a = compas.age_cat, 
         r = compas.decile_score,
         model_type='COMPAS Decile Scores')
-    fair_compas.l2_ratio_radar_subplot(as_subplot=True)
-    #fair_compas.l2_ratio_subplot()
+    fig = fair_compas.l2_ratio_radar_subplot(as_subplot=True)
+    fair_compas.l2_plot()
 
 
 # %%
