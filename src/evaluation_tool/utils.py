@@ -32,8 +32,8 @@ def abs_percentage_tick(x, pos):
     """Return absolute percentage value w/ % as string"""
     return str(round(abs(x))) + '%'
 
-def round_05(x):
-    """Round to the nearest 0.5"""
-    return(round(x/0.5)*0.5)
+def round_func(x, base = 5):
+    """Costum round function, which rounds to the nearest base. Default base = 5"""
+    return(round(x/base)*base)
 
 # %%
