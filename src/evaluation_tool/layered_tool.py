@@ -147,12 +147,17 @@ class FairKit:
         rel_rates['max_grp'] = [
             name_map['grp'+str(grp)] for grp in rel_rates.max_grp]
 
+        rel_rates_2d_plot = self.rel_rates.assign(
+            signed_ratio = lambda x: x["grp0_vs_min_rate_ratio"]+
+            x["grp1_vs_min_rate_ratio"]
+            )
+
         if axis is None:
             axis = plt.gca()
         sns.barplot(
             x = 'signed_ratio', y = 'rate', 
-            hue = 'max_grp', palette = self.sens_grps_cols,
-            data = rel_rates,
+            hue = 'max_grp_name', palette = self.sens_grps_cols,
+            data = rel_rates_2d_plot,
             order = discrim_rates,
             ax = axis,
             dodge = False)
@@ -188,8 +193,10 @@ class FairKit:
                 pair_name: lambda x: (x[grp] - x[grps].min(axis = 1))/abs(x[grps].min(axis = 1))*100
                 }
             self.rel_rates = self.rel_rates.assign(**assign_dict)
-        self.rel_rates = self.rel_rates.assign(grp_w_min_rate = lambda x: x[grps].idxmin(axis = 1))
-        self.rel_rates['grp_w_min_rate_name'] = [self.name_map[i] for i in self.rel_rates.grp_w_min_rate]
+        self.rel_rates = self.rel_rates.assign(min_grp = lambda x: x[grps].idxmin(axis = 1), 
+                                               max_grp = lambda x: x[grps].idxmax(axis = 1))
+        self.rel_rates['min_grp_name'] = [self.name_map[i] for i in self.rel_rates.min_grp]
+        self.rel_rates['max_grp_name'] = [self.name_map[i] for i in self.rel_rates.max_grp]
 
         return self.rel_rates
 
@@ -285,7 +292,7 @@ class FairKit:
     def create_fake_example(self):
         """Modifies rate to show discrimination of women"""
         self.rates['female']['FPR'] = 0.47
-
+        self.l2_get_relative_rates()
 
 
 
@@ -301,9 +308,9 @@ if __name__ == "__main__":
         a = data.sex, 
         r = data.log_reg_prob,
         model_type='Logistic Regression')
-    #fair.create_fake_example()
+    fair.create_fake_example()
     #fair.l2_plot()
-    #fair.l2_ratio_subplot()
+    fair.l2_ratio_subplot()
 
     compas_file_path = 'data\\processed\\compas\\compas-scores-two-years-pred.csv'
     compas = pd.read_csv(compas_file_path)
