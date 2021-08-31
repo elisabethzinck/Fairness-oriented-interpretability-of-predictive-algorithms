@@ -84,7 +84,7 @@ class FairKit:
             .assign(
                 n = lambda x: x.TP + x.FN + x.FP + x.TN,
                 PP = lambda x: x.TP + x.FP,
-                avg_w_error = lambda x: (w_fp*x.FP + (1-w_fp)*x.FN)/x.n))
+                avg_w_error = lambda x: (w_fp*x.FP + (1-w_fp)*x.FN)/(2*x.n)))
         min_err = min(df.avg_w_error)
         df['perc_diff'] = (df.avg_w_error-min_err)/abs(min_err)*100
 
@@ -124,40 +124,22 @@ class FairKit:
         return axis
 
     def l2_ratio_subplot(self, axis = None):
-        discrim_rates = ['FPR', 'FNR', 'FDR', 'FOR']
-        name_map = {}
-        rel_rates = pd.DataFrame({'rate': discrim_rates})
-        for i, grp in enumerate(self.sens_grps):
-            grp_lab = 'grp' + str(i)
-            name_map[grp_lab] = grp
-            rel_rates[grp_lab] = [
-                self.rates[grp][rate] for rate in rel_rates.rate
-                ]
+        
+        if (self.rel_rates is None) | (self.name_map is None):
+            self.l2_get_relative_rates()
 
-        rel_rates = rel_rates.assign(
-            grp0_ratio = lambda x: (x.grp0 - x.grp1)/abs(x.grp1)*100,
-            grp1_ratio = lambda x: (x.grp1 - x.grp0)/abs(x.grp0)*100,
-            abs_ratio = lambda x: np.maximum(x.grp0_ratio, x.grp1_ratio)
-        )
-
-        rel_rates['max_grp'] = np.argmax(
-            np.array(rel_rates[['grp0_ratio', 'grp1_ratio']]),
-            axis=1)
-        rel_rates['signed_ratio'] = rel_rates.abs_ratio*(rel_rates.max_grp*2-1)
-        rel_rates['max_grp'] = [
-            name_map['grp'+str(grp)] for grp in rel_rates.max_grp]
-
-        rel_rates_2d_plot = self.rel_rates.assign(
-            signed_ratio = lambda x: x["grp0_vs_min_rate_ratio"]+
-            x["grp1_vs_min_rate_ratio"]
+        rel_rates_2grp_plot = self.rel_rates.assign(
+            signed_ratio = lambda x: x["grp1_vs_min_rate_ratio"]-
+            x["grp0_vs_min_rate_ratio"]
             )
+        discrim_rates = list(rel_rates_2grp_plot.rate)
 
         if axis is None:
             axis = plt.gca()
         sns.barplot(
             x = 'signed_ratio', y = 'rate', 
             hue = 'max_grp_name', palette = self.sens_grps_cols,
-            data = rel_rates_2d_plot,
+            data = rel_rates_2grp_plot,
             order = discrim_rates,
             ax = axis,
             dodge = False)
@@ -309,8 +291,8 @@ if __name__ == "__main__":
         r = data.log_reg_prob,
         model_type='Logistic Regression')
     fair.create_fake_example()
-    #fair.l2_plot()
-    fair.l2_ratio_subplot()
+    fair.l2_plot()
+    #fair.l2_ratio_subplot()
 
     compas_file_path = 'data\\processed\\compas\\compas-scores-two-years-pred.csv'
     compas = pd.read_csv(compas_file_path)
@@ -322,8 +304,5 @@ if __name__ == "__main__":
         a = compas.age_cat, 
         r = compas.decile_score,
         model_type='COMPAS Decile Scores')
-    fig = fair_compas.l2_ratio_radar_subplot(as_subplot=True)
-    fair_compas.l2_plot()
-
-
-# %%
+    #fig = fair_compas.l2_ratio_radar_subplot(as_subplot=True)
+    #fair_compas.l2_plot()
