@@ -12,14 +12,15 @@ from src.data.general_preprocess_functions import one_hot_encode_mixed_data
 
 if __name__ == "__main__":
     file_path = 'data\\processed\\german_credit.csv'
-    output_path = 'data\\processed\\german_credit_pred.csv'
+    output_path = 'data\\predictions\\german_credit_log_reg.csv'
     data = pd.read_csv(file_path)
     
-    df = data.copy()
+    df = data[['credit_score', 'person_id', 'sex']].copy()
+
     df['log_reg_pred'] = np.nan
     df['log_reg_prob'] = np.nan
     
-    X = data[data.columns.difference(['credit_score'])]
+    X = data[data.columns.difference(['credit_score', 'person_id'])]
     X = one_hot_encode_mixed_data(X)
     y = data.credit_score
 
@@ -44,4 +45,3 @@ if __name__ == "__main__":
     
 
     df.to_csv(output_path, index = False)
-
