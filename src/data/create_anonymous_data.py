@@ -49,4 +49,14 @@ anym_instance = FairKit(
     r = anym.phat)
 anym_instance.l1_get_data()
 anym_instance.l2_plot(as_subplot = False)
+# %% Visualization with 2 groups
+df = anym[anym.grp.isin(['A','B'])]
+anym2_instance = FairKit(
+    y = df.y, 
+    y_hat = df.yhat, 
+    a = df.grp, 
+    r = df.phat)
+anym2_instance.l1_get_data()
+anym2_instance.l2_plot(as_subplot = False)
+
 # %%
