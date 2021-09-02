@@ -1,7 +1,13 @@
+# Preprocess the german credit data to make it easier to work with
+#%%
+remove_single_males = False
 #%% Initialization
 import pandas as pd
 input_path = 'data\\raw\\german_credit\\german.data'
-output_path = 'data\\processed\\german_credit.csv'
+if remove_single_males:
+    output_path = 'data\\processed\\german_credit.csv'
+else:
+    output_path = 'data\\processed\\german_credit_full.csv'
 # The data was downloaded from 
 # https://archive.ics.uci.edu/ml/machine-learning-databases/statlog/german/
 # Link from Fairness definitions explained article
@@ -38,6 +44,9 @@ raw_data = pd.read_csv(
 
 df = raw_data.copy()
 
+#%% Create id column to allow for saving predictions without remaining data
+df['person_id'] = range(df.shape[0])
+
 
 
 #%% Cleaning personal_status_sex
@@ -54,9 +63,10 @@ sex_map = {
 df['sex'] = df['personal_status_sex'].map(sex_map)
 
 #%% Removing single males and female (because no female singles)
-df = df[
-    (df.personal_status_sex != 'A93') & \
-    (df.personal_status_sex != 'A95')]
+if remove_single_males:
+    df = df[
+        (df.personal_status_sex != 'A93') & \
+        (df.personal_status_sex != 'A95')]
 
 #%% making target binary 
 # (Bad,Good) credit score -> (0,1) in new definition
