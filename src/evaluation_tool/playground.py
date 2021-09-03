@@ -5,6 +5,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
+from src.evaluation_tool.utils import (
+    cm_matrix_to_dict, cm_dict_to_matrix, abs_percentage_tick, round_func)
 #%%
 def plot_confusion_matrix(TP, FN, FP, TN):
         plt.figure(figsize = (15,5))
@@ -76,6 +78,51 @@ our_playground = interactive(
     TN=(0,100),
     FN=(0,100),
     alpha = (0,1, 0.1))
+our_playground
+
+# %%
+def check_degeneracy(TPa, FNa, FPa, TNa, TPb, FNb, FPb, TNb):
+    cm = {}
+    cm['a'] = cm_matrix_to_dict(np.array([[TPa, FNa], [FPa, TNa]]))
+    cm['b'] = cm_matrix_to_dict(np.array([[TPb, FNb], [FPb, TNb]]))
+    grps = ['a', 'b']
+    rates = {}
+    for grp in grps:
+        TP, FN, FP, TN = cm[grp].values()
+        rates[grp] = {
+            'base_rate': (TP+FP)/(TP + FP + TN + FN), 
+            'FNR': FN/(TP + FN), 
+            'FPR': FP/(TN + FP),
+            'FDR': FP/(TP + FP),
+            'FOR': FN/(TN + FN)
+            }
+
+    rates_a = pd.DataFrame({
+    'value': rates['a'].values(),
+    'rate': rates['a'].keys(),
+    'grp': 'a'})
+    rates_b = pd.DataFrame({
+    'value': rates['b'].values(),
+    'rate': rates['b'].keys(),
+    'grp': 'b'})
+    rates = pd.concat([rates_a, rates_b])
+
+    sns.barplot(x = 'value', y = 'rate', hue = 'grp', data = rates)
+    plt.legend(bbox_to_anchor=(1,1), loc="upper left")
+    plt.show()
+    return rates
+
+# %%
+our_playground = interactive(
+    check_degeneracy,
+    TPa=(0,2),
+    FPa=(0,2),
+    TNa=(0,2),
+    FNa=(0,2),
+    TPb=(0,2),
+    FPb=(0,2),
+    TNb=(0,2),
+    FNb=(0,2))
 our_playground
 
 # %%
