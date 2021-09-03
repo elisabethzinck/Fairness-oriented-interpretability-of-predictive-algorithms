@@ -39,7 +39,7 @@ name_map = {
 anym = german_data[name_map.keys()].rename(columns = name_map)
 
 
-anym.to_csv(output_path)
+anym.to_csv(output_path, index = None)
 
 # %% Show what visualization will look like
 anym_instance = FairKit(
