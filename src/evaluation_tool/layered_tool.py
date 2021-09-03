@@ -101,6 +101,35 @@ class FairKit:
     def l1_calculate(self):
         pass
 
+    def l2_get_relative_rates(self):
+        """Get relatice difference in rates between group rate 
+        and minimum rate. Dataframe used for ratio plot in 
+        second layer of evaluation
+        """
+        # Extracting rates for each group 
+        discrim_rates = ['FPR', 'FNR', 'FDR', 'FOR']
+        self.name_map = {}
+        self.rel_rates = pd.DataFrame({'rate': discrim_rates})
+        for i, grp in enumerate(self.sens_grps):
+            grp_lab = 'grp' + str(i)
+            self.name_map[grp_lab] = grp
+            self.rel_rates[grp_lab] = [
+                self.rates[grp][rate] for rate in self.rel_rates.rate
+                ]
+
+        # ratio of each group's rate vs. minimum rate across groups 
+        grps = list(self.name_map.keys())
+        for grp in grps:
+            pair_name = grp + "_vs_min_rate_ratio"
+            assign_dict = {
+                pair_name: lambda x: (x[grp] - x[grps].min(axis = 1))/abs(x[grps].min(axis = 1))*100
+                }
+            self.rel_rates = self.rel_rates.assign(**assign_dict)
+
+        self.rel_rates = self.rel_rates.drop(list(self.name_map.keys()), axis = 1)
+
+        return self.rel_rates
+
     def l2_rate_subplot(self, axis = None):
         discrim_rates = ['FPR', 'FNR', 'FDR', 'FOR']
         rates_df = pd.DataFrame(
@@ -123,7 +152,7 @@ class FairKit:
         axis.set_xlim(0,1)
         for pos in ['right', 'top', 'left']:
             axis.spines[pos].set_visible(False)
-        axis.tick_params(left=False)
+        axis.tick_params(left=False, labelsize=12)
         axis.legend(loc = 'upper right', frameon = False)
 
         return axis
@@ -160,126 +189,69 @@ class FairKit:
 
         return axis
 
-    def l2_get_relative_rates(self):
-        # Extracting rates for each group 
-        discrim_rates = ['FPR', 'FNR', 'FDR', 'FOR']
-        self.name_map = {}
-        self.rel_rates = pd.DataFrame({'rate': discrim_rates})
-        for i, grp in enumerate(self.sens_grps):
-            grp_lab = 'grp' + str(i)
-            self.name_map[grp_lab] = grp
-            self.rel_rates[grp_lab] = [
-                self.rates[grp][rate] for rate in self.rel_rates.rate
-                ]
-
-        # ratio of each group's rate vs. minimum rate across groups 
-        grps = list(self.name_map.keys())
-        for grp in grps:
-            pair_name = grp + "_vs_min_rate_ratio"
-            assign_dict = {
-                pair_name: lambda x: (x[grp] - x[grps].min(axis = 1))/abs(x[grps].min(axis = 1))*100
-                }
-            self.rel_rates = self.rel_rates.assign(**assign_dict)
-        self.rel_rates = self.rel_rates.assign(min_grp = lambda x: x[grps].idxmin(axis = 1), 
-                                               max_grp = lambda x: x[grps].idxmax(axis = 1))
-        self.rel_rates['min_grp_name'] = [self.name_map[i] for i in self.rel_rates.min_grp]
-        self.rel_rates['max_grp_name'] = [self.name_map[i] for i in self.rel_rates.max_grp]
-
-        return self.rel_rates
-
-    def l2_ratio_radar_subplot(self, as_subplot = True, tol = 0.05, axes = None):
-        
+    def l2_ratio_lollipop_subplot(self, ax = None):
         if (self.rel_rates is None) | (self.name_map is None):
             self.l2_get_relative_rates()
 
-        # Colors of rates
-        palette = list(sns.color_palette('Paired').as_hex()) 
-        rate_cols = [palette[i] for i in [2,3,8,9]]
-        
-        groups = list(self.name_map.keys()) # Each corner in plot 
-        n_groups = len(groups)
+        w_size = 1000
+        plot_df = self.rel_rates.assign(rate_vals = [1, 0.75, 0.5, 0.25], 
+                              w = [w_size*self.w_fp, w_size*(1-self.w_fp), 
+                                   w_size*self.w_fp, w_size*(1-self.w_fp)]
+                             )
+        plot_df.columns = plot_df.columns.str.replace(r'_vs_min_rate_ratio','')
+        rel_rates_tidy = plot_df.melt(id_vars = ['rate', 'rate_vals','w'], var_name='grp', value_name='vs_min_rate_ratio')
 
-        # Caculating angles to place the x at
-        angles_x = [n/n_groups*2*np.pi for n in range(n_groups)]
-        angles_x += angles_x[:1]
-        angles_all = np.linspace(0, 2*np.pi)
+        if ax is None:
+            ax = plt.gca()
+        ax.hlines(y=rel_rates_tidy.rate_vals,
+                xmin = 0,
+                xmax = rel_rates_tidy.vs_min_rate_ratio,
+                color = 'lightgrey', 
+                alpha = 1, 
+                linestyles='solid', 
+                linewidth=1, 
+                zorder = 1)
+        sns.scatterplot(data = rel_rates_tidy, 
+                        x = 'vs_min_rate_ratio',
+                        y='rate_vals',
+                        hue='grp',
+                        palette = self.sens_grps_no_cols, 
+                        size = 'w',
+                        sizes = (100,200),
+                        legend = False,
+                        ax = ax,
+                        marker = 'o',
+                        alpha = 1, 
+                        zorder = 2)
+        ax.set_yticks(plot_df.rate_vals)
+        ax.set_yticklabels(plot_df.rate)
+        ax.set_ylabel('')
+        ax.set_xlabel('')
+        ax.set_title('Relative Difference of Group Rate vs. Minimum Group Rate', fontsize=14) 
+        ax.set_ylim((.125,1.125))
+        ax.xaxis.set_major_formatter(mtick.FuncFormatter(abs_percentage_tick))
+        for pos in ['right', 'top', 'left']:
+                    ax.spines[pos].set_visible(False)
+        ax.tick_params(left=False, labelsize=12)
+    
+        return ax
 
-        fig = plt.figure(figsize = (8,8))
-        if as_subplot == False:
-            if axes is None:
-                ax = fig.add_subplot(1,1,1, polar = True)
-            else: 
-                ax = axes[0]
-            ax.set_theta_offset(np.pi/2)
-            ax.set_theta_direction(-1)
-
-        for i, rate in enumerate(self.rel_rates.rate.tolist()):
-            if as_subplot:
-                if axes is None:
-                    ax = fig.add_subplot(2, 2, i+1, polar = True)
-                else: 
-                    ax = axes[i]
-                ax.set_theta_offset(np.pi/2)
-                ax.set_theta_direction(-1)
-            
-            rate_vals = self.rel_rates.filter(regex= 'vs').iloc[i].tolist()
-            rate_vals += rate_vals[:1]
-            ax.plot(angles_x, rate_vals, c = rate_cols[i], linewidth = 4,
-             label = f"Relative difference in {rate}")
-            ax.fill(angles_x, rate_vals, rate_cols[i], alpha=0.5)
-            ax.fill(angles_all, np.ones(len(angles_all))*tol*100, "#2a475e", alpha = 0.7, label = f"{int(tol*100)}% Tolerance Level")
-
-            if as_subplot:
-                # putting x labels as sensitive groups 
-                ax.set_xticks(angles_x[:-1])
-                ax.set_xticklabels(list(self.name_map.values()), size = 8, fontweight ='bold')
-                # y tick and  labels 
-                yticks = [round_func(np.linspace(0, math.ceil(max(rate_vals)), 5)[i]) for i in range(5)]
-                ytick_labels = [f"{yticks[i]}%" for i in range(len(yticks))]
-                ytick_labels[0] = ''
-                ax.set_yticks(yticks)
-                ax.set_yticklabels(ytick_labels)
-                # Remove spines
-                ax.spines["polar"].set_color("none")
-                legend = ax.legend(loc='center', bbox_to_anchor = (0.5,-0.07), frameon=False)
-            else:
-                # putting x labels as sensitive groups 
-                ax.set_xticks(angles_x[:-1])
-                ax.set_xticklabels(list(self.name_map.values()), size = 10)
-                ax.set_yticklabels([f"{int(ax.get_yticks()[i])}%" for i in range(len(ax.get_yticks()))])
-                # Remove spines
-                ax.spines["polar"].set_color("none")
-                # Adding tolerance 
-                ax.fill(angles_all, np.ones(len(angles_all))*tol*100, "#2a475e", alpha = 0.7)
-                legend = ax.legend(loc=(0, 0), frameon=False)
-            fig.subplots_adjust(wspace = 0.5)
-            fig.suptitle(t='Relative Differences in Rates for each Sensitive Group \n Compared to the Group with Miminum Rate', fontsize = 16, 
-                         ha='center')
-        return fig
-
-    def l2_plot(self, as_subplot = True):
+    def l2_plot(self):
         if(len(self.sens_grps) <= 2):
             f, (ax1, ax2) = plt.subplots(1, 2, figsize=(10,5))
             self.l2_ratio_subplot(axis = ax1)
             self.l2_rate_subplot(axis = ax2)
             f.subplots_adjust(wspace = 0.5, right = 1)
         else:
-            f = plt.figure(figsize = (15,10))
-            if as_subplot: 
-                gs = GridSpec(nrows = 2, ncols = 3)
-                ax_list = [f.add_subplot(gs[0,0], polar = True),
-                           f.add_subplot(gs[0,1], polar = True), 
-                           f.add_subplot(gs[1,0], polar = True),
-                           f.add_subplot(gs[1,1], polar = True),
-                           f.add_subplot(gs[:,2])]
-            else:
-                gs = GridSpec(nrows = 1, ncols = 2)
-                ax_list = [f.add_subplot(gs[0,0], polar = True),
-                           f.add_subplot(gs[0,1])]
-
-            self.l2_rate_subplot(axis = ax_list[-1])
-            self.l2_ratio_radar_subplot(axes = ax_list, as_subplot=as_subplot)
-            f.subplots_adjust(wspace = 0.5)
+            gs = GridSpec(nrows = 3, ncols = 1)
+            f = plt.figure(figsize=(8,6))
+            ax_list = [f.add_subplot(gs[0:2,0]),
+                       f.add_subplot(gs[2,0])]
+            self.l2_ratio_lollipop_subplot(ax = ax_list[1])
+            self.l2_rate_subplot(axis = ax_list[0])
+            ax_list[0].set_title('Group Rates', fontsize=14)
+            ax_list[0].legend(title='Group', frameon = False)
+            f.subplots_adjust(hspace = 0.8, right = 1)
         return f 
 
     def create_fake_example(self):
@@ -288,10 +260,9 @@ class FairKit:
         self.l2_get_relative_rates()
 
 
-
 #%% Main
 if __name__ == "__main__":
-    file_path = 'data\\processed\\german_credit_pred.csv'
+    file_path = 'data\\predictions\\german_credit_log_reg.csv'
     data = pd.read_csv(file_path)
     #data.head()
 
@@ -315,89 +286,21 @@ if __name__ == "__main__":
         a = compas.age_cat, 
         r = compas.decile_score,
         model_type='COMPAS Decile Scores')
-    #fig = fair_compas.l2_ratio_radar_subplot(as_subplot=True)
     #fair_compas.l2_plot()
-    fair_compas.l2_ratio_radar_subplot()
 
-# %% lollipop plot 
+    file_path = 'data\\processed\\anonymous_data.csv'
+    df = pd.read_csv(file_path)
+    df.head()
 
-fig = plt.figure(figsize =(8,5))
-ax = fig.add_subplot(1,1,1)
-ax.plot(fair_compas.rel_rates.filter(regex='vs'), fair_compas.rel_rates.rate, 'o')
-ax.hlines(y=fair_compas.rel_rates.index, xmin = 0,
- xmax = fair_compas.rel_rates.filter(regex='vs').max(axis = 1),
- color = 'grey', alpha = 0.7, linestyles='solid', linewidth=1)
-ax.xaxis.set_major_formatter(
-            mtick.FuncFormatter(abs_percentage_tick))
+    fair = FairKit(
+        y = df.y, 
+        y_hat = df.yhat, 
+        a = df.grp, 
+        r = df.phat,
+        model_type='')
+    fair.w_fp = 0.7
+    fair.l2_plot().savefig('../Thesis-report/00_figures/L2_example.pdf', bbox_inches='tight')
 
-# %%
-tol = 0.05
-fig = plt.figure(figsize =(8,5))
-ax = fig.add_subplot(1,1,1)
-ax.fill([0,0,tol*100,tol*100], [-1,4,4,-1], color="#2a475e", alpha = 0.3, label = f"{int(tol*100)}% Tolerance Level")
-ax.set_ylim((-0.1,3.1))
-for i, rate in enumerate(fair_compas.rel_rates.rate):
-    for grp_no in fair_compas.name_map.keys():
-        grp_name = fair_compas.name_map[grp_no]
-        rate_vals = fair_compas.rel_rates.filter(regex=f'{grp_no}_vs').iloc[i]
-        point_size = fair_compas.w_fp if rate in(['FPR', 'FOR']) else 1-fair_compas.w_fp 
-        color = fair_compas.sens_grps_cols[grp_name]
-        ax.plot(rate_vals, rate, 'o', markersize = 3+10*point_size, c = color)
-        ax.hlines(y=rate,
-                  xmin = 0,
-                  xmax = fair_compas.rel_rates.filter(regex=f'vs').max(axis=1).iloc[i],
-                  color = 'grey', 
-                  alpha = 0.3, 
-                  linestyles='solid', 
-                  linewidth=1)
-ax.xaxis.set_major_formatter(mtick.FuncFormatter(abs_percentage_tick))
 
-# Idea: Pivot wider with pd.wide_to_long for tidy data
-# Use numbers closer to each other than 0,1,2,3 for the rates 
-# %%
-fair_compas.w_fp = 0.1
-w_size = 1000
-rel_rates_sub = (
-    fair_compas
-    .rel_rates.filter(regex=r'vs|rate')
-    .assign(rate_vals = [1, 0.75, 0.5, 0.25], 
-            w = [w_size*fair_compas.w_fp, w_size*(1-fair_compas.w_fp), 
-                 w_size*(1-fair_compas.w_fp), w_size*fair_compas.w_fp])
-)
-rel_rates_sub.columns = rel_rates_sub.columns.str.replace(r'_vs_min_rate_ratio','')
-rel_rates_tidy = rel_rates_sub.melt(id_vars = ['rate', 'rate_vals','w'],var_name='grp', value_name='vs_min_rate_ratio')
-
-# NB: FIND UD AF HVORDAN SIZE OG SIZES FUNGERER 
-
-fig = plt.figure(figsize =(8,3))
-ax = fig.add_subplot(1,1,1)
-ax.hlines(y=rel_rates_tidy.rate_vals,
-          xmin = 0,
-          xmax = rel_rates_tidy.vs_min_rate_ratio,
-          color = 'lightgrey', 
-          alpha = 1, 
-          linestyles='solid', 
-          linewidth=1, 
-          zorder = 1)
-sns.scatterplot(data = rel_rates_tidy, 
-                x = 'vs_min_rate_ratio',
-                y='rate_vals',
-                hue='grp',
-                palette = fair_compas.sens_grps_no_cols, 
-                size = 'w',
-                legend = False,
-                ax = ax,
-                alpha = 1, 
-                zorder = 2)
-ax.set_yticks(rel_rates_tidy.rate_vals)
-ax.set_yticklabels(rel_rates_tidy.rate)
-ax.set_ylabel('')
-ax.set_xlabel('Relative difference in Percent', fontsize=12)
-ax.set_title('Relative Difference of Group Rate vs. Minimum Rate', fontsize=14) 
-ax.set_ylim((.125,1.125))
-ax.xaxis.set_major_formatter(mtick.FuncFormatter(abs_percentage_tick))
-for pos in ['right', 'top', 'left']:
-            ax.spines[pos].set_visible(False)
-ax.tick_params(left=False, labelsize=12)
 
 # %%
