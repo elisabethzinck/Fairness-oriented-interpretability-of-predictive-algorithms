@@ -226,8 +226,8 @@ class FairKit:
         ax.set_yticks(plot_df.rate_vals)
         ax.set_yticklabels(plot_df.rate)
         ax.set_ylabel('')
-        ax.set_xlabel('Relative difference in Percent', fontsize=12)
-        ax.set_title('Relative Difference of Group Rate vs. Minimum Rate', fontsize=14) 
+        ax.set_xlabel('')
+        ax.set_title('Relative Difference of Group Rate vs. Minimum Group Rate', fontsize=14) 
         ax.set_ylim((.125,1.125))
         ax.xaxis.set_major_formatter(mtick.FuncFormatter(abs_percentage_tick))
         for pos in ['right', 'top', 'left']:
@@ -244,11 +244,13 @@ class FairKit:
             f.subplots_adjust(wspace = 0.5, right = 1)
         else:
             gs = GridSpec(nrows = 3, ncols = 1)
-            f = plt.figure(figsize=(7,6))
+            f = plt.figure(figsize=(8,6))
             ax_list = [f.add_subplot(gs[0:2,0]),
                        f.add_subplot(gs[2,0])]
             self.l2_ratio_lollipop_subplot(ax = ax_list[1])
             self.l2_rate_subplot(axis = ax_list[0])
+            ax_list[0].set_title('Group Rates', fontsize=14)
+            ax_list[0].legend(title='Group', frameon = False)
             f.subplots_adjust(hspace = 0.8, right = 1)
         return f 
 
@@ -296,7 +298,9 @@ if __name__ == "__main__":
         a = df.grp, 
         r = df.phat,
         model_type='')
+    
+    fair.l2_plot().savefig('../Thesis-report/00_figures/L2_example.pdf', bbox_inches='tight')
 
-    fair.l2_plot()
 
 
+# %%
