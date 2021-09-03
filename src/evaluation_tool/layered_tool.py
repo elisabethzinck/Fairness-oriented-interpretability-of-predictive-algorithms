@@ -196,7 +196,7 @@ class FairKit:
         w_size = 1000
         plot_df = self.rel_rates.assign(rate_vals = [1, 0.75, 0.5, 0.25], 
                               w = [w_size*self.w_fp, w_size*(1-self.w_fp), 
-                                   w_size*(1-self.w_fp), w_size*self.w_fp]
+                                   w_size*self.w_fp, w_size*(1-self.w_fp)]
                              )
         plot_df.columns = plot_df.columns.str.replace(r'_vs_min_rate_ratio','')
         rel_rates_tidy = plot_df.melt(id_vars = ['rate', 'rate_vals','w'], var_name='grp', value_name='vs_min_rate_ratio')
@@ -298,7 +298,7 @@ if __name__ == "__main__":
         a = df.grp, 
         r = df.phat,
         model_type='')
-    
+    fair.w_fp = 0.7
     fair.l2_plot().savefig('../Thesis-report/00_figures/L2_example.pdf', bbox_inches='tight')
 
 
