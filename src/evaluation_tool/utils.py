@@ -36,4 +36,12 @@ def round_func(x, base = 5):
     """Costum round function, which rounds to the nearest base. Default base = 5"""
     return(round(x/base)*base)
 
+def flip_dataframe(df, new_colname = 'index'):
+    """Flips table such that first row becomes columns"""
+    colnames = [new_colname] + df.iloc[:,0].tolist()
+    df = df.T.reset_index()
+    df.columns = colnames
+    df = df.iloc[1:, :]
+    return df
+
 # %%
