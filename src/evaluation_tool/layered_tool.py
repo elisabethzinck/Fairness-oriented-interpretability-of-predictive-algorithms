@@ -1,9 +1,9 @@
-#%%
-from matplotlib import gridspec
+#%% Imports
 import pandas as pd
 import numpy as np
 import math
 
+from matplotlib import gridspec
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mtick
 from matplotlib.gridspec import GridSpec
@@ -16,6 +16,11 @@ from src.evaluation_tool.utils import (
     cm_matrix_to_dict, cm_dict_to_matrix, abs_percentage_tick, round_func)
 
 #%%
+def get_minimum_rate(group):
+    """Helper function to calculate minimum rate by group"""
+    group['min_rate'] = group['rate_val'].agg('min')
+    return group
+
 class FairKit:
     def __init__(self, y, y_hat, a, r, model_type = None):
         """Saves and calculates all necessary attributes for FairKit object
@@ -39,41 +44,76 @@ class FairKit:
         self.n_sens_grps = len(self.sens_grps)
         self.w_fp = 0.5 
 
-        self.get_confusion_matrix()
-        self.get_rates()
-        self.l2_get_relative_rates()
+        self.cm = self.get_confusion_matrix()
+        self.rates = self.get_rates()
+        self.rel_rates = self.get_relative_rates()
 
         # Define color palette
-        n_grps = len(self.sens_grps)
-        cols = sns.color_palette(n_colors = n_grps)
+        cols = sns.color_palette(n_colors = self.n_sens_grps)
         self.sens_grps_cols = dict(zip(self.sens_grps, cols))
-        self.sens_grps_no_cols = dict(zip(self.name_map.keys(), cols))
 
     def get_confusion_matrix(self):
         """Calculate the confusion matrix for sensitive groups"""
-        self.cm = {}
-        for grp in self.sens_grps:
-            df_group = self.classifier[self.classifier.a == grp]
-            cm_sklearn = confusion_matrix(
-                y_true = df_group.y, 
-                y_pred = df_group.y_hat)
-            self.cm[grp] = cm_matrix_to_dict(cm_sklearn)
+        if hasattr(self, 'cm'):
+            return self.cm
+        else:
+            cm = {}
+            for grp in self.sens_grps:
+                df_group = self.classifier[self.classifier.a == grp]
+                cm_sklearn = confusion_matrix(
+                    y_true = df_group.y, 
+                    y_pred = df_group.y_hat)
+                cm[grp] = cm_matrix_to_dict(cm_sklearn)
+            return cm
+
+
 
     def get_rates(self):
-        """Calculate rates by group"""
-        self.rates = {}   
-        for grp in self.sens_grps:
-            TP, FN, FP, TN = self.cm[grp].values()
-            self.rates[grp] = {
-                'TPR': TP/(TP + FN), 
-                'FNR': FN/(TP + FN), 
-                'TNR': TN/(TN + FP),
-                'FPR': FP/(TN + FP),
-                'PPV': TP/(TP + FP),
-                'FDR': FP/(TP + FP),
-                'NPV': TN/(TN + FN),
-                'FOR': FN/(TN + FN)
-                }
+        """Calculate rates by senstitive group"""
+        if hasattr(self, 'rates'):
+            return self.rates
+        else:
+            rates = {}   
+            for grp in self.sens_grps:
+                TP, FN, FP, TN = self.cm[grp].values()
+                rates[grp] = {
+                    'TPR': TP/(TP + FN), 
+                    'FNR': FN/(TP + FN), 
+                    'TNR': TN/(TN + FP),
+                    'FPR': FP/(TN + FP),
+                    'PPV': TP/(TP + FP),
+                    'FDR': FP/(TP + FP),
+                    'NPV': TN/(TN + FN),
+                    'FOR': FN/(TN + FN)
+                    }
+            return rates
+
+    def get_relative_rates(self):
+        """Calculate relative difference in rates between group rate 
+        and minimum rate. Dataframe used for ratio plot in 
+        second layer of evaluation
+        """
+        if hasattr(self, 'rel_rates'):
+            return self.rel_rates
+        else:
+            discrim_rates = ['FPR', 'FNR', 'FDR', 'FOR']
+        
+            # Convert rate dict to data frame
+            rates_df = pd.DataFrame(
+                [(grp, rate, val) 
+                for grp,grp_dict in self.rates.items() 
+                for rate,val in grp_dict.items()], 
+                columns = ['grp', 'rate', 'rate_val'])
+            
+            # Calculate relative rates
+            rel_rates = (rates_df[rates_df.rate.isin(discrim_rates)]
+                .groupby(by = 'rate')
+                .apply(get_minimum_rate)
+                .assign(
+                    rate_ratio = lambda x: 
+                        (x.rate_val-x.min_rate)/x.min_rate*100))
+
+            return rel_rates
 
     def l1_get_data(self, w_fp = 0.5):
         """Get data used for first layer of evaluation
@@ -81,153 +121,92 @@ class FairKit:
         Args:
             w_fp (float): False positive error weight
         """
-        self.w_fp = w_fp
-
         df = (pd.DataFrame(self.cm)
             .T.reset_index()
-            .rename(columns = {'index':'grp'})
+            .rename(columns = {'index': 'group'})
             .assign(
                 n = lambda x: x.TP + x.FN + x.FP + x.TN,
-                PP = lambda x: x.TP + x.FP,
+                percent_positive = lambda x: (x.TP + x.FN)/x.n*100,
                 avg_w_error = lambda x: (w_fp*x.FP + (1-w_fp)*x.FN)/(2*x.n)))
         min_err = min(df.avg_w_error)
-        df['perc_diff'] = (df.avg_w_error-min_err)/abs(min_err)*100
+        df['unfair'] = (df.avg_w_error-min_err)/abs(min_err)*100
+
+        # Make table pretty
+        cols_to_keep = ['group', 'unfair', 'avg_w_error', 'n', 'percent_positive']
+        digits = {'unfair': 1, 'avg_w_error': 3, 'percent_positive': 1}
+        df = (df[cols_to_keep]
+            .round(digits))
 
         return df
 
-    def l1_plot(self):
-        pass
 
-    def l1_calculate(self):
-        pass
-
-    def l2_get_relative_rates(self):
-        """Get relatice difference in rates between group rate 
-        and minimum rate. Dataframe used for ratio plot in 
-        second layer of evaluation
-        """
-        # Extracting rates for each group 
-        discrim_rates = ['FPR', 'FNR', 'FDR', 'FOR']
-        self.name_map = {}
-        self.rel_rates = pd.DataFrame({'rate': discrim_rates})
-        for i, grp in enumerate(self.sens_grps):
-            grp_lab = 'grp' + str(i)
-            self.name_map[grp_lab] = grp
-            self.rel_rates[grp_lab] = [
-                self.rates[grp][rate] for rate in self.rel_rates.rate
-                ]
-
-        # ratio of each group's rate vs. minimum rate across groups 
-        grps = list(self.name_map.keys())
-        for grp in grps:
-            pair_name = grp + "_vs_min_rate_ratio"
-            assign_dict = {
-                pair_name: lambda x: (x[grp] - x[grps].min(axis = 1))/abs(x[grps].min(axis = 1))*100
-                }
-            self.rel_rates = self.rel_rates.assign(**assign_dict)
-
-        self.rel_rates = self.rel_rates.drop(list(self.name_map.keys()), axis = 1)
-
-        return self.rel_rates
-
-    def l2_rate_subplot(self, axis = None):
-        discrim_rates = ['FPR', 'FNR', 'FDR', 'FOR']
-        rates_df = pd.DataFrame(
-            [(grp, rate, val) 
-            for grp,grp_dict in self.rates.items() 
-            for rate,val in grp_dict.items()], 
-            columns = ['grp', 'rate', 'val'])
-        subset = rates_df[rates_df.rate.isin(discrim_rates)]
-
-        if axis is None:
-            axis = plt.gca()
+    def l2_rate_subplot(self, ax = None):
+        """Plot FPR, FNR, FDR, FOR for each group"""
+        rate_order = ['FPR', 'FNR', 'FDR', 'FOR']
+        if ax is None:
+            fig = plt.figure()
+            ax = fig.add_subplot(1, 1, 1)
         sns.barplot(
-            x = 'val', y = 'rate', 
+            x = 'rate_val', y = 'rate', 
             hue = 'grp', palette = self.sens_grps_cols,
-            data = subset,
-            order = discrim_rates,
-            ax = axis)
-        axis.set_xlabel('')
-        axis.set_ylabel('')
-        axis.set_xlim(0,1)
+            data = self.rel_rates,
+            order = rate_order,
+            ax = ax)
+        ax.set_xlabel('')
+        ax.set_ylabel('')
+        ax.set_xlim(0,1)
         for pos in ['right', 'top', 'left']:
-            axis.spines[pos].set_visible(False)
-        axis.tick_params(left=False, labelsize=12)
-        axis.legend(loc = 'upper right', frameon = False)
+            ax.spines[pos].set_visible(False)
+        ax.tick_params(left=False, labelsize=12)
+        ax.legend(loc = 'upper right', frameon = False)
 
-        return axis
+        return ax
 
-    def l2_ratio_subplot(self, axis = None):
+    def l2_ratio_subplot(self, ax = None, w_fp = 0.5):
+        """Plot the rate ratio for each sensitive groups
         
-        if (self.rel_rates is None) | (self.name_map is None):
-            self.l2_get_relative_rates()
-
-        rel_rates_2grp_plot = self.rel_rates.assign(
-            signed_ratio = lambda x: x["grp1_vs_min_rate_ratio"]-
-            x["grp0_vs_min_rate_ratio"]
-            )
-        discrim_rates = list(rel_rates_2grp_plot.rate)
-
-        if axis is None:
-            axis = plt.gca()
-        sns.barplot(
-            x = 'signed_ratio', y = 'rate', 
-            hue = 'max_grp_name', palette = self.sens_grps_cols,
-            data = rel_rates_2grp_plot,
-            order = discrim_rates,
-            ax = axis,
-            dodge = False)
-        axis.axvline(x = 0, color = 'black')
-        axis.set_xlabel('Percent increase in rate for group')
-        axis.set_ylabel('')
-        for pos in ['right', 'top', 'left']:
-            axis.spines[pos].set_visible(False)
-        axis.tick_params(left=False)
-        axis.xaxis.set_major_formatter(
-            mtick.FuncFormatter(abs_percentage_tick))
-        axis.legend(title = None, frameon = False)
-
-        return axis
-
-    def l2_ratio_lollipop_subplot(self, ax = None):
-        if (self.rel_rates is None) | (self.name_map is None):
-            self.l2_get_relative_rates()
-
+        Args:
+            w_fp (float in (0,1)): False positive error weight
+        
+        """
         w_size = 1000
-        plot_df = self.rel_rates.assign(rate_vals = [1, 0.75, 0.5, 0.25], 
-                              w = [w_size*self.w_fp, w_size*(1-self.w_fp), 
-                                   w_size*self.w_fp, w_size*(1-self.w_fp)]
-                             )
-        plot_df.columns = plot_df.columns.str.replace(r'_vs_min_rate_ratio','')
-        rel_rates_tidy = plot_df.melt(id_vars = ['rate', 'rate_vals','w'], var_name='grp', value_name='vs_min_rate_ratio')
+        rate_positions = {'FPR': 1, 'FNR': 0.75, 'FDR': 0.5, 'FOR': 0.25}
+        rate_weights = {
+            'FPR': w_size*w_fp, 'FNR': w_size*(1-w_fp), 
+            'FDR': w_size*w_fp, 'FOR': w_size*(1-w_fp)}
+        plot_df = (self.rel_rates
+            .assign(
+                rate_position = lambda x: x.rate.map(rate_positions), point_size = lambda x: x.rate.map(rate_weights)))
 
         if ax is None:
-            ax = plt.gca()
-        ax.hlines(y=rel_rates_tidy.rate_vals,
+            fig = plt.figure()
+            ax = fig.add_subplot(1, 1, 1)
+        ax.hlines(y=plot_df.rate_position,
                 xmin = 0,
-                xmax = rel_rates_tidy.vs_min_rate_ratio,
+                xmax = plot_df.rate_ratio,
                 color = 'lightgrey', 
                 alpha = 1, 
                 linestyles='solid', 
                 linewidth=1, 
                 zorder = 1)
-        sns.scatterplot(data = rel_rates_tidy, 
-                        x = 'vs_min_rate_ratio',
-                        y='rate_vals',
+        sns.scatterplot(data = plot_df, 
+                        x = 'rate_ratio',
+                        y='rate_position',
                         hue='grp',
-                        palette = self.sens_grps_no_cols, 
-                        size = 'w',
+                        palette = self.sens_grps_cols, 
+                        size = 'point_size',
                         sizes = (100,200),
                         legend = False,
                         ax = ax,
                         marker = 'o',
                         alpha = 1, 
                         zorder = 2)
-        ax.set_yticks(plot_df.rate_vals)
-        ax.set_yticklabels(plot_df.rate)
+        ax.set_yticks(list(rate_positions.values()))
+        ax.set_yticklabels(list(rate_positions.keys()))
         ax.set_ylabel('')
         ax.set_xlabel('')
-        ax.set_title('Relative Difference of Group Rate vs. Minimum Group Rate', fontsize=14) 
+        ax.set_title(
+            'Relative Difference of Group Rate vs. Minimum Group Rate', fontsize=14) 
         ax.set_ylim((.125,1.125))
         ax.xaxis.set_major_formatter(mtick.FuncFormatter(abs_percentage_tick))
         for pos in ['right', 'top', 'left']:
@@ -236,28 +215,16 @@ class FairKit:
     
         return ax
 
-    def l2_plot(self):
-        if(len(self.sens_grps) <= 2):
-            f, (ax1, ax2) = plt.subplots(1, 2, figsize=(10,5))
-            self.l2_ratio_subplot(axis = ax1)
-            self.l2_rate_subplot(axis = ax2)
-            f.subplots_adjust(wspace = 0.5, right = 1)
-        else:
-            gs = GridSpec(nrows = 3, ncols = 1)
-            f = plt.figure(figsize=(8,6))
-            ax_list = [f.add_subplot(gs[0:2,0]),
-                       f.add_subplot(gs[2,0])]
-            self.l2_ratio_lollipop_subplot(ax = ax_list[1])
-            self.l2_rate_subplot(axis = ax_list[0])
-            ax_list[0].set_title('Group Rates', fontsize=14)
-            ax_list[0].legend(title='Group', frameon = False)
-            f.subplots_adjust(hspace = 0.8, right = 1)
-        return f 
-
-    def create_fake_example(self):
-        """Modifies rate to show discrimination of women"""
-        self.rates['female']['FPR'] = 0.47
-        self.l2_get_relative_rates()
+    def l2_plot(self, w_fp = 0.5):
+        gs = GridSpec(nrows = 3, ncols = 1)
+        f = plt.figure(figsize=(8,6))
+        ax_list = [f.add_subplot(gs[0:2,0]),
+                    f.add_subplot(gs[2,0])]
+        self.l2_rate_subplot(ax = ax_list[0])
+        self.l2_ratio_subplot(ax = ax_list[1], w_fp = w_fp)
+        ax_list[0].set_title('Group Rates', fontsize=14)
+        ax_list[0].legend(title='Group', frameon = False)
+        f.subplots_adjust(hspace = 0.8, right = 1)
 
 
 #%% Main
@@ -272,9 +239,9 @@ if __name__ == "__main__":
         a = data.sex, 
         r = data.log_reg_prob,
         model_type='Logistic Regression')
-    #fair.create_fake_example()
+    fair.l2_rate_subplot()
     #fair.l2_plot()
-    #fair.l2_ratio_subplot()
+    fair.l2_ratio_subplot()
 
     compas_file_path = 'data\\processed\\compas\\compas-scores-two-years-pred.csv'
     compas = pd.read_csv(compas_file_path)
@@ -292,15 +259,17 @@ if __name__ == "__main__":
     df = pd.read_csv(file_path)
     df.head()
 
-    fair = FairKit(
+    fair_anym = FairKit(
         y = df.y, 
         y_hat = df.yhat, 
         a = df.grp, 
         r = df.phat,
         model_type='')
-    fair.w_fp = 0.7
-    fair.l2_plot().savefig('../Thesis-report/00_figures/L2_example.pdf', bbox_inches='tight')
+    #fair.l2_plot()
+    #plt.savefig('../Thesis-report/00_figures/L2_example.pdf', bbox_inches='tight')
 
 
+# %% New overview plot
+fair.rel_rates
 
 # %%
