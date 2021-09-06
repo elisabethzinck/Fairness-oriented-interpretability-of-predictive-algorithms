@@ -84,7 +84,8 @@ class FairKit:
                     'PPV': TP/(TP + FP),
                     'FDR': FP/(TP + FP),
                     'NPV': TN/(TN + FN),
-                    'FOR': FN/(TN + FN)
+                    'FOR': FN/(TN + FN),
+                    'PN/n': (TN+FN)/(TP+FP+TN+FN)
                     }
             return rates
 
@@ -96,7 +97,7 @@ class FairKit:
         if hasattr(self, 'rel_rates'):
             return self.rel_rates
         else:
-            discrim_rates = ['FPR', 'FNR', 'FDR', 'FOR']
+            discrim_rates = ['FPR', 'FNR', 'FDR', 'FOR', 'PN/n']
         
             # Convert rate dict to data frame
             rates_df = pd.DataFrame(
@@ -143,13 +144,14 @@ class FairKit:
     def l2_rate_subplot(self, ax = None):
         """Plot FPR, FNR, FDR, FOR for each group"""
         rate_order = ['FPR', 'FNR', 'FDR', 'FOR']
+        plot_df = self.rel_rates[self.rel_rates.rate != 'PN/n']
         if ax is None:
             fig = plt.figure()
             ax = fig.add_subplot(1, 1, 1)
         sns.barplot(
             x = 'rate_val', y = 'rate', 
             hue = 'grp', palette = self.sens_grps_cols,
-            data = self.rel_rates,
+            data = plot_df,
             order = rate_order,
             ax = ax)
         ax.set_xlabel('')
@@ -175,6 +177,7 @@ class FairKit:
             'FPR': w_size*w_fp, 'FNR': w_size*(1-w_fp), 
             'FDR': w_size*w_fp, 'FOR': w_size*(1-w_fp)}
         plot_df = (self.rel_rates
+            .query("rate != 'PN/n'")
             .assign(
                 rate_position = lambda x: x.rate.map(rate_positions), point_size = lambda x: x.rate.map(rate_weights)))
 
@@ -226,6 +229,48 @@ class FairKit:
         ax_list[0].legend(title='Group', frameon = False)
         f.subplots_adjust(hspace = 0.8, right = 1)
 
+    def l3_plot_fairness_criteria(self):
+        fairness_crit = pd.DataFrame([
+            ['independence', 'PN/n'],
+            ['separation', 'FPR'],
+            ['separation', 'FNR'],
+            ['false_positive_error_rate_balance', 'FPR'],
+            ['equal_opportunity', 'FNR'],
+            ['sufficiency', 'FDR'],
+            ['sufficiency', 'FOR'],
+            ['predictive_parity', 'FDR']],
+            columns = ['criterion', 'rate'])
+
+        plot_df = (
+            pd.merge(
+                self.rel_rates[['rate', 'rate_ratio']], 
+                fairness_crit)
+            .groupby(by = ['rate', 'criterion'], as_index = False)
+            .agg('max') # Get maximum of the rate ratio of sensitive groups
+            .drop('rate', axis = 1)
+            .groupby(by = 'criterion', as_index = False)
+            .agg('mean')) # Get mean of rate ratio by rates
+
+        criteria_order = (plot_df
+            .sort_values('rate_ratio', ascending = False)
+            .criterion
+            .tolist())
+
+        fig = plt.figure()
+        ax = fig.add_subplot(1, 1, 1)
+        sns.barplot(
+            x = 'rate_ratio', y = 'criterion', 
+            data = plot_df,
+            order = criteria_order,
+            color = 'grey',
+            ax = ax)
+        ax.set_xlabel('')
+        ax.set_ylabel('')
+        for pos in ['right', 'top', 'left']:
+            ax.spines[pos].set_visible(False)
+        ax.tick_params(left=False, labelsize=12)
+        ax.xaxis.set_major_formatter(mtick.FuncFormatter(abs_percentage_tick))
+
 
 #%% Main
 if __name__ == "__main__":
@@ -239,9 +284,8 @@ if __name__ == "__main__":
         a = data.sex, 
         r = data.log_reg_prob,
         model_type='Logistic Regression')
-    fair.l2_rate_subplot()
-    #fair.l2_plot()
-    fair.l2_ratio_subplot()
+    fair.l2_plot()
+    fair.l3_plot_fairness_criteria()
 
     compas_file_path = 'data\\processed\\compas\\compas-scores-two-years-pred.csv'
     compas = pd.read_csv(compas_file_path)
@@ -253,7 +297,7 @@ if __name__ == "__main__":
         a = compas.age_cat, 
         r = compas.decile_score,
         model_type='COMPAS Decile Scores')
-    #fair_compas.l2_plot()
+    fair_compas.l2_plot()
 
     file_path = 'data\\processed\\anonymous_data.csv'
     df = pd.read_csv(file_path)
@@ -271,5 +315,29 @@ if __name__ == "__main__":
 
 # %% New overview plot
 fair.rel_rates
+
+fairness_crit = pd.DataFrame([
+    ['independence', 'PN/n'],
+    ['separation', 'FPR'],
+    ['separation', 'FNR'],
+    ['false_positive_error_rate_balance', 'FPR'],
+    ['equal_opportunity', 'FNR'],
+    ['sufficiency', 'FDR'],
+    ['sufficiency', 'FOR'],
+    ['predictive_parity', 'FDR']],
+    columns = ['criterion', 'rate'])
+
+plot_df = (pd.merge(fair.rel_rates[['rate', 'rate_ratio']], fairness_crit)
+    .groupby(by = ['rate', 'criterion'], as_index = False)
+    .agg('max') # Get maximum of the rate ratio of sensitive groups
+    .drop('rate', axis = 1)
+    .groupby(by = 'criterion', as_index = False)
+    .agg('mean')) # Get mean of rate ratio by rates
+plot_df
+criteria_order = plot_df.sort_values('rate_ratio', ascending = False).criterion.tolist()
+sns.barplot(
+    x = 'rate_ratio', y = 'criterion', 
+    data = plot_df,
+    order = criteria_order)
 
 # %%
