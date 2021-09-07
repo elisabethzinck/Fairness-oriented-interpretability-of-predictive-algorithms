@@ -13,3 +13,4 @@ dependencies:
     - pip:
         - plotnine
         - "--editable ."
+        - pytorch-lightning
