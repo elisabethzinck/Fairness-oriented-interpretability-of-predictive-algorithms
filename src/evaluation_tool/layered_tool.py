@@ -1,4 +1,5 @@
 #%% Imports
+from numpy.core.defchararray import title
 import pandas as pd
 import numpy as np
 import math
@@ -19,13 +20,6 @@ from src.evaluation_tool.utils import (
 def get_minimum_rate(group):
     """Helper function to calculate minimum rate by group"""
     group['min_rate'] = group['rate_val'].agg('min')
-    return group
-
-
-def get_fraction_of_group(group):
-    """Helper function to calculate fraction of positives and negatives in
-    each group. To be used in apply with groupby"""
-    group['fraction'] = group['n'].agg(lambda x: x/x.sum())
     return group
 
 class FairKit:
@@ -277,37 +271,6 @@ class FairKit:
             ax.spines[pos].set_visible(False)
         ax.tick_params(left=False, labelsize=12)
         ax.xaxis.set_major_formatter(mtick.FuncFormatter(abs_percentage_tick))
-
-    def plot_fraction_of_target(self):
-        data = pd.DataFrame({'y': self.y, 'a': self.a})
-        grp_data = (data.groupby(by=['a', 'y'])
-                        .size()
-                        .reset_index(name = 'n')
-                        .groupby(by='a')
-                        .apply(get_fraction_of_group)
-                        .reset_index()
-                    )
-        group_count = data.groupby('a').size()
-
-        fig = plt.figure(figsize = (4,4))
-        gs = GridSpec(nrows = 1, ncols = 1)
-        ax = fig.add_subplot(gs[0,0])
-        sns.barplot(x='y',
-                    y='fraction',
-                    hue = 'a',
-                    data = grp_data, 
-                    ax = ax)
-        ax.set_ylim((0,1))
-        handles, labels = ax.get_legend_handles_labels()
-        labels = [f"{labels[i]} (N={group_count[i]})" for i in range(self.n_sens_grps)]
-        ax.legend(handles, labels, frameon = False, fontsize = 12)
-        ax.set_ylim((0,1))
-        ax.set_ylabel('Fraction of Observations', fontsize = 12)
-        ax.set_xlabel(self.y.name, fontsize = 12)
-        for pos in ['right', 'top', 'left']:
-                ax.spines[pos].set_visible(False)
-        ax.tick_params(left=False, labelsize=12)
-
 
 #%% Main
 if __name__ == "__main__":
