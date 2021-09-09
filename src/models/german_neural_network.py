@@ -15,6 +15,9 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.utils.data import Dataset, DataLoader
 
+import pytorch_lightning as pl
+from pytorch_lightning.callbacks import EarlyStopping
+
 #%% Load data
 file_path = 'data\\processed\\german_credit_full.csv'
 output_path = 'data\\processed\\german_credit_nn_pred.csv'
@@ -24,7 +27,7 @@ raw_data = pd.read_csv(file_path)
 
 X = raw_data.drop(['credit_score', 'person_id'], axis = 1)
 X = one_hot_encode_mixed_data(X)
-y = raw_data.credit_score
+y = raw_data.credit_score.to_numpy()
 X_train, X_test, y_train, y_test = train_test_split(
     X, y, test_size=0.33, random_state=42)
 
@@ -37,20 +40,16 @@ n_output = 1
 n_train = X_train.shape[0]
 
 #%% Define dataloaders
-class trainData(Dataset):
+class myData(Dataset):
     def __init__(self, X_data, y_data):
         self.X_data = X_data
         self.y_data = y_data[:, None] # Make vector into matrix
         
     def __getitem__(self, index):
-        return self.X_data[index], self.y_data[index], index
+        return self.X_data[index], self.y_data[index]
         
     def __len__ (self):
         return len(self.X_data)
-
-
-train_data = trainData(
-    torch.FloatTensor(X_train), torch.FloatTensor(y_train))
 
 
 # %% Define network
@@ -78,6 +77,7 @@ class Net(nn.Module):
 
 net = Net(num_features = n_features, num_hidden = 10, num_output = n_output)
 print(net)
+
 # %% Check net
 # See all parameters
 #print(list(net.named_parameters()))
@@ -86,7 +86,7 @@ n_params = get_n_total_parameters(net)
 test_observation = torch.randn(5, n_features)
 test_output = net(test_observation)
 
-# %% Define things for training
+# %% Define things for training 
 EPOCHS = 40
 BATCH_SIZE = 100
 LEARNING_RATE = 0.02
@@ -94,41 +94,68 @@ LEARNING_RATE = 0.02
 n_hidden = 10
 
 
-# %% Training
-net = Net(
-    num_features = n_features, 
-    num_hidden = n_hidden, 
-    num_output = n_output)
-optimizer = torch.optim.Adam(net.parameters(), lr = LEARNING_RATE)
-criterion = nn.BCELoss()
 
-trainloader = DataLoader(dataset=train_data, batch_size=BATCH_SIZE)
-net.train()
-losses = []
-print(f'Epoch \t Loss \t Accuracy')
-for e in range(EPOCHS):
-    loss_epoch = 0.0
-    output_epoch = np.empty(n_train, dtype = 'float')
-    for i, data in enumerate(trainloader):
-        X_batch, y_batch, index_batch = data
-        #print(X_batch.shape[0])
-        optimizer.zero_grad()
 
-        output_batch = net(X_batch)
-        loss = criterion(output_batch, y_batch)
-        #print(output_batch[0:5,:])
-        loss.backward()
-        optimizer.step()
+#%% Training using lightning
+# pytorch lightning net
+class BinaryClassificationTask(pl.LightningModule):
+    def __init__(self, model):
+        super().__init__()
+        self.model = model
 
-        output_epoch[index_batch] = output_batch.detach().numpy().squeeze()
-        loss_epoch += loss
+    def training_step(self, batch, batch_idx):
+        x, y = batch
+        y_hat = self.model(x)
+        loss = F.binary_cross_entropy(y_hat, y)
 
-    yhat_epoch = output_epoch >= 0.5
-    acc_epoch = accuracy_score(y_epoch, yhat_epoch)
-    print(f'{e} \t{loss_epoch: .2f} \t{acc_epoch: .2f}')
-    losses.append(loss_epoch)
-plt.plot(losses)
+        loss, acc = self._shared_eval_step(batch, batch_idx)
+        metrics = {"train_loss": loss, 'train_acc': acc}
+        self.log_dict(metrics, on_epoch = True, on_step = False)
+        return loss
 
+    def validation_step(self, batch, batch_idx):
+        loss, acc = self._shared_eval_step(batch, batch_idx)
+        metrics = {"val_loss": loss, 'val_acc': acc}
+        self.log_dict(metrics)
+        return metrics
+
+    def test_step(self, batch, batch_idx):
+        loss, acc = self._shared_eval_step(batch, batch_idx)
+        metrics = {"test_loss": loss, 'test_acc': acc}
+        self.log_dict(metrics)
+        return metrics
+
+    def _shared_eval_step(self, batch, batch_idx):
+        x, y = batch
+        y_hat = self.model(x)
+        loss = F.binary_cross_entropy(y_hat, y)
+        y_hat_binary = y_hat >= 0.5
+        acc = accuracy_score(y, y_hat_binary)
+        return loss, acc
+
+    def predict_step(self, batch, batch_idx, dataloader_idx):
+        x, y = batch
+        y_hat = self.model(x)
+
+    def configure_optimizers(self):
+        return torch.optim.Adam(self.model.parameters(), lr=0.02)
+
+
+plnet = BinaryClassificationTask(net)
+print(plnet)
+#%%
+train_data = myData(
+    torch.FloatTensor(X_train), torch.FloatTensor(y_train))
+test_data = myData(
+    torch.FloatTensor(X_test), torch.FloatTensor(y_test))
+trainloader = DataLoader(dataset=train_data, batch_size=32)
+testloader = DataLoader(dataset=test_data, batch_size = 32)
+
+early_stopping = EarlyStopping('val_loss', patience = 3)
+trainer = pl.Trainer(
+    log_every_n_steps = 1, 
+    callbacks = [early_stopping])
+trainer.fit(plnet, trainloader, testloader)
 
 
 
