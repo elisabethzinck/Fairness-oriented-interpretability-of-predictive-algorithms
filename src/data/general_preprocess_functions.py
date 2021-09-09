@@ -10,8 +10,8 @@ def one_hot_encode_mixed_data(X):
     X_cat = X.loc[:, (X.dtypes=='object').values]
     X_num = X[X.columns.difference(X_cat.columns)]
     
-    enc = OneHotEncoder()
-    X_cat_one_hot_fit = enc.fit_transform(X_cat).todense()
+    enc = OneHotEncoder(drop='if_binary', sparse = False)
+    X_cat_one_hot_fit = enc.fit_transform(X_cat)
     X_cat_one_hot = pd.DataFrame(X_cat_one_hot_fit, columns=enc.get_feature_names(X_cat.columns))
     
     # Concatenating into a final data frame 

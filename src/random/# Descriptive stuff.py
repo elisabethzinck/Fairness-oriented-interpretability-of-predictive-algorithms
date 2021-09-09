@@ -1,16 +1,18 @@
 # Descriptive stuff 
 
 #%%
-from numpy.core.defchararray import count
-from numpy.core.numeric import count_nonzero
 import pandas as pd
 import numpy as np
+
 import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
 import seaborn as sns
 from seaborn.axisgrid import FacetGrid 
 
-from src.evaluation_tool.layered_tool import FairKit
+from sklearn.decomposition import PCA 
+from sklearn.preprocessing import StandardScaler
+
+from src.data.general_preprocess_functions import one_hot_encode_mixed_data
 
 #%% 
 def get_fraction_of_group(group):
@@ -20,21 +22,20 @@ def get_fraction_of_group(group):
     return group
 
 class DescribeData:
-    def __init__(self, y_name, a_name, data = None, model_type = None):
+    def __init__(self, y_name, a_name, data = None):
         """Saves and calculates all necessary attributes for FairKit object
         
         Args:
             y (string): Name of target variable
             a (string): Name of sensitive variable 
             data (data frame): Data frame with data. Defaults to None.
-            model_type (str): Name of the model used. Defaults to None.
 
         """
         self.y_name = y_name
         self.a_name = a_name
         
         self.data = data 
-        self.data.rename(columns = {self.y_name: 'y', self.a_name: 'a'}, inplace= True)
+        self.data = self.data.rename(columns = {self.y_name: 'y', self.a_name: 'a'})
         
         self.sens_grps = self.data.a.unique()
         self.n_sens_grps = len(self.sens_grps)
@@ -70,7 +71,7 @@ class DescribeData:
                     ax = ax)
         ax.set_ylim((0,1))
         handles, labels = ax.get_legend_handles_labels()
-        labels = [f"{labels[i]} (N={group_count[i]})" for i in range(self.n_sens_grps)]
+        labels = [f"{labels[i]} (N={self.group_n[i]})" for i in range(self.n_sens_grps)]
         ax.legend(handles, labels, frameon = False,
                   fontsize = 12, title = self.a_name, title_fontsize = 12)
         ax.set_ylim((0,1))
@@ -85,60 +86,31 @@ class DescribeData:
 
 if __name__ == "__main__":
     file_path = 'data\\processed\\german_credit.csv'
-    pred_filte_path = 'data\\predictions\\german_credit_log_reg.csv'
 
     data = pd.read_csv(file_path)
-    pred_data = pd.read_csv(pred_filte_path)
-
-    fair = FairKit(
-        y = pred_data.credit_score, 
-        y_hat = pred_data.log_reg_pred, 
-        a = pred_data.sex, 
-        r = pred_data.log_reg_prob,
-        model_type='Logistic Regression')
-
-    fair.l1_get_data().drop(columns = ['avg_w_error'])
 
     desc = DescribeData(y_name='credit_score', 
                         a_name = 'sex',
                         data = data)
 
-#%%
-    def get_fraction_of_group(group):
-        """Helper function to calculate fraction of positives and negatives in
-        each group. To be used in apply with groupby"""
-        group['fraction'] = group['n'].agg(lambda x: x/x.sum())
-        return group
 
-    grp_data = (data.groupby(by=['sex', 'credit_score'])
-                    .agg(n=('person_id', 'count'))
-                    .groupby(by='sex')
-                    .apply(get_fraction_of_group)
-                    .reset_index()
-                )
-    group_count = data.groupby('sex').agg(n=('person_id', 'count')).n
+    # PCA 
+    X = (one_hot_encode_mixed_data(data)
+          .drop(columns=['person_id', 'credit_score'])
+          )
+    scaler = StandardScaler()
+    X_scaled = scaler.fit_transform(X)
 
-    fig = plt.figure(figsize = (4,4))
-    gs = GridSpec(nrows = 1, ncols = 1)
-    ax = fig.add_subplot(gs[0,0])
-    sns.barplot(x='credit_score',
-                y='fraction',
-                hue = 'sex',
-                data = grp_data, 
-                ax = ax)
-    ax.set_ylim((0,1))
-    handles, labels = ax.get_legend_handles_labels()
-    labels = [f"{labels[i]} (N={group_count[i]})" for i in range(fair.n_sens_grps)]
-    ax.legend(handles, labels, frameon = False, fontsize = 12)
-    ax.set_ylim((0,1))
-    ax.set_ylabel('Fraction of Observations', fontsize = 12)
-    ax.set_xlabel('credit_score', fontsize = 12)
-    for pos in ['right', 'top', 'left']:
-            ax.spines[pos].set_visible(False)
-    ax.tick_params(left=False, labelsize=12)
+    n_comp = 2
+    pca = PCA(n_components=2)
+    pca.fit(X_scaled)
+
+    scores = pca.transform(X)
+
     
-    plt.show()
 
-# %%
+    # TODO plot pca and find out what the components are 
+
+    
 
 # %%
