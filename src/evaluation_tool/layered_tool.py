@@ -21,6 +21,13 @@ def get_minimum_rate(group):
     group['min_rate'] = group['rate_val'].agg('min')
     return group
 
+
+def get_fraction_of_group(group):
+    """Helper function to calculate fraction of positives and negatives in
+    each group. To be used in apply with groupby"""
+    group['fraction'] = group['n'].agg(lambda x: x/x.sum())
+    return group
+
 class FairKit:
     def __init__(self, y, y_hat, a, r, model_type = None):
         """Saves and calculates all necessary attributes for FairKit object
@@ -271,6 +278,36 @@ class FairKit:
         ax.tick_params(left=False, labelsize=12)
         ax.xaxis.set_major_formatter(mtick.FuncFormatter(abs_percentage_tick))
 
+    def plot_fraction_of_target(self):
+        data = pd.DataFrame({'y': self.y, 'a': self.a})
+        grp_data = (data.groupby(by=['a', 'y'])
+                        .size()
+                        .reset_index(name = 'n')
+                        .groupby(by='a')
+                        .apply(get_fraction_of_group)
+                        .reset_index()
+                    )
+        group_count = data.groupby('a').size()
+
+        fig = plt.figure(figsize = (4,4))
+        gs = GridSpec(nrows = 1, ncols = 1)
+        ax = fig.add_subplot(gs[0,0])
+        sns.barplot(x='y',
+                    y='fraction',
+                    hue = 'a',
+                    data = grp_data, 
+                    ax = ax)
+        ax.set_ylim((0,1))
+        handles, labels = ax.get_legend_handles_labels()
+        labels = [f"{labels[i]} (N={group_count[i]})" for i in range(self.n_sens_grps)]
+        ax.legend(handles, labels, frameon = False, fontsize = 12)
+        ax.set_ylim((0,1))
+        ax.set_ylabel('Fraction of Observations', fontsize = 12)
+        ax.set_xlabel(self.y.name, fontsize = 12)
+        for pos in ['right', 'top', 'left']:
+                ax.spines[pos].set_visible(False)
+        ax.tick_params(left=False, labelsize=12)
+
 
 #%% Main
 if __name__ == "__main__":
@@ -313,31 +350,31 @@ if __name__ == "__main__":
     #plt.savefig('../Thesis-report/00_figures/L2_example.pdf', bbox_inches='tight')
 
 
-# %% New overview plot
-fair.rel_rates
+    # %% New overview plot
+    fair.rel_rates
 
-fairness_crit = pd.DataFrame([
-    ['independence', 'PN/n'],
-    ['separation', 'FPR'],
-    ['separation', 'FNR'],
-    ['false_positive_error_rate_balance', 'FPR'],
-    ['equal_opportunity', 'FNR'],
-    ['sufficiency', 'FDR'],
-    ['sufficiency', 'FOR'],
-    ['predictive_parity', 'FDR']],
-    columns = ['criterion', 'rate'])
+    fairness_crit = pd.DataFrame([
+        ['independence', 'PN/n'],
+        ['separation', 'FPR'],
+        ['separation', 'FNR'],
+        ['false_positive_error_rate_balance', 'FPR'],
+        ['equal_opportunity', 'FNR'],
+        ['sufficiency', 'FDR'],
+        ['sufficiency', 'FOR'],
+        ['predictive_parity', 'FDR']],
+        columns = ['criterion', 'rate'])
 
-plot_df = (pd.merge(fair.rel_rates[['rate', 'rate_ratio']], fairness_crit)
-    .groupby(by = ['rate', 'criterion'], as_index = False)
-    .agg('max') # Get maximum of the rate ratio of sensitive groups
-    .drop('rate', axis = 1)
-    .groupby(by = 'criterion', as_index = False)
-    .agg('mean')) # Get mean of rate ratio by rates
-plot_df
-criteria_order = plot_df.sort_values('rate_ratio', ascending = False).criterion.tolist()
-sns.barplot(
-    x = 'rate_ratio', y = 'criterion', 
-    data = plot_df,
-    order = criteria_order)
+    plot_df = (pd.merge(fair.rel_rates[['rate', 'rate_ratio']], fairness_crit)
+        .groupby(by = ['rate', 'criterion'], as_index = False)
+        .agg('max') # Get maximum of the rate ratio of sensitive groups
+        .drop('rate', axis = 1)
+        .groupby(by = 'criterion', as_index = False)
+        .agg('mean')) # Get mean of rate ratio by rates
+    plot_df
+    criteria_order = plot_df.sort_values('rate_ratio', ascending = False).criterion.tolist()
+    sns.barplot(
+        x = 'rate_ratio', y = 'criterion', 
+        data = plot_df,
+        order = criteria_order)
 
 # %%
