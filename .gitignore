@@ -5,3 +5,4 @@ data/raw/fairml_traffic_stops/NC_cleaned.csv
 ~$*
 *.pyc
 /src.egg-info
+/lightning_logs
