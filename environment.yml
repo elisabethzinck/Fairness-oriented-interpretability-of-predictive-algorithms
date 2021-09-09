@@ -15,3 +15,5 @@ dependencies:
         - plotnine
         - "--editable ."
         - pytorch-lightning
+        - optuna
+        
