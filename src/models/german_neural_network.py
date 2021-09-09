@@ -18,6 +18,12 @@ from torch.utils.data import Dataset, DataLoader
 import pytorch_lightning as pl
 from pytorch_lightning.callbacks import EarlyStopping
 
+import optuna
+from optuna.integration import PyTorchLightningPruningCallback
+
+import logging
+logging.getLogger("lightning").setLevel(logging.ERROR) # Do not see warnings and suggestions
+
 #%% Load data
 file_path = 'data\\processed\\german_credit_full.csv'
 output_path = 'data\\processed\\german_credit_nn_pred.csv'
@@ -39,11 +45,11 @@ n_features = X.shape[1]
 n_output = 1
 n_train = X_train.shape[0]
 
-#%% Define dataloaders
+#%% Define dataset
 class myData(Dataset):
     def __init__(self, X_data, y_data):
-        self.X_data = X_data
-        self.y_data = y_data[:, None] # Make vector into matrix
+        self.X_data = torch.FloatTensor(X_data)
+        self.y_data = torch.FloatTensor(y_data[:, None]) # Make vector into matrix
         
     def __getitem__(self, index):
         return self.X_data[index], self.y_data[index]
@@ -54,54 +60,45 @@ class myData(Dataset):
 
 # %% Define network
 class Net(nn.Module):
-    def __init__(self, num_features, num_hidden, num_output):
+    def __init__(self, num_features, num_hidden, num_output, p_dropout = 0):
         super(Net, self).__init__()
 
-        # Layer 1
-        self.l1 = nn.Linear(num_features, num_hidden)
-
-        # Layer 2
-        self.l2 = nn.Linear(num_hidden, num_output)
+        self.layers = nn.Sequential(
+            nn.Linear(num_features, num_hidden), 
+            nn.Dropout(p = p_dropout),
+            nn.ReLU(), 
+            nn.Linear(num_hidden, num_output),
+        )
 
 
     def forward(self, x):
-        # Layer 1
-        x = self.l1(x)
-        x = F.relu(x)
-
-        # Layer 2
-        x = self.l2(x)
+        x = self.layers(x)
         x = torch.sigmoid(x) 
 
         return x
 
-net = Net(num_features = n_features, num_hidden = 10, num_output = n_output)
-print(net)
+test_net = Net(
+    num_features = n_features, 
+    num_hidden = 10, 
+    num_output = n_output,
+    p_dropout = 0.5)
+print(test_net)
 
-# %% Check net
+# Check net
 # See all parameters
 #print(list(net.named_parameters()))
 # Total size of parameters
-n_params = get_n_total_parameters(net)
+n_params = get_n_total_parameters(test_net)
 test_observation = torch.randn(5, n_features)
-test_output = net(test_observation)
-
-# %% Define things for training 
-EPOCHS = 40
-BATCH_SIZE = 100
-LEARNING_RATE = 0.02
-
-n_hidden = 10
-
-
-
+test_output = test_net(test_observation)
 
 #%% Training using lightning
 # pytorch lightning net
 class BinaryClassificationTask(pl.LightningModule):
-    def __init__(self, model):
+    def __init__(self, model, lr = 1e-3):
         super().__init__()
         self.model = model
+        self.lr = lr
 
     def training_step(self, batch, batch_idx):
         x, y = batch
@@ -129,7 +126,7 @@ class BinaryClassificationTask(pl.LightningModule):
         x, y = batch
         y_hat = self.model(x)
         loss = F.binary_cross_entropy(y_hat, y)
-        y_hat_binary = y_hat >= 0.5
+        y_hat_binary = (y_hat >= 0.5)
         acc = accuracy_score(y, y_hat_binary)
         return loss, acc
 
@@ -138,27 +135,88 @@ class BinaryClassificationTask(pl.LightningModule):
         y_hat = self.model(x)
 
     def configure_optimizers(self):
-        return torch.optim.Adam(self.model.parameters(), lr=0.02)
+        return torch.optim.Adam(self.model.parameters(), lr = self.lr)
 
-
-plnet = BinaryClassificationTask(net)
-print(plnet)
-#%%
-train_data = myData(
-    torch.FloatTensor(X_train), torch.FloatTensor(y_train))
-test_data = myData(
-    torch.FloatTensor(X_test), torch.FloatTensor(y_test))
+#%% Training
+net = Net(
+    num_features = n_features, 
+    num_hidden = 10, 
+    num_output = n_output)
+plnet = BinaryClassificationTask(model = net, lr = 1e-3)
+train_data = myData(X_train, y_train)
+test_data = myData(X_test, y_test)
 trainloader = DataLoader(dataset=train_data, batch_size=32)
 testloader = DataLoader(dataset=test_data, batch_size = 32)
 
 early_stopping = EarlyStopping('val_loss', patience = 3)
 trainer = pl.Trainer(
+    fast_dev_run = False,
     log_every_n_steps = 1, 
     callbacks = [early_stopping])
 trainer.fit(plnet, trainloader, testloader)
 
+#%% Optimizing using optuna
+def objective_function(trial: optuna.trial.Trial):
+    # Define parameters
+    n_hidden = trial.suggest_int('n_hidden', 1, 100)
+    hyperparameters = {'n_hidden': n_hidden}
+    lr = trial.suggest_loguniform('lr', 1e-5, 1e2)
+    p_dropout = trial.suggest_uniform('p_dropout', 0, 0.5)
+    
+    # Define network and lightning
+    net = Net(
+        num_features = n_features, 
+        num_hidden = n_hidden, 
+        num_output = n_output,
+        p_dropout = p_dropout)
+    plnet = BinaryClassificationTask(model = net, lr = lr)
+
+    # Define data
+    train_data = myData(X_train, y_train)
+    test_data = myData(X_test, y_test)
+    trainloader = DataLoader(dataset=train_data, batch_size=32)
+    testloader = DataLoader(dataset=test_data, batch_size = 32)
+
+    early_stopping = EarlyStopping('val_loss', patience = 3)
+    optuna_pruning = PyTorchLightningPruningCallback(trial, monitor="val_loss")
+    trainer = pl.Trainer(
+        fast_dev_run = False,
+        log_every_n_steps = 1, 
+        max_epochs = 50,
+        callbacks = [early_stopping, optuna_pruning])
+
+    trainer.logger.log_hyperparams(hyperparameters)
+    trainer.fit(plnet, trainloader, testloader)
+
+    return trainer.callback_metrics['val_loss'].item()
+
+study = optuna.create_study(direction = 'minimize')
+n_minutes = 2
+study.optimize(objective_function, timeout = n_minutes*60)
+#%%
+best_trial = study.best_trial
+all_trials = study.trials
+all_params = [t.params for t in all_trials]
 
 
+#%%
+optuna.visualization.plot_optimization_history(study)
+
+#%%
+optuna.visualization.plot_intermediate_values(study)
+
+#%%
+optuna.visualization.plot_param_importances(study)
+
+#%%
+fig = optuna.visualization.matplotlib.plot_intermediate_values(study)
+fig.show()
+
+
+
+
+# To open tensorboard (type in command line)
+# tensorboard --logdir lightning_logs
 
 
 
