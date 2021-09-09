@@ -1,4 +1,5 @@
 #%% Imports
+from numpy.core.defchararray import title
 import pandas as pd
 import numpy as np
 import math
@@ -271,7 +272,6 @@ class FairKit:
         ax.tick_params(left=False, labelsize=12)
         ax.xaxis.set_major_formatter(mtick.FuncFormatter(abs_percentage_tick))
 
-
 #%% Main
 if __name__ == "__main__":
     file_path = 'data\\predictions\\german_credit_log_reg.csv'
@@ -313,31 +313,31 @@ if __name__ == "__main__":
     #plt.savefig('../Thesis-report/00_figures/L2_example.pdf', bbox_inches='tight')
 
 
-# %% New overview plot
-fair.rel_rates
+    # %% New overview plot
+    fair.rel_rates
 
-fairness_crit = pd.DataFrame([
-    ['independence', 'PN/n'],
-    ['separation', 'FPR'],
-    ['separation', 'FNR'],
-    ['false_positive_error_rate_balance', 'FPR'],
-    ['equal_opportunity', 'FNR'],
-    ['sufficiency', 'FDR'],
-    ['sufficiency', 'FOR'],
-    ['predictive_parity', 'FDR']],
-    columns = ['criterion', 'rate'])
+    fairness_crit = pd.DataFrame([
+        ['independence', 'PN/n'],
+        ['separation', 'FPR'],
+        ['separation', 'FNR'],
+        ['false_positive_error_rate_balance', 'FPR'],
+        ['equal_opportunity', 'FNR'],
+        ['sufficiency', 'FDR'],
+        ['sufficiency', 'FOR'],
+        ['predictive_parity', 'FDR']],
+        columns = ['criterion', 'rate'])
 
-plot_df = (pd.merge(fair.rel_rates[['rate', 'rate_ratio']], fairness_crit)
-    .groupby(by = ['rate', 'criterion'], as_index = False)
-    .agg('max') # Get maximum of the rate ratio of sensitive groups
-    .drop('rate', axis = 1)
-    .groupby(by = 'criterion', as_index = False)
-    .agg('mean')) # Get mean of rate ratio by rates
-plot_df
-criteria_order = plot_df.sort_values('rate_ratio', ascending = False).criterion.tolist()
-sns.barplot(
-    x = 'rate_ratio', y = 'criterion', 
-    data = plot_df,
-    order = criteria_order)
+    plot_df = (pd.merge(fair.rel_rates[['rate', 'rate_ratio']], fairness_crit)
+        .groupby(by = ['rate', 'criterion'], as_index = False)
+        .agg('max') # Get maximum of the rate ratio of sensitive groups
+        .drop('rate', axis = 1)
+        .groupby(by = 'criterion', as_index = False)
+        .agg('mean')) # Get mean of rate ratio by rates
+    plot_df
+    criteria_order = plot_df.sort_values('rate_ratio', ascending = False).criterion.tolist()
+    sns.barplot(
+        x = 'rate_ratio', y = 'criterion', 
+        data = plot_df,
+        order = criteria_order)
 
 # %%
