@@ -9,6 +9,7 @@ dependencies:
     - matplotlib
     - seaborn
     - ipywidgets
+    - tqdm
     - pip
     - pip:
         - plotnine
