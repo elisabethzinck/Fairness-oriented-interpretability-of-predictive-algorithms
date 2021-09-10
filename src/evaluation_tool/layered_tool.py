@@ -1,9 +1,14 @@
 #%% Imports
-from numpy.core.defchararray import title
 import pandas as pd
 import numpy as np
 import math
 
+# Widgets
+from ipywidgets import interactive, fixed
+import ipywidgets as widgets
+from IPython.display import display
+
+# Plots 
 from matplotlib import gridspec
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mtick
@@ -11,10 +16,12 @@ from matplotlib.gridspec import GridSpec
 import seaborn as sns
 import plotly.graph_objects as go
 
+# sklearn 
 from sklearn.metrics import confusion_matrix, roc_curve
 
+# dir functions
 from src.evaluation_tool.utils import (
-    cm_matrix_to_dict, cm_dict_to_matrix, abs_percentage_tick, round_func)
+    cm_matrix_to_dict, cm_dict_to_matrix, abs_percentage_tick, flatten_list)
 
 #%%
 def get_minimum_rate(group):
@@ -142,10 +149,17 @@ class FairKit:
         return df
 
 
-    def l2_rate_subplot(self, ax = None):
+    def l2_rate_subplot(self, ax = None, w_fp = 50):
         """Plot FPR, FNR, FDR, FOR for each group"""
         rate_order = ['FPR', 'FNR', 'FDR', 'FOR']
         plot_df = self.rel_rates[self.rel_rates.rate != 'PN/n']
+
+        if w_fp >= 0.5:
+            weight_map = {'FPR': 1, 'FNR': w_fp, 'FDR':1, 'FOR':w_fp}
+        else:
+            weight_map = {'FPR': w_fp, 'FNR': 1, 'FDR':w_fp, 'FOR':1}
+        plot_df = plot_df.assign(alpha=lambda x: x.rate.map(weight_map))
+
         if ax is None:
             fig = plt.figure()
             ax = fig.add_subplot(1, 1, 1)
@@ -155,6 +169,10 @@ class FairKit:
             data = plot_df,
             order = rate_order,
             ax = ax)
+        if w_fp != 0.5:
+            containers = flatten_list([list(ax.containers[i][0:4]) for i in range(self.n_sens_grps)])
+            for bar, alpha in zip(containers, plot_df['alpha']):
+                bar.set_alpha(alpha)
         ax.set_xlabel('')
         ax.set_ylabel('')
         ax.set_xlim(0,1)
@@ -217,14 +235,13 @@ class FairKit:
                     ax.spines[pos].set_visible(False)
         ax.tick_params(left=False, labelsize=12)
     
-        return ax
 
     def l2_plot(self, w_fp = 0.5):
         gs = GridSpec(nrows = 3, ncols = 1)
         f = plt.figure(figsize=(8,6))
         ax_list = [f.add_subplot(gs[0:2,0]),
                     f.add_subplot(gs[2,0])]
-        self.l2_rate_subplot(ax = ax_list[0])
+        self.l2_rate_subplot(ax = ax_list[0], w_fp = w_fp)
         self.l2_ratio_subplot(ax = ax_list[1], w_fp = w_fp)
         ax_list[0].set_title('Group Rates', fontsize=14)
         ax_list[0].legend(title='Group', frameon = False)
@@ -284,7 +301,7 @@ if __name__ == "__main__":
         a = data.sex, 
         r = data.log_reg_prob,
         model_type='Logistic Regression')
-    fair.l2_plot()
+    fair.l2_plot(w_fp=0.7)
     fair.l3_plot_fairness_criteria()
 
     compas_file_path = 'data\\processed\\compas\\compas-scores-two-years-pred.csv'
@@ -312,32 +329,8 @@ if __name__ == "__main__":
     #fair.l2_plot()
     #plt.savefig('../Thesis-report/00_figures/L2_example.pdf', bbox_inches='tight')
 
-
-    # %% New overview plot
-    fair.rel_rates
-
-    fairness_crit = pd.DataFrame([
-        ['independence', 'PN/n'],
-        ['separation', 'FPR'],
-        ['separation', 'FNR'],
-        ['false_positive_error_rate_balance', 'FPR'],
-        ['equal_opportunity', 'FNR'],
-        ['sufficiency', 'FDR'],
-        ['sufficiency', 'FOR'],
-        ['predictive_parity', 'FDR']],
-        columns = ['criterion', 'rate'])
-
-    plot_df = (pd.merge(fair.rel_rates[['rate', 'rate_ratio']], fairness_crit)
-        .groupby(by = ['rate', 'criterion'], as_index = False)
-        .agg('max') # Get maximum of the rate ratio of sensitive groups
-        .drop('rate', axis = 1)
-        .groupby(by = 'criterion', as_index = False)
-        .agg('mean')) # Get mean of rate ratio by rates
-    plot_df
-    criteria_order = plot_df.sort_values('rate_ratio', ascending = False).criterion.tolist()
-    sns.barplot(
-        x = 'rate_ratio', y = 'criterion', 
-        data = plot_df,
-        order = criteria_order)
-
 # %%
+
+
+
+

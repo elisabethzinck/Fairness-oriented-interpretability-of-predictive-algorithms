@@ -1,4 +1,8 @@
 import numpy as np
+def flatten_list(t):
+    """Flattens a list of list"""
+    flat_list = [item for sublist in t for item in sublist]
+    return flat_list
 
 def cm_dict_to_matrix(cm_dict):
     """Convert a confusion dict to confusion matrix
@@ -43,5 +47,4 @@ def flip_dataframe(df, new_colname = 'index'):
     df.columns = colnames
     df = df.iloc[1:, :]
     return df
-
 # %%
