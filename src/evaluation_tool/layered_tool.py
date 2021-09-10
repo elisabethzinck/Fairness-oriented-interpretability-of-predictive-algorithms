@@ -200,7 +200,8 @@ class FairKit:
             .query("rate != 'PN/n'")
             .assign(
                 rate_position = lambda x: x.rate.map(rate_positions), point_size = lambda x: x.rate.map(rate_weights)))
-
+        size_tuple=(200*(1-w_fp), 200*w_fp)
+        
         if ax is None:
             fig = plt.figure()
             ax = fig.add_subplot(1, 1, 1)
@@ -218,7 +219,7 @@ class FairKit:
                         hue='grp',
                         palette = self.sens_grps_cols, 
                         size = 'point_size',
-                        sizes = (100,200),
+                        sizes = size_tuple, #(100,200),
                         legend = False,
                         ax = ax,
                         marker = 'o',
@@ -247,6 +248,10 @@ class FairKit:
         ax_list[0].set_title('Group Rates', fontsize=14)
         ax_list[0].legend(title='Group', frameon = False)
         f.subplots_adjust(hspace = 0.8, right = 1)
+
+    def l2_interactive_plot(self):
+       return interactive(self.l2_plot, w_fp=(0,1,0.1))
+
 
     def l3_plot_fairness_criteria(self):
         fairness_crit = pd.DataFrame([
