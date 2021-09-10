@@ -155,10 +155,11 @@ class FairKit:
         plot_df = self.rel_rates[self.rel_rates.rate != 'PN/n']
 
         if w_fp >= 0.5:
-            weight_map = {'FPR': 1, 'FNR': w_fp, 'FDR':1, 'FOR':w_fp}
+            # List in order [FPR, FNR, FDR, FOR] to match plot order
+            weight_list = [1, 1.05-w_fp, 1, 1.05-w_fp] 
         else:
-            weight_map = {'FPR': w_fp, 'FNR': 1, 'FDR':w_fp, 'FOR':1}
-        plot_df = plot_df.assign(alpha=lambda x: x.rate.map(weight_map))
+            # List in order [FPR, FNR, FDR, FOR] to match plot order
+            weight_list = [.5+w_fp, 1, .5+w_fp, 1]
 
         if ax is None:
             fig = plt.figure()
@@ -169,17 +170,17 @@ class FairKit:
             data = plot_df,
             order = rate_order,
             ax = ax)
-        if w_fp != 0.5:
-            containers = flatten_list([list(ax.containers[i][0:4]) for i in range(self.n_sens_grps)])
-            for bar, alpha in zip(containers, plot_df['alpha']):
-                bar.set_alpha(alpha)
+        ax.legend(loc = 'upper right', frameon = False)
         ax.set_xlabel('')
         ax.set_ylabel('')
         ax.set_xlim(0,1)
         for pos in ['right', 'top', 'left']:
             ax.spines[pos].set_visible(False)
         ax.tick_params(left=False, labelsize=12)
-        ax.legend(loc = 'upper right', frameon = False)
+        if w_fp != 0.5:
+            containers = flatten_list([list(ax.containers[i][0:4]) for i in range(self.n_sens_grps)])
+            for bar, alpha in zip(containers, weight_list*self.n_sens_grps):
+                bar.set_alpha(alpha)
 
         return ax
 
@@ -326,10 +327,11 @@ if __name__ == "__main__":
         a = df.grp, 
         r = df.phat,
         model_type='')
-    #fair.l2_plot()
+    fair_anym.l2_plot(w_fp=0.7)
     #plt.savefig('../Thesis-report/00_figures/L2_example.pdf', bbox_inches='tight')
 
 # %%
+
 
 
 
