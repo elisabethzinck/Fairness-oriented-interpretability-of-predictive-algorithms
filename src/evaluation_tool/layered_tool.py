@@ -4,7 +4,7 @@ import numpy as np
 import math
 
 # Widgets
-from ipywidgets import interactive, fixed
+from ipywidgets import interactive, fixed, interact, FloatSlider
 import ipywidgets as widgets
 from IPython.display import display
 
@@ -156,10 +156,10 @@ class FairKit:
 
         if w_fp >= 0.5:
             # List in order [FPR, FNR, FDR, FOR] to match plot order
-            weight_list = [1, 1.05-w_fp, 1, 1.05-w_fp] 
+            weight_list = [1, 1.3-w_fp, 1, 1.3-w_fp] 
         else:
             # List in order [FPR, FNR, FDR, FOR] to match plot order
-            weight_list = [.5+w_fp, 1, .5+w_fp, 1]
+            weight_list = [.3+w_fp, 1, .3+w_fp, 1]
 
         if ax is None:
             fig = plt.figure()
@@ -196,35 +196,46 @@ class FairKit:
         rate_weights = {
             'FPR': w_size*w_fp, 'FNR': w_size*(1-w_fp), 
             'FDR': w_size*w_fp, 'FOR': w_size*(1-w_fp)}
+        if w_fp == 0.5:
+            alpha_weights = {'FPR': 1, 'FNR': 1, 'FDR':1, 'FOR':1}
+        elif w_fp > 0.5:
+            alpha_weights = {'FPR': 1, 'FNR': 1.2-w_fp, 'FDR':1, 'FOR':1.2-w_fp}
+        else: 
+            alpha_weights = {'FPR': .2+w_fp, 'FNR': 1, 'FDR':.2+w_fp, 'FOR':1}
+    
         plot_df = (self.rel_rates
             .query("rate != 'PN/n'")
             .assign(
-                rate_position = lambda x: x.rate.map(rate_positions), point_size = lambda x: x.rate.map(rate_weights)))
-        size_tuple=(200*(1-w_fp), 200*w_fp)
+                rate_position = lambda x: x.rate.map(rate_positions),
+                point_size = lambda x: x.rate.map(rate_weights),
+                alpha = lambda x: x.rate.map(alpha_weights)))
         
         if ax is None:
             fig = plt.figure()
             ax = fig.add_subplot(1, 1, 1)
-        ax.hlines(y=plot_df.rate_position,
-                xmin = 0,
-                xmax = plot_df.rate_ratio,
-                color = 'lightgrey', 
-                alpha = 1, 
-                linestyles='solid', 
-                linewidth=1, 
-                zorder = 1)
-        sns.scatterplot(data = plot_df, 
-                        x = 'rate_ratio',
-                        y='rate_position',
-                        hue='grp',
-                        palette = self.sens_grps_cols, 
-                        size = 'point_size',
-                        sizes = size_tuple, #(100,200),
-                        legend = False,
-                        ax = ax,
-                        marker = 'o',
-                        alpha = 1, 
-                        zorder = 2)
+        ax.hlines(
+            y=plot_df.rate_position,
+            xmin = 0,
+            xmax = plot_df.rate_ratio,
+            color = 'lightgrey', 
+            alpha = 1, 
+            linestyles='solid', 
+            linewidth=1, 
+            zorder = 1)
+        for _, alpha in enumerate(plot_df.alpha.unique()):
+            sns.scatterplot(
+                data = plot_df[plot_df['alpha'] == alpha], 
+                x = 'rate_ratio',
+                y='rate_position',
+                hue='grp',
+                palette = self.sens_grps_cols, 
+                size = 'point_size',
+                sizes = (150, 150),
+                legend = False,
+                ax = ax,
+                marker = 'o', 
+                alpha = alpha,
+                zorder = 2)
         ax.set_yticks(list(rate_positions.values()))
         ax.set_yticklabels(list(rate_positions.keys()))
         ax.set_ylabel('')
@@ -239,10 +250,10 @@ class FairKit:
     
 
     def l2_plot(self, w_fp = 0.5):
-        gs = GridSpec(nrows = 3, ncols = 1)
+        gs = GridSpec(nrows = 11, ncols = 1)
         f = plt.figure(figsize=(8,6))
-        ax_list = [f.add_subplot(gs[0:2,0]),
-                    f.add_subplot(gs[2,0])]
+        ax_list = [f.add_subplot(gs[0:6,0]),
+                    f.add_subplot(gs[7:,0])]
         self.l2_rate_subplot(ax = ax_list[0], w_fp = w_fp)
         self.l2_ratio_subplot(ax = ax_list[1], w_fp = w_fp)
         ax_list[0].set_title('Group Rates', fontsize=14)
@@ -250,7 +261,7 @@ class FairKit:
         f.subplots_adjust(hspace = 0.8, right = 1)
 
     def l2_interactive_plot(self):
-       return interactive(self.l2_plot, w_fp=(0,1,0.1))
+       return interact(self.l2_plot, w_fp=FloatSlider(min=0,max=1,atep=0.1,value=0.8))
 
 
     def l3_plot_fairness_criteria(self):
@@ -332,8 +343,8 @@ if __name__ == "__main__":
         a = df.grp, 
         r = df.phat,
         model_type='')
-    fair_anym.l2_plot(w_fp=0.7)
-    #plt.savefig('../Thesis-report/00_figures/L2_example.pdf', bbox_inches='tight')
+    fair_anym.l2_plot(w_fp=0.8)
+    plt.savefig('../Thesis-report/00_figures/L2_example.pdf', bbox_inches='tight')
 
 # %%
 
