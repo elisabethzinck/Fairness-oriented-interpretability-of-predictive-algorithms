@@ -298,7 +298,7 @@ class FairKit:
             x = 'rate_ratio', y = 'criterion', 
             data = plot_df,
             order = criteria_order,
-            palette = costum_palette(specific_col_idx = [7]),#'grey',
+            palette = costum_palette(specific_col_idx = [7]),
             ax = ax)
         ax.set_xlabel('')
         ax.set_ylabel('')
@@ -349,6 +349,8 @@ if __name__ == "__main__":
         r = df.phat,
         model_type='')
     fair_anym.l2_plot(w_fp=0.8)
-    plt.savefig('../Thesis-report/00_figures/L2_example.pdf', bbox_inches='tight')
+    #plt.savefig('../Thesis-report/00_figures/L2_example.pdf', bbox_inches='tight')
 
     fair_anym.l3_plot_fairness_criteria()
+    #plt.savefig('../Thesis-report/00_figures/L3_obs_fair_example.pdf', bbox_inches='tight')
+
