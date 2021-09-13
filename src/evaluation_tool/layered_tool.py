@@ -15,13 +15,14 @@ import matplotlib.ticker as mtick
 from matplotlib.gridspec import GridSpec
 import seaborn as sns
 import plotly.graph_objects as go
+from seaborn.palettes import color_palette
 
 # sklearn 
 from sklearn.metrics import confusion_matrix, roc_curve
 
 # dir functions
 from src.evaluation_tool.utils import (
-    cm_matrix_to_dict, cm_dict_to_matrix, abs_percentage_tick, flatten_list)
+    cm_matrix_to_dict, costum_palette, abs_percentage_tick, flatten_list)
 
 #%%
 def get_minimum_rate(group):
@@ -57,7 +58,7 @@ class FairKit:
         self.rel_rates = self.get_relative_rates()
 
         # Define color palette
-        cols = sns.color_palette(n_colors = self.n_sens_grps)
+        cols = costum_palette(n_colors = self.n_sens_grps) #sns.color_palette(n_colors = self.n_sens_grps)
         self.sens_grps_cols = dict(zip(self.sens_grps, cols))
 
     def get_confusion_matrix(self):
@@ -291,13 +292,13 @@ class FairKit:
             .criterion
             .tolist())
 
-        fig = plt.figure()
+        fig = plt.figure(figsize=(6,3))
         ax = fig.add_subplot(1, 1, 1)
         sns.barplot(
             x = 'rate_ratio', y = 'criterion', 
             data = plot_df,
             order = criteria_order,
-            color = 'grey',
+            palette = costum_palette(specific_col_idx = [7]),#'grey',
             ax = ax)
         ax.set_xlabel('')
         ax.set_ylabel('')
@@ -305,6 +306,10 @@ class FairKit:
             ax.spines[pos].set_visible(False)
         ax.tick_params(left=False, labelsize=12)
         ax.xaxis.set_major_formatter(mtick.FuncFormatter(abs_percentage_tick))
+        y_ticklabels = ax.get_yticklabels()
+        ax.set_yticklabels([y_ticklabels[i]._text.replace('_', ' ').title() for i in range(len(y_ticklabels))])
+        #ax.set_title('Fairness Criteria Expressed by Mean Maximum Relative Rate')
+        
 
 #%% Main
 if __name__ == "__main__":
@@ -346,9 +351,4 @@ if __name__ == "__main__":
     fair_anym.l2_plot(w_fp=0.8)
     plt.savefig('../Thesis-report/00_figures/L2_example.pdf', bbox_inches='tight')
 
-# %%
-
-
-
-
-
+    fair_anym.l3_plot_fairness_criteria()

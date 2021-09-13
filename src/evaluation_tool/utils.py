@@ -1,4 +1,5 @@
 import numpy as np
+import seaborn as sns
 def flatten_list(t):
     """Flattens a list of list"""
     flat_list = [item for sublist in t for item in sublist]
@@ -48,4 +49,29 @@ def flip_dataframe(df, new_colname = 'index'):
     df = df.iloc[1:, :]
     return df
 
+def costum_palette(n_colors = 1, specific_col_idx = None):
+    """returns a costum palette of n_colors from 
+       https://coolors.co/f94144-f3722c-f8961e-f9844a-f9c74f-90be6d-43aa8b-4d908e-577590-277da1 
+        
+        Args:
+            n_color: The number of desired colors max 10. Defaults to 1.
+            specific_col_idx: list of desired color indexes. Defaults to None.
+    """
+    assert n_colors < 10, "n_colors must be less than 10" 
+    
+    colors =  ["f94144","f3722c","f8961e","f9844a","f9c74f",
+               "90be6d","43aa8b","4d908e","577590","277da1"]
+    
+    if specific_col_idx is None:   
+        col_idx = [int(np.ceil(np.linspace(0,len(colors)-1,n_colors))[i]) for i in range(n_colors)]
+    else:
+        col_idx = specific_col_idx
+        n_colors = len(col_idx)
+    
+    hex_colors = [f'#{colors[col_idx[i]]}' for i in range(n_colors)]
 
+    return sns.color_palette(hex_colors)
+
+if __name__ == '__main__':
+    n_colors = 3
+    cp = costum_palette(n_colors = n_colors)
