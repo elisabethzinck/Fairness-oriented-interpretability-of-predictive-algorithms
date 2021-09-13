@@ -57,13 +57,14 @@ def costum_palette(n_colors = 1, specific_col_idx = None):
             n_color: The number of desired colors max 10. Defaults to 1.
             specific_col_idx: list of desired color indexes. Defaults to None.
     """
-    assert n_colors < 10, "n_colors must be less than 10" 
-    
     colors =  ["f94144","f3722c","f8961e","f9844a","f9c74f",
                "90be6d","43aa8b","4d908e","577590","277da1"]
+    max_colors = len(colors)
+    assert n_colors < max_colors, "n_colors must be less than 10"    
     
     if specific_col_idx is None:   
-        col_idx = [int(np.ceil(np.linspace(0,len(colors)-1,n_colors))[i]) for i in range(n_colors)]
+        idx = np.ceil(np.linspace(start=0, stop=max_colors-1, num=n_colors))
+        col_idx = [int(idx)[i] for i in range(n_colors)]
     else:
         col_idx = specific_col_idx
         n_colors = len(col_idx)
