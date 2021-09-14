@@ -22,7 +22,7 @@ from sklearn.metrics import confusion_matrix, roc_curve
 
 # dir functions
 from src.evaluation_tool.utils import (
-    cm_matrix_to_dict, costum_palette, abs_percentage_tick, flatten_list)
+    cm_matrix_to_dict, custom_palette, abs_percentage_tick, flatten_list)
 
 #%%
 def get_minimum_rate(group):
@@ -58,7 +58,7 @@ class FairKit:
         self.rel_rates = self.get_relative_rates()
 
         # Define color palette
-        cols = costum_palette(n_colors = self.n_sens_grps) #sns.color_palette(n_colors = self.n_sens_grps)
+        cols = custom_palette(n_colors = self.n_sens_grps) #sns.color_palette(n_colors = self.n_sens_grps)
         self.sens_grps_cols = dict(zip(self.sens_grps, cols))
 
     def get_confusion_matrix(self):
@@ -137,20 +137,20 @@ class FairKit:
             .assign(
                 n = lambda x: x.TP + x.FN + x.FP + x.TN,
                 percent_positive = lambda x: (x.TP + x.FN)/x.n*100,
-                avg_w_error = lambda x: (w_fp*x.FP + (1-w_fp)*x.FN)/(2*x.n)))
-        min_err = min(df.avg_w_error)
-        df['unfair'] = (df.avg_w_error-min_err)/abs(min_err)*100
+                WMR = lambda x: (w_fp*x.FP + (1-w_fp)*x.FN)/(2*x.n)))
+        WMR_min = min(df.WMR)
+        df['unfair'] = (df.WMR-WMR_min)/abs(WMR_min)*100
 
         # Make table pretty
-        cols_to_keep = ['group', 'unfair', 'avg_w_error', 'n', 'percent_positive']
-        digits = {'unfair': 1, 'avg_w_error': 3, 'percent_positive': 1}
+        cols_to_keep = ['group', 'unfair', 'WMR', 'n', 'percent_positive']
+        digits = {'unfair': 1, 'WMR': 3, 'percent_positive': 1}
         df = (df[cols_to_keep]
             .round(digits))
 
         return df
 
 
-    def l2_rate_subplot(self, ax = None, w_fp = 50):
+    def l2_rate_subplot(self, ax = None, w_fp = 0.5):
         """Plot FPR, FNR, FDR, FOR for each group"""
         rate_order = ['FPR', 'FNR', 'FDR', 'FOR']
         plot_df = self.rel_rates[self.rel_rates.rate != 'PN/n']
@@ -298,7 +298,7 @@ class FairKit:
             x = 'rate_ratio', y = 'criterion', 
             data = plot_df,
             order = criteria_order,
-            palette = costum_palette(specific_col_idx = [7]),
+            palette = custom_palette(specific_col_idx = [7]),
             ax = ax)
         ax.set_xlabel('')
         ax.set_ylabel('')
@@ -317,14 +317,14 @@ if __name__ == "__main__":
     data = pd.read_csv(file_path)
     #data.head()
 
-    fair = FairKit(
+    fair_german = FairKit(
         y = data.credit_score, 
         y_hat = data.log_reg_pred, 
         a = data.sex, 
         r = data.log_reg_prob,
         model_type='Logistic Regression')
-    fair.l2_plot(w_fp=0.7)
-    fair.l3_plot_fairness_criteria()
+    fair_german.l2_plot(w_fp=0.7)
+    fair_german.l3_plot_fairness_criteria()
 
     compas_file_path = 'data\\processed\\compas\\compas-scores-two-years-pred.csv'
     compas = pd.read_csv(compas_file_path)
@@ -354,3 +354,5 @@ if __name__ == "__main__":
     fair_anym.l3_plot_fairness_criteria()
     #plt.savefig('../Thesis-report/00_figures/L3_obs_fair_example.pdf', bbox_inches='tight')
 
+
+# %%

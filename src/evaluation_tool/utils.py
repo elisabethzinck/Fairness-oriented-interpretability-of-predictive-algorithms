@@ -49,8 +49,8 @@ def flip_dataframe(df, new_colname = 'index'):
     df = df.iloc[1:, :]
     return df
 
-def costum_palette(n_colors = 1, specific_col_idx = None):
-    """returns a costum palette of n_colors from 
+def custom_palette(n_colors = 1, specific_col_idx = None):
+    """returns a custom palette of n_colors from 
        https://coolors.co/f94144-f3722c-f8961e-f9844a-f9c74f-90be6d-43aa8b-4d908e-577590-277da1 
         
         Args:
@@ -64,7 +64,7 @@ def costum_palette(n_colors = 1, specific_col_idx = None):
     
     if specific_col_idx is None:   
         idx = np.ceil(np.linspace(start=0, stop=max_colors-1, num=n_colors))
-        col_idx = [int(idx)[i] for i in range(n_colors)]
+        col_idx = [int(idx[i]) for i in range(n_colors)]
     else:
         col_idx = specific_col_idx
         n_colors = len(col_idx)
@@ -75,4 +75,4 @@ def costum_palette(n_colors = 1, specific_col_idx = None):
 
 if __name__ == '__main__':
     n_colors = 3
-    cp = costum_palette(n_colors = n_colors)
+    cp = custom_palette(n_colors = n_colors)

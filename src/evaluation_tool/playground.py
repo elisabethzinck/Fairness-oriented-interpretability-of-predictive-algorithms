@@ -60,6 +60,37 @@ def plot_playground(TP, FN, FP, TN, alpha):
         plt.barh(y = measures_df['measure'], width = measures_df['val'])
         plt.xlim(xmin = 0, xmax  = 1)
         plt.show()
+
+
+#%%
+def plot_playground_new(TP, FN, FP, TN, w_fp):
+        w_fn = 1-w_fp
+        n = TP + FN + FP + TN
+        #rates = {
+        #    'FNR': FN/(TP + FN), 
+        #    'FPR': FP/(TN + FP),
+        #    'FDR': FP/(TP + FP),
+        #    'FOR': FN/(TN + FN)}
+        
+        measures = {
+            'uden 2': 
+                (w_fp*FP + w_fn*FN)/n,
+            '2 i naevner':  (w_fp*FP + w_fn*FN)/(2*n),
+            '2 i taeller':  2*(w_fp*FP + w_fn*FN)/n}
+
+        #measures.update(rates) # Add two dicts together
+
+        measures_df = pd.DataFrame({
+            'measure': measures.keys(),
+            'val': measures.values()})
+
+
+        #p9.ggplot(measures_df) + \
+        #    p9.geom_col(p9.aes(x = 'measure', y = 'val')) + \
+        #    p9.coord_flip()
+        plt.barh(y = measures_df['measure'], width = measures_df['val'])
+        plt.xlim(xmin = 0, xmax  = 2)
+        plt.show()
 #%% Simple interactive plot with confusion matrix
 
 interactive_plot = interactive(
@@ -71,14 +102,14 @@ interactive_plot = interactive(
 interactive_plot
 
 # %%
-our_playground = interactive(
-    plot_playground,
+our_playground_new = interactive(
+    plot_playground_new,
     TP=(0,100),
     FP=(0,100),
     TN=(0,100),
     FN=(0,100),
-    alpha = (0,1, 0.1))
-our_playground
+    w_fp = (0,1, 0.1))
+our_playground_new
 
 # %%
 def check_degeneracy(TPa, FNa, FPa, TNa, TPb, FNb, FPb, TNb):
