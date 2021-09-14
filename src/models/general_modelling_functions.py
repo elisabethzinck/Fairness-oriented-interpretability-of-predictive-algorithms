@@ -4,6 +4,14 @@ def get_n_total_parameters(pytorch_model):
     n_params = sum(p.numel() for p in pytorch_model.parameters() if p.requires_grad)
     return n_params
 
+def get_n_hidden_list(params):
+    """Extract list of hidden units from parameter dict"""
+    n_hidden_list = []
+    for i in range(params['n_layers']):
+        name = 'n_hidden_' + str(i)
+        n_hidden_list.append(params[name])
+    return n_hidden_list
+
 
 import pytorch_lightning as pl
 from pytorch_lightning.metrics import functional as FM
