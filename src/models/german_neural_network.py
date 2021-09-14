@@ -43,7 +43,7 @@ class myData(Dataset):
 
 # %% Define network
 class Net(nn.Module):
-    def __init__(self, num_features, num_hidden_list,  num_output, p_dropout = 0):
+    def __init__(self, num_features, num_hidden_list, num_output, p_dropout = 0):
         super(Net, self).__init__()
         n_hidden_layers = len(num_hidden_list)
         self.layers = []
@@ -89,7 +89,6 @@ class BinaryClassificationTask(pl.LightningModule):
     def training_step(self, batch, batch_idx):
         x, y = batch
         y_hat = self.model(x)
-        loss = F.binary_cross_entropy(y_hat, y)
 
         loss, acc = self._shared_eval_step(batch, batch_idx)
         metrics = {"train_loss": loss, 'train_acc': acc}
@@ -267,4 +266,3 @@ if __name__ == "__main__":
 
 #%%
 1+1
-#%%
