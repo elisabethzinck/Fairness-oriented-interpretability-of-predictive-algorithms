@@ -30,6 +30,12 @@ def get_minimum_rate(group):
     group['min_rate'] = group['rate_val'].agg('min')
     return group
 
+def get_WMR(cm, w_fp):
+    n = sum(cm.values())
+    w_fn = (1-w_fp)
+    wmr = (w_fp*cm['FP'] + (1-w_fp)*cm['FN'])/(2*n)
+    return wmr
+
 class FairKit:
     def __init__(self, y, y_hat, a, r, model_type = None):
         """Saves and calculates all necessary attributes for FairKit object
@@ -49,7 +55,7 @@ class FairKit:
         self.model_type = model_type
 
         self.classifier = pd.DataFrame({'y': y, 'a': a, 'y_hat': y_hat})
-        self.sens_grps = self.a.unique()
+        self.sens_grps = np.sort(self.a.unique())
         self.n_sens_grps = len(self.sens_grps)
         self.w_fp = 0.5 
 
@@ -125,6 +131,19 @@ class FairKit:
 
             return rel_rates
 
+
+    def get_relative_WMR(self, w_fp):
+        wmr_relative = pd.DataFrame({
+            'grp': self.sens_grps,
+            'rate': 'WMR'})
+        wmr_relative['rate_val'] = [get_WMR(self.cm[grp], w_fp) for grp in wmr_relative.grp]
+        wmr_relative = (wmr_relative
+            .groupby(by = 'rate')
+            .apply(get_minimum_rate)
+            .assign(rate_ratio = lambda x: 
+                        (x.rate_val-x.min_rate)/x.min_rate*100))
+        return wmr_relative
+
     def l1_get_data(self, w_fp = 0.5):
         """Get data used for first layer of evaluation
         
@@ -166,7 +185,7 @@ class FairKit:
             fig = plt.figure()
             ax = fig.add_subplot(1, 1, 1)
         sns.barplot(
-            x = 'rate_val', y = 'rate', 
+            x = 'rate', y = 'rate_val', 
             hue = 'grp', palette = self.sens_grps_cols,
             data = plot_df,
             order = rate_order,
@@ -174,8 +193,8 @@ class FairKit:
         ax.legend(loc = 'upper right', frameon = False)
         ax.set_xlabel('')
         ax.set_ylabel('')
-        ax.set_xlim(0,1)
-        for pos in ['right', 'top', 'left']:
+        ax.set_ylim(0,1)
+        for pos in ['bottom', 'top', 'right']:
             ax.spines[pos].set_visible(False)
         ax.tick_params(left=False, labelsize=12)
         if w_fp != 0.5:
@@ -193,18 +212,19 @@ class FairKit:
         
         """
         w_size = 1000
-        rate_positions = {'FPR': 1, 'FNR': 0.75, 'FDR': 0.5, 'FOR': 0.25}
+        rate_positions = {'WMR': 1, 'FPR': 0.8, 'FNR': 0.6, 'FDR': 0.4, 'FOR': 0.2}
         rate_weights = {
             'FPR': w_size*w_fp, 'FNR': w_size*(1-w_fp), 
-            'FDR': w_size*w_fp, 'FOR': w_size*(1-w_fp)}
+            'FDR': w_size*w_fp, 'FOR': w_size*(1-w_fp),
+            'WMR': w_size}
         if w_fp == 0.5:
-            alpha_weights = {'FPR': 1, 'FNR': 1, 'FDR':1, 'FOR':1}
+            alpha_weights = {'FPR': 1, 'FNR': 1, 'FDR': 1, 'FOR': 1, 'WMR': 1}
         elif w_fp > 0.5:
-            alpha_weights = {'FPR': 1, 'FNR': 1.2-w_fp, 'FDR':1, 'FOR':1.2-w_fp}
+            alpha_weights = {'FPR': 1, 'FNR': 1.2-w_fp, 'FDR':1, 'FOR':1.2-w_fp, 'WMR': 1}
         else: 
-            alpha_weights = {'FPR': .2+w_fp, 'FNR': 1, 'FDR':.2+w_fp, 'FOR':1}
-    
-        plot_df = (self.rel_rates
+            alpha_weights = {'FPR': .2+w_fp, 'FNR': 1, 'FDR':.2+w_fp, 'FOR':1, 'WMR': 1}
+        rel_WMR = self.get_relative_WMR(w_fp = w_fp)
+        plot_df = (pd.concat([self.rel_rates, rel_WMR])
             .query("rate != 'PN/n'")
             .assign(
                 rate_position = lambda x: x.rate.map(rate_positions),
@@ -242,7 +262,8 @@ class FairKit:
         ax.set_ylabel('')
         ax.set_xlabel('')
         ax.set_title(
-            'Relative Difference of Group Rate vs. Minimum Group Rate', fontsize=14) 
+            'Relative Difference of Group Rate vs. Minimum Group Rate', fontsize=14)
+        ax.set_xlim(left = -10) # To see all of left dots
         ax.set_ylim((.125,1.125))
         ax.xaxis.set_major_formatter(mtick.FuncFormatter(abs_percentage_tick))
         for pos in ['right', 'top', 'left']:
@@ -251,49 +272,62 @@ class FairKit:
     
 
     def l2_plot(self, w_fp = 0.5):
-        gs = GridSpec(nrows = 11, ncols = 1)
-        f = plt.figure(figsize=(8,6))
-        ax_list = [f.add_subplot(gs[0:6,0]),
-                    f.add_subplot(gs[7:,0])]
-        self.l2_rate_subplot(ax = ax_list[0], w_fp = w_fp)
-        self.l2_ratio_subplot(ax = ax_list[1], w_fp = w_fp)
-        ax_list[0].set_title('Group Rates', fontsize=14)
-        ax_list[0].legend(title='Group', frameon = False)
-        f.subplots_adjust(hspace = 0.8, right = 1)
+        
+        # Define grid
+        gs = GridSpec(nrows = 10, ncols = 3)
+        f = plt.figure(figsize=(20,6))
+        ax0 = f.add_subplot(gs[:, 0])
+        ax2 = f.add_subplot(gs[5:,1:2])
+        ax1 = f.add_subplot(gs[0:4,1:2], sharex = ax2)
+        
+        
+        # Insert plots
+        self.l2_rate_subplot(ax = ax0, w_fp = w_fp)
+        ax0.set_title('Group Rates', fontsize=14)
+        self.l2_ratio_subplot(ax = ax1, w_fp = w_fp)
+        self.l3_plot_fairness_criteria(ax = ax2, w_fp = w_fp)
+        
+        #ax0.legend(title='Group', frameon = False)
+
+        # Adjustments
+        f.subplots_adjust(wspace = 0.5)
 
     def l2_interactive_plot(self):
        return interact(self.l2_plot, w_fp=FloatSlider(min=0,max=1,atep=0.1,value=0.8))
 
 
-    def l3_plot_fairness_criteria(self):
+    def l3_plot_fairness_criteria(self, w_fp = 0.5, ax = None):
         fairness_crit = pd.DataFrame([
-            ['independence', 'PN/n'],
-            ['separation', 'FPR'],
-            ['separation', 'FNR'],
-            ['false_positive_error_rate_balance', 'FPR'],
-            ['equal_opportunity', 'FNR'],
-            ['sufficiency', 'FDR'],
-            ['sufficiency', 'FOR'],
-            ['predictive_parity', 'FDR']],
+            ['Independence', 'PN/n'],
+            ['Separation', 'FPR'],
+            ['Separation', 'FNR'],
+            ['FPR balance', 'FPR'],
+            ['Equal Opportunity', 'FNR'],
+            ['Sufficiency', 'FDR'],
+            ['Sufficiency', 'FOR'],
+            ['Predictive Parity', 'FDR'],
+            ['Our Measure', 'WMR']],
             columns = ['criterion', 'rate'])
 
-        plot_df = (
-            pd.merge(
-                self.rel_rates[['rate', 'rate_ratio']], 
-                fairness_crit)
+        rel_WMR = self.get_relative_WMR(w_fp = w_fp)
+        plot_df = (pd.concat([rel_WMR, self.rel_rates[['rate', 'rate_ratio']]])
+            .merge(fairness_crit)
             .groupby(by = ['rate', 'criterion'], as_index = False)
             .agg('max') # Get maximum of the rate ratio of sensitive groups
             .drop('rate', axis = 1)
             .groupby(by = 'criterion', as_index = False)
             .agg('mean')) # Get mean of rate ratio by rates
 
+        if plot_df is None:
+            plot_df = self.l3_get_fairness_criteria(w_fp)
         criteria_order = (plot_df
             .sort_values('rate_ratio', ascending = False)
             .criterion
             .tolist())
 
-        fig = plt.figure(figsize=(6,3))
-        ax = fig.add_subplot(1, 1, 1)
+        if ax is None:
+            fig = plt.figure(figsize=(6,3))
+            ax = fig.add_subplot(1, 1, 1)
         sns.barplot(
             x = 'rate_ratio', y = 'criterion', 
             data = plot_df,
@@ -306,37 +340,35 @@ class FairKit:
             ax.spines[pos].set_visible(False)
         ax.tick_params(left=False, labelsize=12)
         ax.xaxis.set_major_formatter(mtick.FuncFormatter(abs_percentage_tick))
-        y_ticklabels = ax.get_yticklabels()
-        ax.set_yticklabels([y_ticklabels[i]._text.replace('_', ' ').title() for i in range(len(y_ticklabels))])
         #ax.set_title('Fairness Criteria Expressed by Mean Maximum Relative Rate')
         
 
 #%% Main
 if __name__ == "__main__":
-    file_path = 'data\\predictions\\german_credit_log_reg.csv'
-    data = pd.read_csv(file_path)
+    #file_path = 'data\\predictions\\german_credit_log_reg.csv'
+    #data = pd.read_csv(file_path)
     #data.head()
 
-    fair_german = FairKit(
-        y = data.credit_score, 
-        y_hat = data.log_reg_pred, 
-        a = data.sex, 
-        r = data.log_reg_prob,
-        model_type='Logistic Regression')
-    fair_german.l2_plot(w_fp=0.7)
-    fair_german.l3_plot_fairness_criteria()
+    #fair_german = FairKit(
+    #    y = data.credit_score, 
+    #    y_hat = data.log_reg_pred, 
+    #    a = data.sex, 
+    #    r = data.log_reg_prob,
+    #    model_type='Logistic Regression')
+    #fair_german.l2_plot(w_fp=0.7)
+    #fair_german.l3_plot_fairness_criteria()
 
-    compas_file_path = 'data\\processed\\compas\\compas-scores-two-years-pred.csv'
-    compas = pd.read_csv(compas_file_path)
-    compas.head()
+    #compas_file_path = 'data\\processed\\compas\\compas-scores-two-years-pred.#csv'
+    #compas = pd.read_csv(compas_file_path)
+    #compas.head()
 
-    fair_compas = FairKit(
-        y = compas.two_year_recid, 
-        y_hat = compas.pred_medium_high, 
-        a = compas.age_cat, 
-        r = compas.decile_score,
-        model_type='COMPAS Decile Scores')
-    fair_compas.l2_plot()
+    #fair_compas = FairKit(
+    #    y = compas.two_year_recid, 
+    #    y_hat = compas.pred_medium_high, 
+    #    a = compas.age_cat, 
+    #    r = compas.decile_score,
+    #    model_type='COMPAS Decile Scores')
+    #fair_compas.l2_plot()
 
     file_path = 'data\\processed\\anonymous_data.csv'
     df = pd.read_csv(file_path)
@@ -348,10 +380,12 @@ if __name__ == "__main__":
         a = df.grp, 
         r = df.phat,
         model_type='')
+    #fair_anym.l2_ratio_subplot(w_fp = 0.8)
+    #fair_anym.l3_plot_fairness_criteria(w_fp = 0.8)
     fair_anym.l2_plot(w_fp=0.8)
-    #plt.savefig('../Thesis-report/00_figures/L2_example.pdf', bbox_inches='tight')
+    plt.savefig('../Thesis-report/00_figures/L2_example_new.pdf', bbox_inches='tight')
 
-    fair_anym.l3_plot_fairness_criteria()
+    #fair_anym.l3_plot_fairness_criteria()
     #plt.savefig('../Thesis-report/00_figures/L3_obs_fair_example.pdf', bbox_inches='tight')
 
 
