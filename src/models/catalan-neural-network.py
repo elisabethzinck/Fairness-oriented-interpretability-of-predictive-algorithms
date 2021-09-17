@@ -30,11 +30,11 @@ logging.getLogger('lightning').setLevel(logging.ERROR)
 def objective_function(trial: optuna.trial.Trial):
     logging.getLogger('lightning').setLevel(logging.ERROR)
     # Define parameters
-    n_layers = trial.suggest_int('n_layers', 1, 2)
+    n_layers = trial.suggest_int('n_layers', 1, 3)
     n_hidden_list = []
     for i in range(n_layers):
         name = 'n_hidden_' + str(i)
-        n_hidden_list.append(trial.suggest_int(name, 1, 10))
+        n_hidden_list.append(trial.suggest_int(name, 1, 20))
     lr = trial.suggest_loguniform('lr', 1e-6, 1e-1)
     p_dropout = trial.suggest_uniform('p_dropout', 0, 0.5)
     
@@ -160,7 +160,7 @@ if __name__ == "__main__":
                 nn_pred = y_preds >= 0.5
             ))
     output_data.to_csv(output_path, index = False)
-    acc = accuracy_score(output_data.nn_pred, output_data.credit_score)
+    acc = accuracy_score(output_data.nn_pred, output_data.V115_RECID2015_recid)
     params_df = pd.concat(
             [pd.DataFrame([paramdict], columns = paramdict.keys()) for paramdict in params_list])
     params_df.to_csv(param_path, index = False)
