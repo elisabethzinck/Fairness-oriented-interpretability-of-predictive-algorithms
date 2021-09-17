@@ -144,6 +144,29 @@ class FairKit:
                         (x.rate_val-x.min_rate)/x.min_rate*100))
         return wmr_relative
 
+    def plot_confusion_matrix(self):
+        plt.figure(figsize = (15,5))
+        n_grps = len(self.sens_grps)
+        if self.model_type != None:
+            plt.suptitle(f'Model: {self.model_type}')
+        for i, grp in enumerate(self.sens_grps):
+            n_obs = sum(self.cm[grp].values())
+            grp_cm = np.array(list(self.cm[grp].values())).reshape(2,2)
+            
+            plt.subplot(1,n_grps,i+1)
+            ax = sns.heatmap(
+                grp_cm/n_obs*100, 
+                annot = True, 
+                cmap = 'Blues', 
+                vmin = 0, vmax = 100,
+                xticklabels=['Positive', 'Negative'],
+                yticklabels=['Positive', 'Negative'], 
+                annot_kws={'size':15})
+            for a in ax.texts: a.set_text(f"{a.get_text()}%")
+            plt.ylabel('Actual (%)')
+            plt.xlabel('Predicted (%)')
+            plt.title(f'{str.capitalize(grp)} ({n_obs} observations)')
+
     def l1_get_data(self, w_fp = 0.5):
         """Get data used for first layer of evaluation
         
@@ -263,7 +286,8 @@ class FairKit:
         ax.set_xlabel('')
         ax.set_title(
             'Relative Difference of Group Rate vs. Minimum Group Rate', fontsize=14)
-        ax.set_xlim(left = -10) # To see all of left dots
+        xmin, xmax = ax.get_xlim()
+        ax.set_xlim(left = -0.05*xmax) # To see all of leftmost dots
         ax.set_ylim((.125,1.125))
         ax.xaxis.set_major_formatter(mtick.FuncFormatter(abs_percentage_tick))
         for pos in ['right', 'top', 'left']:
