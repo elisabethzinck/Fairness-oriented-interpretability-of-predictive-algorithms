@@ -1,24 +1,22 @@
+#%% Importing
 import pandas as pd
+
+#%% Loading data
 raw_file_path = 'data\\raw\\catalan-juvenile-recidivism\\reincidenciaJusticiaMenors.xlsx'
 processed_file_path = 'data\\processed\\catalan-juvenile-recidivism'
 column_translation_file_path = 'data\\interim\\catalan-juvenile-recidivism\\catalan-juvenile-recidivism-columns.xlsx'
     
 raw = pd.read_excel(raw_file_path)
-columns_trans = pd.read_excel(column_translation_file_path)
-raw.head()
+columns_translation = pd.read_excel(column_translation_file_path)
 
 # Shape of data
-raw.shape # (4753, 143)
+#raw.shape # (4753, 143)
 
-# Getting number of Nans in each column: 
-raw.isnull().sum(axis = 0)
-
-# Columns with only Nan
-raw.columns[(raw.isnull().sum(axis = 0) == raw.shape[0])]
-
-# renaming to english columns and writing file with NaNs 
+#%% Writing File with NaNs
+# renaming to english columns and writing file with number of NaNs 
+# to investigate how complete each column is 
 catalan_names = raw.columns
-raw.columns = columns_trans.translation 
+raw.columns = columns_translation.translation 
 (pd.DataFrame(
     raw.isnull().sum(axis= 0)
                 .rename('NaNs'))
@@ -29,34 +27,31 @@ raw.columns = columns_trans.translation
                 .to_excel("data\\interim\\catalan-juvenile-recidivism\\catalan-juvenile-recidivism-NaNs.xlsx")
 )
 
+#%% Filling or dropping NaNs 
+
 # Dropping columns with only NaN 
 df = raw.drop(raw.columns[(raw.isnull().sum(axis = 0) == raw.shape[0])], axis = 1)
 
-# Create dict with unique values for each column 
-u_dict = {}
-for i, col in enumerate(df.columns): 
-    if i >= 18: 
-        i = i+1
-        
-    dict_key = f"V{i}"
-    u_dict[dict_key] = df[col].unique()
-
-
-# Finding nationality of offenders with missing geographical areas of origin 
+# Offenders with missing geographical areas of origin all come from Espanya
+# so we impute Espanya on missing values 
 df.loc[df.V4_area_origin.isnull()].V2_nationality_type.unique()
-#Inputting Espanya on the 'missing' values
 df.loc[df.V4_area_origin.isnull(), 'V4_area_origin'] = 'Espanya'
 
-# Filling or dropping NaNs 
+# For V12 and V20 NaN is equivalent to zero
 df.V12_n_criminal_record.fillna(0, inplace = True)
 df.V20_n_juvenile_records.fillna(0, inplace = True)
+
+# For V26 we combine with column V25 because it has info about MRM and ATM, 
+# which matches the places with NaNs in V26
 df.V26_finished_measure_grouped.fillna(df.V25_MRM_ATM_or_enforcement_actions, inplace = True)
+
+# Dropping rows with NaNs in V5, V6, V7 and V8
 df.dropna(axis = 0, subset=['V5_age_cat', 'V6_province', 'V7_region', 'V8_age'], inplace = True)
 
-# Subsetting columns 
+#%% Filtering out columns, which are either specific MRM, ATM, Savry, 2013 or 2015 data
 dfsub = df.filter(list(df.columns[list(range(31))+[114]]))
 
-# Replacing some words with english 
+#%% Replacing some of the catalan words with english 
 V1_map = {'Dona': 'female', 'Home': 'male'}
 V2_map = {'Espanyol': 'Spanish', 'Estranger': 'Foreign'}
 V4_map = {'Espanya': 'Spain', 
@@ -69,7 +64,7 @@ V11_map = {'Amb antecedents': 1, 'Sense antecedents': 0}
 V12_map = {'1 o 2 antecedents': '1-2',
                 'De 3 a 5 antecedents': '3-5',
                 'Més de 5 antecedents': '5+',
-                '0': '0'}
+                0: '0'}
 V13_map = {'3 fets o més': '3+',
            '2 fets': '2',
            '1 fet' : '1'
@@ -96,7 +91,7 @@ dfsub = dfsub.assign(
     V115_RECID2015_recid = lambda x: x.V115_RECID2015_recid.map(V115_map)
 )
 
-dfsub.isnull().sum(axis=0)
+#%% Imputing missing values 
 
 #There are some missing values in 'V28_days_from_crime_to_program
 #we impute them by calculating the difference in days from crime comitted 
@@ -110,5 +105,23 @@ vals = [(tmp.V22_main_crime_comission_date.iloc[i].date()
         -tmp.V30_program_start.iloc[i].date()).days for i in range(n_nans)]
 
 dfsub.loc[dfsub.V28_days_from_crime_to_program.isnull(), 'V28_days_from_crime_to_program'] = vals 
+
+# Checking for nulls 
+#dfsub.isnull().sum(axis=0)
+
+#%% handling dates to extract month and year from each. Day is omitted.
+date_cols = dfsub.select_dtypes(include=['datetime64']).columns
+
+for i, col in enumerate(date_cols):
+    dfsub[f"{col}_year"] = dfsub[col].dt.year
+    dfsub[f"{col}_month"] = dfsub[col].dt.month
+
+dfsub.drop(date_cols, axis = 1, inplace=True)
+
+# 'V31_program_end_year' is 2010 in all instances. Column is dropped.
+dfsub.drop(["V31_program_end_year"], axis = 1, inplace=True)
+
+
+#%% Writing to Excel
 
 dfsub.to_excel(f"{processed_file_path}\\catalan-juvenile-recidivism-subset.xlsx")
