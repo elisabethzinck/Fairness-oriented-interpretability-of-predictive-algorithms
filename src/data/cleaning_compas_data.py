@@ -1,19 +1,27 @@
-from numpy.core.fromnumeric import shape
 import pandas as pd
 import matplotlib.pyplot as plt
 
 if __name__ == "__main__":
     raw_file_path = 'data\\raw\\compas\\compas-scores-two-years.csv'
-    processed_file_path = 'data\\processed\\compas\\compas-scores-two-years-subset.csv'
-    processed_file_path_preds = 'data\\processed\\compas\\compas-scores-two-years-pred.csv'
-    
     compas_raw = pd.read_csv(raw_file_path)
     compas_raw.head()
+    folder = "data\\processed\\compas\\"
 
-    # We need to filter out rows where **days_b_screening_arrest** is over 30 or under -30
-    # See article \cite{Larson2016} for info
-    compas = compas_raw.loc[(compas_raw['days_b_screening_arrest'] <= 30) & (compas_raw['days_b_screening_arrest'] >= -30)]
-    assert(compas.shape[0] == 6172)
+    filter_b_screening = True
+
+    # filter away the b_screening_date >30 or <-30? 
+    if filter_b_screening: 
+        # We need to filter out rows where **days_b_screening_arrest** is over 30 or under -30
+        # See article \cite{Larson2016} for info
+        compas = compas_raw.loc[(compas_raw['days_b_screening_arrest'] <= 30) & (compas_raw['days_b_screening_arrest'] >= -30)]
+        assert(compas.shape[0] == 6172)
+        #output file paths
+        processed_file_path = f'{folder}compas-scores-two-years-subset.csv'
+        processed_file_path_preds = f'{folder}compas-scores-two-years-pred.csv'
+    else: 
+        compas = compas_raw
+        processed_file_path =  f'{folder}compas-scores-two-years-w-b-screening-30.csv'
+        processed_file_path_preds = f'{folder}compas-scores-two-years-pred-w-b-screening-30.csv'
 
     #Omitting the 'other' category.
     # We also omit Asian (31 obs) and Native American (11) obs.
@@ -36,5 +44,5 @@ if __name__ == "__main__":
         pred_medium_high = (pred.score_text != 'Low'),
         v_pred_medium_high = (pred.v_score_text != 'Low'))
     print(pred.columns)
-    
-    pred.to_csv(processed_file_path_preds, index=False)            
+
+    pred.to_csv(processed_file_path_preds, index=False)   

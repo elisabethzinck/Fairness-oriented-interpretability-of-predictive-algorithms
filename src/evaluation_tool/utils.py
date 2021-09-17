@@ -29,7 +29,7 @@ def cm_matrix_to_dict(cm_matrix):
 
     Confusion matrix must be of form [[TP, FN], [FN, TN]]
     """
-    TP, FN, FP, TN = cm_matrix.ravel()
+    TN, FP, FN, TP = cm_matrix.ravel()
     cm_dict = {'TP': TP, 'FN': FN, 'FP': FP, 'TN': TN}
     return cm_dict
 

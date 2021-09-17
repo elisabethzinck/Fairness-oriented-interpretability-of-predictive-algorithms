@@ -96,6 +96,11 @@ if __name__ == '__main__':
         fair_compas_age.l2_plot(w_fp=compas_w_fp)
         plt.savefig(figure_path+'compas_l2_age.pdf')
 
+        # filtering out hispanics to recreate the Propublica result 
+        not_include_hispanics = False
+        if not_include_hispanics: 
+            compas = compas[compas.race.isin(['African-American','Caucasian'])]
+
         fair_compas_race = FairKit(
             y = compas.two_year_recid, 
             y_hat = compas.pred_medium_high, 

@@ -82,7 +82,6 @@ class FairKit:
             return cm
 
 
-
     def get_rates(self):
         """Calculate rates by senstitive group"""
         if hasattr(self, 'rates'):
