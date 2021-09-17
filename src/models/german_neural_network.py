@@ -8,12 +8,10 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import accuracy_score
 
 from src.data.general_preprocess_functions import one_hot_encode_mixed_data
-from src.models.general_modelling_functions import (get_n_total_parameters, get_n_hidden_list)
+from src.models.general_modelling_functions import (get_n_hidden_list, myData, Net, BinaryClassificationTask)
 
 import torch
-import torch.nn as nn
-import torch.nn.functional as F
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import DataLoader
 
 import pytorch_lightning as pl
 from pytorch_lightning.callbacks import EarlyStopping
@@ -27,102 +25,6 @@ warnings.simplefilter("ignore")
 
 import logging
 logging.getLogger('lightning').setLevel(logging.ERROR)
-
-#%% Define dataset
-class myData(Dataset):
-    def __init__(self, X_data, y_data):
-        self.X_data = torch.FloatTensor(X_data)
-        self.y_data = torch.FloatTensor(y_data[:, None]) # Make vector into matrix
-        
-    def __getitem__(self, index):
-        return self.X_data[index], self.y_data[index]
-        
-    def __len__ (self):
-        return len(self.X_data)
-
-
-# %% Define network
-class Net(nn.Module):
-    def __init__(self, num_features, num_hidden_list, num_output, p_dropout = 0):
-        super(Net, self).__init__()
-        n_hidden_layers = len(num_hidden_list)
-        self.layers = []
-        
-        input_dim = num_features
-        for i in range(n_hidden_layers):
-            output_dim = num_hidden_list[i]
-            self.layers.append(nn.Linear(input_dim, output_dim))
-            self.layers.append(nn.Dropout(p = p_dropout))
-            self.layers.append(nn.ReLU())
-            input_dim = output_dim
-        
-        # Last layer (without activation function)
-        self.layers.append(nn.Linear(num_hidden_list[-1], num_output))
-        self.layers.append(nn.Dropout(p = p_dropout))
-
-        self.layers = nn.Sequential(*self.layers)
-
-
-    def forward(self, x):
-        x = self.layers(x)
-        x = torch.sigmoid(x) 
-
-        return x
-    
-# Check net
-#test_net = Net(
-#    num_features = n_features, 
-#    num_hidden = 10, 
-#    num_output = n_output)
-#print(test_net)
-#test_observation = torch.randn(5, n_features)
-#test_output = test_net(test_observation)
-
-
-#%% Define lightning module
-class BinaryClassificationTask(pl.LightningModule):
-    def __init__(self, model, lr = 1e-3):
-        super().__init__()
-        self.model = model
-        self.lr = lr
-
-    def training_step(self, batch, batch_idx):
-        x, y = batch
-        y_hat = self.model(x)
-
-        loss, acc = self._shared_eval_step(batch, batch_idx)
-        metrics = {"train_loss": loss, 'train_acc': acc}
-        self.log_dict(metrics, on_epoch = True, on_step = False)
-        return loss
-
-    def validation_step(self, batch, batch_idx):
-        loss, acc = self._shared_eval_step(batch, batch_idx)
-        metrics = {"val_loss": loss, 'val_acc': acc}
-        self.log_dict(metrics)
-        return metrics
-
-    def test_step(self, batch, batch_idx):
-        loss, acc = self._shared_eval_step(batch, batch_idx)
-        metrics = {"test_loss": loss, 'test_acc': acc}
-        self.log_dict(metrics)
-        return metrics
-
-    def _shared_eval_step(self, batch, batch_idx):
-        x, y = batch
-        y_hat = self.model(x)
-        loss = F.binary_cross_entropy(y_hat, y)
-        y_hat_binary = (y_hat >= 0.5)
-        acc = accuracy_score(y, y_hat_binary)
-        return loss, acc
-
-    def predict_step(self, batch, batch_idx):
-        x, y = batch
-        y_hat = self.model(x)
-        return y_hat.to_numpy()
-
-    def configure_optimizers(self):
-        return torch.optim.Adam(self.model.parameters(), lr = self.lr)
-
 
 #%% Objective function for optuna optimizer
 def objective_function(trial: optuna.trial.Trial):
