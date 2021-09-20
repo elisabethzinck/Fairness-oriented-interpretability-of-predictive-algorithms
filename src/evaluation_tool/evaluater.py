@@ -10,7 +10,7 @@ if __name__ == '__main__':
     run_anym = False
     run_german_log_reg = False
     run_german_nn = False
-    run_compas = True
+    run_compas = False
 
     german_w_fp = 0.2
     compas_w_fp = 0.9
