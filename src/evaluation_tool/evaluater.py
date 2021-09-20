@@ -8,11 +8,11 @@ from src.evaluation_tool.layered_tool import FairKit
 if __name__ == '__main__':
     figure_path = 'figures\\evaluation_plots\\'
     run_anym = False
-    run_german_log_reg = False
-    run_german_nn = False
+    run_german_log_reg = True
+    run_german_nn = True
     run_compas = False
 
-    german_w_fp = 0.2
+    german_w_fp = 0.1
     compas_w_fp = 0.9
 
     #######################################
@@ -73,9 +73,9 @@ if __name__ == '__main__':
             r = german_nn.nn_prob,
             model_type='Neural network')
         fair_german_nn.plot_confusion_matrix()
-        plt.savefig(figure_path+'german_log_reg_confusion.pdf')
+        plt.savefig(figure_path+'german_nn_confusion.pdf')
         fair_german_nn.l2_plot(w_fp=german_w_fp)
-        plt.savefig(figure_path+'german_log_reg_l2.pdf')
+        plt.savefig(figure_path+'german_nn_l2.pdf')
 
 
     #######################################
