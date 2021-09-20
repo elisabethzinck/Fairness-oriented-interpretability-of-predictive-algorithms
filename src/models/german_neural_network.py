@@ -190,4 +190,4 @@ if __name__ == "__main__":
 load_checkpoint_file = f'{model_folder}NN_german_fold_{0}'
 checkpoint = torch.load(load_checkpoint_file)
 model = checkpoint['model']
-#checkpoint['model'].state_dict() # <-- weigths and bias 
+#checkpoint['model'].state_dict() # <-- weigths and bias of model 
