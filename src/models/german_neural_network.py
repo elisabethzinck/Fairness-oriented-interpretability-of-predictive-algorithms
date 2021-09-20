@@ -78,7 +78,7 @@ if __name__ == "__main__":
     raw_data = pd.read_csv(file_path)
 
     #Save models dir 
-    folder = 'src\\models\\checkpoints\\german_credit'
+    model_folder = 'src\\models\\checkpoints\\german_credit\\'
 
     #Prepare data
     X = raw_data.drop(['credit_score', 'person_id'], axis = 1)
@@ -123,7 +123,7 @@ if __name__ == "__main__":
         study.optimize(
             objective_function, 
             #timeout = max_minutes*60,
-            n_trials = 5,
+            n_trials = 100,
             show_progress_bar=False)
 
         # %% Train model on all data
@@ -141,25 +141,27 @@ if __name__ == "__main__":
 
         # Callbacks for training
         early_stopping = EarlyStopping('val_loss', patience = 3)
-        checkpoint_filename = f'NN_german_fold_{i}'
-        checkpoint_callback = ModelCheckpoint(dirpath=folder,
-                                              save_weights_only=True,
-                                              filename=checkpoint_filename,
-                                              auto_insert_metric_name=False, 
-                                              monitor='val_loss'
-                                             )
-        os.path.basename(checkpoint_callback.format_checkpoint_name({}, ver = None))
 
         trainer = pl.Trainer(
             fast_dev_run = False,
             log_every_n_steps = 1, 
             max_epochs = 50,
             deterministic = True,
-            callbacks = [early_stopping, checkpoint_callback],
+            callbacks = [early_stopping],
             progress_bar_refresh_rate = 0)
 
         trainer.fit(plnet, train_loader, val_loader)
-    
+
+        # Save model weigths, hparams and indexes for train and test data
+        checkpoint_file = f'{model_folder}NN_german_fold_{i}'
+        save_dict = {
+            'model': trainer.model,
+            'hparams': params,
+            'train_val_idx':train_val_idx, 
+            'test_idx': test_idx,
+            'fold': i}
+        torch.save(save_dict, checkpoint_file)
+
         #%%
         predictions = plnet.model.forward(torch.Tensor(X_test))
         pred_binary = (predictions >= 0.5)
@@ -184,3 +186,8 @@ if __name__ == "__main__":
 
 #%%
 1+1
+# Loading model from fold 0
+load_checkpoint_file = f'{model_folder}NN_german_fold_{0}'
+checkpoint = torch.load(load_checkpoint_file)
+model = checkpoint['model']
+#checkpoint['model'].state_dict() # <-- weigths and bias 
