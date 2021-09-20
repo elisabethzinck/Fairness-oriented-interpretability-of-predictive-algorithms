@@ -1,7 +1,9 @@
 #%% Imports
+import os
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+from pytorch_lightning.callbacks.model_checkpoint import ModelCheckpoint
 
 from sklearn.model_selection import train_test_split, KFold
 from sklearn.preprocessing import StandardScaler
@@ -75,6 +77,9 @@ if __name__ == "__main__":
     param_path = 'data\\predictions\\german_credit_nn_pred_hyperparams.csv'
     raw_data = pd.read_csv(file_path)
 
+    #Save models dir 
+    folder = 'src\\models\\checkpoints\\german_credit'
+
     #Prepare data
     X = raw_data.drop(['credit_score', 'person_id'], axis = 1)
     X = one_hot_encode_mixed_data(X)
@@ -118,9 +123,8 @@ if __name__ == "__main__":
         study.optimize(
             objective_function, 
             #timeout = max_minutes*60,
-            n_trials = 100,
+            n_trials = 5,
             show_progress_bar=False)
-
 
         # %% Train model on all data
         params = study.best_trial.params
@@ -135,16 +139,27 @@ if __name__ == "__main__":
             p_dropout = params['p_dropout'])
         plnet = BinaryClassificationTask(model = net, lr = params['lr'])
 
+        # Callbacks for training
         early_stopping = EarlyStopping('val_loss', patience = 3)
+        checkpoint_filename = f'NN_german_fold_{i}'
+        checkpoint_callback = ModelCheckpoint(dirpath=folder,
+                                              save_weights_only=True,
+                                              filename=checkpoint_filename,
+                                              auto_insert_metric_name=False, 
+                                              monitor='val_loss'
+                                             )
+        os.path.basename(checkpoint_callback.format_checkpoint_name({}, ver = None))
+
         trainer = pl.Trainer(
             fast_dev_run = False,
             log_every_n_steps = 1, 
             max_epochs = 50,
             deterministic = True,
-            callbacks = [early_stopping],
+            callbacks = [early_stopping, checkpoint_callback],
             progress_bar_refresh_rate = 0)
 
         trainer.fit(plnet, train_loader, val_loader)
+    
         #%%
         predictions = plnet.model.forward(torch.Tensor(X_test))
         pred_binary = (predictions >= 0.5)
@@ -162,7 +177,8 @@ if __name__ == "__main__":
     acc = accuracy_score(output_data.nn_pred, output_data.credit_score)
     params_df = pd.concat(
         [pd.DataFrame([paramdict], columns = paramdict.keys()) for paramdict in params_list])
-    params_df.to_csv(param_path, index = False)
+    params_df.to_csv(param_path, index = False
+    )
 
     print(f'Final accuracy score: {acc}')
 
