@@ -1,0 +1,11 @@
+numpy
+pandas
+torch
+scikit-learn
+matplotlib
+seaborn
+tqdm
+plotnine
+--editable .
+pytorch-lightning
+optuna

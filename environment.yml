@@ -2,18 +2,8 @@ name: fairness-oriented-interpretability-of-predictive-algorithms
 dependencies:
     - python=3.8
     - notebook
-    - numpy
-    - pandas
-    - pytorch
-    - scikit-learn
-    - matplotlib
-    - seaborn
     - ipywidgets
-    - tqdm
     - pip
     - pip:
-        - plotnine
-        - "--editable ."
-        - pytorch-lightning
-        - optuna
+        -r "requirements.txt"
         

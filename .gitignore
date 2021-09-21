@@ -8,3 +8,4 @@ data/raw/fairml_traffic_stops/NC_cleaned.csv
 /lightning_logs
 references/.ipynb_checkpoints/optuna_pytorch_lightning_notebook-checkpoint.ipynb
 /checkpoints
+/.venv
