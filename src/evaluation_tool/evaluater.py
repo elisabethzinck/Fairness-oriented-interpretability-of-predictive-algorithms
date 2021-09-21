@@ -9,8 +9,8 @@ if __name__ == '__main__':
     figure_path = 'figures\\evaluation_plots\\'
     run_anym = False
     run_german_log_reg = True
-    run_german_nn = True
-    run_compas = False
+    run_german_nn = False
+    run_compas = True
 
     german_w_fp = 0.1
     compas_w_fp = 0.9
@@ -111,6 +111,5 @@ if __name__ == '__main__':
         plt.savefig(figure_path+'compas_confusion_race.pdf')
         fair_compas_race.l2_plot(w_fp=compas_w_fp)
         plt.savefig(figure_path+'compas_l2_race.pdf')
-
     
 # %%
