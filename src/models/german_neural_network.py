@@ -3,20 +3,21 @@ import os
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-from pytorch_lightning.callbacks.model_checkpoint import ModelCheckpoint
+import time
 
 from sklearn.model_selection import train_test_split, KFold
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import accuracy_score
 
 from src.data.general_preprocess_functions import one_hot_encode_mixed_data
-from src.models.general_modelling_functions import (get_n_hidden_list, myData, Net, BinaryClassificationTask)
+from src.models.general_modelling_functions import (get_n_hidden_list, myData, Net, BinaryClassificationTask, print_timing)
 
 import torch
 from torch.utils.data import DataLoader
 
 import pytorch_lightning as pl
 from pytorch_lightning.callbacks import EarlyStopping
+from pytorch_lightning.callbacks.model_checkpoint import ModelCheckpoint
 
 import optuna
 from optuna.integration import PyTorchLightningPruningCallback
@@ -48,6 +49,11 @@ def objective_function(trial: optuna.trial.Trial):
         p_dropout = p_dropout)
     plnet = BinaryClassificationTask(model = net, lr = lr)
 
+    if torch.cuda.is_available():
+        GPU = 1
+    else:
+        GPU = None
+
     early_stopping = EarlyStopping('val_loss', patience = 3)
     optuna_pruning = PyTorchLightningPruningCallback(trial, monitor="val_loss")
     trainer = pl.Trainer(
@@ -57,7 +63,8 @@ def objective_function(trial: optuna.trial.Trial):
         callbacks = [early_stopping, optuna_pruning], 
         deterministic = True,
         logger = False,
-        progress_bar_refresh_rate = 0)
+        progress_bar_refresh_rate = 0,
+        gpus = GPU)
 
     trainer.fit(plnet, train_loader, val_loader)
 
@@ -70,15 +77,17 @@ def objective_function(trial: optuna.trial.Trial):
 
 if __name__ == "__main__":
     pl.seed_everything(42)
+    t0 = time.time()
 
     #Load data
-    file_path = 'data\\processed\\german_credit_full.csv'
-    output_path = 'data\\predictions\\german_credit_nn_pred.csv'
-    param_path = 'data\\predictions\\german_credit_nn_pred_hyperparams.csv'
+    print('--- Loading and preparing data ---')
+    file_path = 'data/processed/german_credit_full.csv'
+    output_path = 'data/predictions/german_credit_nn_pred.csv'
+    param_path = 'data/predictions/german_credit_nn_pred_hyperparams.csv'
     raw_data = pd.read_csv(file_path)
 
     #Save models dir 
-    model_folder = 'src\\models\\checkpoints\\german_credit\\'
+    model_folder = 'src/models/checkpoints/german_credit/'
 
     #Prepare data
     X = raw_data.drop(['credit_score', 'person_id'], axis = 1)
@@ -93,8 +102,9 @@ if __name__ == "__main__":
     params_list = []
 
     kf = KFold(n_splits=5, shuffle = True, random_state=42)
-
+    print('--- Starting training ---')
     for i, (train_val_idx, test_idx) in enumerate(kf.split(X)):
+        print(f'** Fold {i} out of 5 **')
         X_train_val, y_train_val = X.iloc[train_val_idx], y[train_val_idx]
         X_test, y_test = X.iloc[test_idx], y[test_idx]
 
@@ -116,6 +126,7 @@ if __name__ == "__main__":
             dataset=myData(X_val, y_val), batch_size = 32)
 
         # Find optimal model
+        print('Using optuna')
         study = optuna.create_study(
         direction = 'minimize', 
         sampler = TPESampler(seed=10))
@@ -127,6 +138,7 @@ if __name__ == "__main__":
             show_progress_bar=False)
 
         # %% Train model on all data
+        print('Finding best model')
         params = study.best_trial.params
         params_list.append(params)
         n_hidden_list = get_n_hidden_list(params)
@@ -142,13 +154,18 @@ if __name__ == "__main__":
         # Callbacks for training
         early_stopping = EarlyStopping('val_loss', patience = 3)
 
+        if torch.cuda.is_available():
+            GPU = 1
+        else:
+            GPU = None
         trainer = pl.Trainer(
             fast_dev_run = False,
             log_every_n_steps = 1, 
             max_epochs = 50,
             deterministic = True,
             callbacks = [early_stopping],
-            progress_bar_refresh_rate = 0)
+            progress_bar_refresh_rate = 0,
+            gpus = GPU)
 
         trainer.fit(plnet, train_loader, val_loader)
 
@@ -169,7 +186,9 @@ if __name__ == "__main__":
         print(f'Accuracy is: {acc}')
         y_preds[test_idx] = predictions.detach().numpy().squeeze()
 
+
     # Save data
+    print('--- Done training. Saving data ---')
     output_data = (raw_data[['person_id', 'credit_score', 'sex', 'age']]
         .assign(
             nn_prob = y_preds,
@@ -183,11 +202,5 @@ if __name__ == "__main__":
     )
 
     print(f'Final accuracy score: {acc}')
-
-#%%
-1+1
-# Loading model from fold 0
-load_checkpoint_file = f'{model_folder}NN_german_fold_{0}'
-checkpoint = torch.load(load_checkpoint_file)
-model = checkpoint['model']
-#checkpoint['model'].state_dict() # <-- weigths and bias of model 
+    t1 = time.time()
+    print_timing(t0, t1, text = 'Total time to run script:')

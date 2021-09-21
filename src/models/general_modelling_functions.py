@@ -1,6 +1,4 @@
 #%% Imports
-from sklearn.metrics import accuracy_score
-
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -100,8 +98,9 @@ class BinaryClassificationTask(pl.LightningModule):
         y_hat = self.model(x)
         loss = F.binary_cross_entropy(y_hat, y)
         y_hat_binary = (y_hat >= 0.5)
-        acc = accuracy_score(y, y_hat_binary)
-        return loss, acc
+        n_batch = y.size(0)
+        accuracy = (y_hat_binary == y).sum().item()/n_batch
+        return loss, accuracy
 
     def predict_step(self, batch, batch_idx):
         x, y = batch
@@ -110,3 +109,9 @@ class BinaryClassificationTask(pl.LightningModule):
 
     def configure_optimizers(self):
         return torch.optim.Adam(self.model.parameters(), lr = self.lr)
+
+
+# Helper for easy printing of elapsed time
+def print_timing(t0, t1, text = 'Minutes elapsed:'):
+    n_mins = (t1-t0)/60
+    print(f'{text} {n_mins:.2f} mins')
