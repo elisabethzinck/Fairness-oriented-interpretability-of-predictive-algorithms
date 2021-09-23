@@ -134,6 +134,7 @@ class DescribeData:
                 if verbose:
                     print(f'it {i+1}/{len(perplexities)}: \t perplexity: {perp} \t current fit: {kl_cur:.2f}')
         # Plot embedding
+        plt.clf() # Avoid continuing on previous plot
         plotdf = self.data.rename(
             columns = {'y': self.y_name, 'a': self.a_name})
         sns.scatterplot(
@@ -168,16 +169,8 @@ if __name__ == "__main__":
                         data = data)
 
     desc.plot_tSNE(n_tries = 10)
-
-    # Compas
-    #file_path = 'data\\processed\\compas\\compas-scores-two-years-pred.csv'
-    #compas = pd.read_csv(file_path)
-    #%%
-    #desc_compas = DescribeData(y_name='two_year_recid', 
-    #                        a_name = 'race',
-    #                        id_name = None,
-    #                        data = compas)
-    #desc_compas.plot_tSNE(perplexity=20)
+    #figure_path = 'figures/descriptive_plots/'
+    #plt.savefig(figure_path+'tsne_sex.pdf', bbox_inches='tight')
 
     
 
