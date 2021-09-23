@@ -77,10 +77,10 @@ if __name__ == "__main__":
     pl.seed_everything(42)
 
     #Load data
-    file_path = 'data/processed/catalan-juvenile-recidivism/catalan-juvenile-recidivism-subset.xlsx'
+    file_path = 'data/processed/catalan-juvenile-recidivism/catalan-juvenile-recidivism-subset.csv'
     output_path = 'data/predictions/catalan-juvenile-recidivism/catalan_recid_nn_pred.csv'
     param_path = 'data/predictions/catalan-juvenile-recidivism/catalan_recid_nn_pred_hyperparams.csv'
-    raw_data = pd.read_excel(file_path, index_col=0)
+    raw_data = pd.read_csv(file_path, index_col=0)
 
     assert raw_data.isnull().sum(axis = 0).max() == 0
 

@@ -135,4 +135,4 @@ dfsub.drop(["V31_program_end_year"], axis = 1, inplace=True)
 
 #%% Writing to Excel
 
-dfsub.to_excel(f"{processed_file_path}\\catalan-juvenile-recidivism-subset.xlsx")
+dfsub.to_csv(f"{processed_file_path}/catalan-juvenile-recidivism-subset.csv")
