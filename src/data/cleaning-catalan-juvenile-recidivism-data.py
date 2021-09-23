@@ -51,6 +51,9 @@ df.dropna(axis = 0, subset=['V5_age_cat', 'V6_province', 'V7_region', 'V8_age'],
 #%% Filtering out columns, which are either specific MRM, ATM, Savry, 2013 or 2015 data
 dfsub = df.filter(list(df.columns[list(range(31))+[114]]))
 
+#%% Dropping the column V14_main_crime, as it is too specific 
+dfsub.drop(columns='V14_main_crime', inplace=True)
+
 #%% Replacing some of the catalan words with english 
 V1_map = {'Dona': 'female', 'Home': 'male'}
 V2_map = {'Espanyol': 'Spanish', 'Estranger': 'Foreign'}
@@ -69,6 +72,10 @@ V13_map = {'3 fets o més': '3+',
            '2 fets': '2',
            '1 fet' : '1'
 }
+V15_map = {'Contra les persones': 'Against People',
+            'Contra la propietat violent': 'Against Property',
+            'Contra la propietat no violent': 'Against Property',
+            'Altres': 'Other'}
 V16_map = {'Violent': 1, 'No violent': 0}
 V17_map = {'Delicte': 1, 'Falta': 0}
 V27_map = {'Menys de 6 mesos': '<6 months', 
@@ -85,7 +92,8 @@ dfsub = dfsub.assign(
     V11_criminal_record = lambda x: x.V11_criminal_record.map(V11_map),
     V12_n_criminal_record = lambda x: x.V12_n_criminal_record.map(V12_map),
     V13_n_crime_cat = lambda x: x.V13_n_crime_cat.map(V13_map),
-    V16_violent_record = lambda x: x.V16_violent_record.map(V16_map),
+    V15_main_crime_cat = lambda x: x.V15_main_crime_cat.map(V15_map),
+    V16_violent_crime = lambda x: x.V16_violent_crime.map(V16_map),
     V17_crime_classification = lambda x: x.V17_crime_classification.map(V17_map),
     V27_program_duration_cat = lambda x: x.V27_program_duration_cat.map(V27_map),
     V115_RECID2015_recid = lambda x: x.V115_RECID2015_recid.map(V115_map)
@@ -94,7 +102,7 @@ dfsub = dfsub.assign(
 #%% Imputing missing values 
 
 #There are some missing values in 'V28_days_from_crime_to_program
-#we impute them by calculating the difference in days from crime comitted 
+#we impute them by calculating the difference in days from crime committed 
 #to start of program
 tmp = (dfsub.loc[
     dfsub.V28_days_from_crime_to_program.isnull(),
