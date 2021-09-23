@@ -1,10 +1,10 @@
 # Preprocess the german credit data to make it easier to work with
 #%%
-remove_single_males = False
+remove_singles = True
 #%% Initialization
 import pandas as pd
 input_path = 'data\\raw\\german_credit\\german.data'
-if remove_single_males:
+if remove_singles:
     output_path = 'data\\processed\\german_credit.csv'
 else:
     output_path = 'data\\processed\\german_credit_full.csv'
@@ -47,6 +47,11 @@ df = raw_data.copy()
 #%% Create id column to allow for saving predictions without remaining data
 df['person_id'] = range(df.shape[0])
 
+#%% Removing single males and female (because no female singles)
+if remove_singles:
+    df = df[
+        (df.personal_status_sex != 'A93') & \
+        (df.personal_status_sex != 'A95')]
 
 
 #%% Cleaning personal_status_sex
@@ -60,13 +65,18 @@ sex_map = {
     'A94': 'male', 
     'A95': 'female'
     }
+personal_status_map = {
+    'A91': 'married/previously_married',
+    'A92': 'married/previously_married',
+    'A93': 'single',
+    'A94': 'married/previously_married', 
+    'A95': 'single'
+}
 df['sex'] = df['personal_status_sex'].map(sex_map)
+df['personal_status'] = df['personal_status_sex'].map(personal_status_map)
+df = df.drop(columns = ['personal_status_sex'])
 
-#%% Removing single males and female (because no female singles)
-if remove_single_males:
-    df = df[
-        (df.personal_status_sex != 'A93') & \
-        (df.personal_status_sex != 'A95')]
+
 
 #%% making target binary 
 # (Bad,Good) credit score -> (0,1) in new definition
