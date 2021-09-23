@@ -1,0 +1,10 @@
+Starting bash script
+Loaded dependency [python3/3.8.11]: gcc/10.3.0-binutils-2.36.1
+Loaded module: python3/3.8.11
+----------------------------
+--- Output from Python -----
+----------------------------
+python3: can't open file 'src/models/catalan_neural_network.py': [Errno 2] No such file or directory
+----------------------------
+---       DONE :)      -----
+----------------------------
