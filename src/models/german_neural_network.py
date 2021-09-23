@@ -87,7 +87,7 @@ if __name__ == "__main__":
     raw_data = pd.read_csv(file_path)
 
     #Save models dir 
-    model_folder = 'src/models/checkpoints/german_credit/'
+    model_folder = 'models/german_credit/'
 
     #Prepare data
     X = raw_data.drop(['credit_score', 'person_id'], axis = 1)
@@ -204,3 +204,7 @@ if __name__ == "__main__":
     print(f'Final accuracy score: {acc}')
     t1 = time.time()
     print_timing(t0, t1, text = 'Total time to run script:')
+
+#%%
+1+1
+#%%
