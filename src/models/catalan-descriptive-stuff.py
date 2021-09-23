@@ -66,7 +66,7 @@ ax.set_ylabel('')
 for pos in ['right', 'top', 'left']:
     ax.spines[pos].set_visible(False)
 ax.tick_params(left=False, labelsize=12)
-ax.set_title('#Individuals by Area of Origin')
+ax.set_title('#People by Area of Origin')
 plt.legend()
 
 # %% How do they distribute across age?
@@ -99,20 +99,25 @@ ax.set_ylabel('')
 for pos in ['right', 'top', 'left']:
     ax.spines[pos].set_visible(False)
 ax.tick_params(left=False, labelsize=12)
-ax.set_title('#Individuals by Age at Crime Time')
+ax.set_title('#People by Age at Crime Time')
+ax.set_xlabel('Age in Years')
 plt.legend()
 
 # %% How do they distribute across crimes 
-df_crime = (raw_data.groupby(['V14_main_crime', 'V15_main_crime_cat'])
+df_crime = (raw_data.groupby(['V19_committed_crime', 'V15_main_crime_cat'])
             .agg(N_people = ('id', 'count'))
             .reset_index()
-            .sort_values('V15_main_crime_cat', ascending=False)
+            .sort_values('V19_committed_crime', ascending=False)
         )
 
 fig = plt.figure(figsize=(6,3))
 ax = fig.add_subplot(1, 1, 1)
-sns.boxplot(x = 'N_people', data = df_crime)
+sns.boxplot(x = 'N_people', 
+            y = 'V15_main_crime_cat',
+            data = df_crime,
+            ax = ax)
+ax.set_ylabel('')
+ax.set_title('#People pr. Crime Category in V19_committed_crime \n Partitioned by Main Crime Category')
 
-#df_crime[df_crime.N_people > 30]
 
 # %%
