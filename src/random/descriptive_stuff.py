@@ -11,6 +11,7 @@ from seaborn.axisgrid import FacetGrid
 
 from sklearn.decomposition import PCA 
 from sklearn.preprocessing import StandardScaler
+from sklearn.manifold import TSNE
 
 from src.data.general_preprocess_functions import one_hot_encode_mixed_data
 
@@ -22,17 +23,19 @@ def get_fraction_of_group(group):
     return group
 
 class DescribeData:
-    def __init__(self, y_name, a_name, data = None):
+    def __init__(self, y_name, a_name, id_name = None, data = None):
         """Saves and calculates all necessary attributes for FairKit object
         
         Args:
-            y (string): Name of target variable
-            a (string): Name of sensitive variable 
-            data (data frame): Data frame with data. Defaults to None.
+            y_name (string): Name of target variable
+            a_name (string): Name of sensitive variable 
+            id_name (string): Name of id variable
+            data (data frame): Data frame with data
 
         """
         self.y_name = y_name
         self.a_name = a_name
+        self.id_name = id_name
         
         self.data = data 
         self.data = self.data.rename(columns = {self.y_name: 'y', self.a_name: 'a'})
@@ -82,36 +85,100 @@ class DescribeData:
         ax.tick_params(left=False, labelsize=12)
 
 
+    def plot_tSNE(self, n_tries = None, perplexity = None, verbose = True):
+        """Plot tSNE hightlighting sensitive groups.
+        
+        Args:
+            n_tries (int): Number of perplexity values to try 
+            perplexity (int): Perplexity parameter for tSNE
+            verbose (bool): Control verbosity of method
+
+        Either n_tries or perplexity must be supplied. If both are supplied, the method raises an error.
+
+        """
+        
+        # Input checks
+        if perplexity is not None and n_tries is not None:
+            raise ValueError('You cannot specify both perplexity and n_tries')
+        if perplexity is None and n_tries is None:
+            raise ValueError('You must specify either perplexity or n_tries')
+        
+        # Prepare data
+        if self.id_name is not None:
+            cols_to_drop = [self.id_name, 'y', 'a']
+        else:
+            cols_to_drop = ['y', 'a']
+        X = self.data.drop(columns=cols_to_drop)
+        X = one_hot_encode_mixed_data(X)
+        scaler = StandardScaler()
+        X_scaled = scaler.fit_transform(X)
+
+        # Calculate embedding
+        if perplexity is not None: 
+            tsne = TSNE(n_components = 2, perplexity = perplexity, init = 'pca', random_state = 42)
+            X_tSNE_best = tsne.fit_transform(X_scaled)
+        else:
+            # orig paper says perplexities between 5 and 50 are reasonable
+            perplexities = np.linspace(5,50, n_tries) 
+            kl_min = np.inf # We want to minimize kl divergence
+
+            for i, perp in enumerate(perplexities):
+                tsne = TSNE(n_components = 2, perplexity = perp, init = 'pca', random_state = 42)
+                X_tSNE_cur = tsne.fit_transform(X_scaled)
+                kl_cur = tsne.kl_divergence_
+
+                if kl_cur < kl_min:
+                    kl_min = kl_cur
+                    X_tSNE_best = X_tSNE_cur
+
+                if verbose:
+                    print(f'it {i+1}/{len(perplexities)}: \t perplexity: {perp} \t current fit: {kl_cur:.2f}')
+        # Plot embedding
+        plotdf = self.data.rename(
+            columns = {'y': self.y_name, 'a': self.a_name})
+        sns.scatterplot(
+            x= X_tSNE_best[:,0], 
+            y = X_tSNE_best[:,1],
+            hue = plotdf[self.a_name], 
+            style= plotdf[self.y_name])
+        plt.legend(
+            bbox_to_anchor = (1,1), 
+            loc = 'upper left') # Legend outside top right
+        plt.tick_params(
+            left=False,
+            bottom=False,
+            labelleft=False,
+            labelbottom=False)
+        plt.title('t-SNE of Data')
+
+
+
 #%%
 
 if __name__ == "__main__":
-    file_path = 'data\\processed\\german_credit.csv'
+
+    # German
+    file_path = 'data\\processed\\german_credit_full.csv'
 
     data = pd.read_csv(file_path)
 
     desc = DescribeData(y_name='credit_score', 
                         a_name = 'sex',
+                        id_name = 'person_id',
                         data = data)
 
+    desc.plot_tSNE(n_tries = 10)
 
-    # PCA 
-    X = (one_hot_encode_mixed_data(data)
-          .drop(columns=['person_id', 'credit_score'])
-          )
-    scaler = StandardScaler()
-    X_scaled = scaler.fit_transform(X)
-
-    n_comp = 2
-    pca = PCA(n_components=2)
-    pca.fit(X_scaled)
-
-    scores = pca.transform(X)
-
-    
-
-    # TODO plot pca and find out what the components are 
+    # Compas
+    #file_path = 'data\\processed\\compas\\compas-scores-two-years-pred.csv'
+    #compas = pd.read_csv(file_path)
+    #%%
+    #desc_compas = DescribeData(y_name='two_year_recid', 
+    #                        a_name = 'race',
+    #                        id_name = None,
+    #                        data = compas)
+    #desc_compas.plot_tSNE(perplexity=20)
 
     
 
 # %%
-
