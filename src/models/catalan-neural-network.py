@@ -30,13 +30,13 @@ logging.getLogger('lightning').setLevel(logging.ERROR)
 def objective_function(trial: optuna.trial.Trial):
     logging.getLogger('lightning').setLevel(logging.ERROR)
     # Define parameters
-    n_layers = trial.suggest_int('n_layers', 1, 3)
+    n_layers = trial.suggest_int('n_layers', 1, 5)
     n_hidden_list = []
     for i in range(n_layers):
         name = 'n_hidden_' + str(i)
         n_hidden_list.append(trial.suggest_int(name, 1, 20))
     lr = trial.suggest_loguniform('lr', 1e-6, 1e-1)
-    p_dropout = trial.suggest_uniform('p_dropout', 0, 0.5)
+    p_dropout = trial.suggest_uniform('p_dropout', 0, 0.7)
     
     # Define network and lightning
     net = Net(
@@ -47,21 +47,26 @@ def objective_function(trial: optuna.trial.Trial):
     plnet = BinaryClassificationTask(model = net, lr = lr)
 
     early_stopping = EarlyStopping('val_loss', patience = 3)
+    if torch.cuda.is_available():
+        GPU = 1
+    else:
+        GPU = None
     optuna_pruning = PyTorchLightningPruningCallback(trial, monitor="val_loss")
     trainer = pl.Trainer(
         fast_dev_run = False,
         log_every_n_steps = 1, 
-        max_epochs = 50,
+        max_epochs = 100,
         callbacks = [early_stopping, optuna_pruning], 
         deterministic = True,
         logger = False,
-        progress_bar_refresh_rate = 0)
+        progress_bar_refresh_rate = 0, 
+        gpus = GPU)
 
     trainer.fit(plnet, train_loader, val_loader)
 
     return trainer.callback_metrics['val_loss'].item()
 
-
+#%%
 if __name__ == "__main__":
     pl.seed_everything(42)
 
@@ -116,7 +121,7 @@ if __name__ == "__main__":
         study.optimize(
             objective_function, 
             #timeout = max_minutes*60,
-            n_trials = 100,
+            n_trials = 1000,
             show_progress_bar=False)
 
 
@@ -133,14 +138,20 @@ if __name__ == "__main__":
             p_dropout = params['p_dropout'])
         plnet = BinaryClassificationTask(model = net, lr = params['lr'])
 
+        if torch.cuda.is_available():
+            GPU = 1
+        else:
+            GPU = None
+
         early_stopping = EarlyStopping('val_loss', patience = 3)
         trainer = pl.Trainer(
             fast_dev_run = False,
             log_every_n_steps = 1, 
-            max_epochs = 50,
+            max_epochs = 100,
             deterministic = True,
             callbacks = [early_stopping],
-            progress_bar_refresh_rate = 0)
+            progress_bar_refresh_rate = 0, 
+            gpus = GPU)
 
         trainer.fit(plnet, train_loader, val_loader)
         #%%

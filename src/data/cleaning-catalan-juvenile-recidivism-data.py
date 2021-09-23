@@ -51,24 +51,35 @@ df.dropna(axis = 0, subset=['V5_age_cat', 'V6_province', 'V7_region', 'V8_age'],
 #%% Filtering out columns, which are either specific MRM, ATM, Savry, 2013 or 2015 data
 dfsub = df.filter(list(df.columns[list(range(31))+[114]]))
 
+#%% 
+# Dropping the column V14_main_crime, V7_region,
+# and V3_nationality_country as they are too specific 
+# Also dropping V5_age_cat, as we have the numeric variable 
+dfsub.drop(columns=['V3_nationality_country', 
+                    'V5_age_cat', 
+                    'V7_region',
+                    'V14_main_crime'], inplace=True)
+
 #%% Replacing some of the catalan words with english 
 V1_map = {'Dona': 'female', 'Home': 'male'}
 V2_map = {'Espanyol': 'Spanish', 'Estranger': 'Foreign'}
 V4_map = {'Espanya': 'Spain', 
-              'Magrib': 'Maghreb', 
-              'Centre i Sud Amèrica': 'Latin America',
-              'Altres': 'Other', 
-              'Europa': 'Europe'}
-V5_map = {'14 i 15 anys': '14-15 years', '16 i 17 anys':'16-17 years'}
+          'Magrib': 'Maghreb', 
+          'Centre i Sud Amèrica': 'Latin America',
+          'Altres': 'Other', 
+          'Europa': 'Europe'}
 V11_map = {'Amb antecedents': 1, 'Sense antecedents': 0}
 V12_map = {'1 o 2 antecedents': '1-2',
-                'De 3 a 5 antecedents': '3-5',
-                'Més de 5 antecedents': '5+',
-                0: '0'}
+           'De 3 a 5 antecedents': '3-5',
+           'Més de 5 antecedents': '5+',
+           0: '0'}
 V13_map = {'3 fets o més': '3+',
            '2 fets': '2',
-           '1 fet' : '1'
-}
+           '1 fet' : '1'}
+V15_map = {'Contra les persones': 'Against People',
+            'Contra la propietat violent': 'Against Property',
+            'Contra la propietat no violent': 'Against Property',
+            'Altres': 'Other'}
 V16_map = {'Violent': 1, 'No violent': 0}
 V17_map = {'Delicte': 1, 'Falta': 0}
 V27_map = {'Menys de 6 mesos': '<6 months', 
@@ -80,12 +91,12 @@ dfsub = dfsub.assign(
     V1_sex = lambda x: x.V1_sex.map(V1_map),
     V2_nationality_type = lambda x: x.V2_nationality_type.map(V2_map),
     V4_area_origin = lambda x: x.V4_area_origin.map(V4_map),
-    V5_age_cat = lambda x: x.V5_age_cat.map(V5_map),
     V8_age = lambda x: x.V8_age.astype(int),
     V11_criminal_record = lambda x: x.V11_criminal_record.map(V11_map),
     V12_n_criminal_record = lambda x: x.V12_n_criminal_record.map(V12_map),
     V13_n_crime_cat = lambda x: x.V13_n_crime_cat.map(V13_map),
-    V16_violent_record = lambda x: x.V16_violent_record.map(V16_map),
+    V15_main_crime_cat = lambda x: x.V15_main_crime_cat.map(V15_map),
+    V16_violent_crime = lambda x: x.V16_violent_crime.map(V16_map),
     V17_crime_classification = lambda x: x.V17_crime_classification.map(V17_map),
     V27_program_duration_cat = lambda x: x.V27_program_duration_cat.map(V27_map),
     V115_RECID2015_recid = lambda x: x.V115_RECID2015_recid.map(V115_map)
@@ -94,7 +105,7 @@ dfsub = dfsub.assign(
 #%% Imputing missing values 
 
 #There are some missing values in 'V28_days_from_crime_to_program
-#we impute them by calculating the difference in days from crime comitted 
+#we impute them by calculating the difference in days from crime committed 
 #to start of program
 tmp = (dfsub.loc[
     dfsub.V28_days_from_crime_to_program.isnull(),
