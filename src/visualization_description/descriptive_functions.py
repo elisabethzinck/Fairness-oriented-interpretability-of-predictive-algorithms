@@ -168,7 +168,8 @@ if __name__ == "__main__":
                         id_name = 'person_id',
                         data = data)
 
-    desc.plot_tSNE(n_tries = 10)
+    #desc.plot_tSNE(n_tries = 3)
+    desc.plot_fraction_of_target()
     #figure_path = 'figures/descriptive_plots/'
     #plt.savefig(figure_path+'tsne_sex.pdf', bbox_inches='tight')
 
