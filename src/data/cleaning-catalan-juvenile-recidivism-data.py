@@ -84,7 +84,7 @@ V16_map = {'Violent': 1, 'No violent': 0}
 V17_map = {'Delicte': 1, 'Falta': 0}
 V27_map = {'Menys de 6 mesos': '<6 months', 
                 'De 6 mesos a 1 any': '6 months < 1 year', 
-                "Més d'1 any": 'more than 1 year'}
+                "Més d'1 any": '>1 year'}
 V115_map = {'Sí': 1, 'No': 0}
 
 dfsub = dfsub.assign(
@@ -109,10 +109,10 @@ dfsub = dfsub.assign(
 #to start of program
 tmp = (dfsub.loc[
     dfsub.V28_days_from_crime_to_program.isnull(),
-    ['V22_main_crime_comission_date', 'V30_program_start']
+    ['V22_main_crime_date', 'V30_program_start']
     ])
 n_nans = tmp.shape[0]
-vals = [(tmp.V22_main_crime_comission_date.iloc[i].date()
+vals = [(tmp.V22_main_crime_date.iloc[i].date()
         -tmp.V30_program_start.iloc[i].date()).days for i in range(n_nans)]
 
 dfsub.loc[dfsub.V28_days_from_crime_to_program.isnull(), 'V28_days_from_crime_to_program'] = vals 
