@@ -11,7 +11,7 @@ from src.data.general_preprocess_functions import one_hot_encode_mixed_data
 #%%
 
 if __name__ == "__main__":
-    file_path = 'data\\processed\\german_credit.csv'
+    file_path = 'data\\processed\\german_credit_full.csv'
     output_path = 'data\\predictions\\german_credit_log_reg.csv'
     data = pd.read_csv(file_path)
     
