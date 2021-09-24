@@ -9,7 +9,7 @@ if __name__ == '__main__':
     figure_path = 'figures\\evaluation_plots\\'
     run_anym = False
     run_german_log_reg = True
-    run_german_nn = False
+    run_german_nn = True
     run_compas = True
 
     german_w_fp = 0.1
@@ -57,14 +57,17 @@ if __name__ == '__main__':
     # German credit neural network
     #######################################
     if run_german_nn:
+        remove_singles = False
         file_path = 'data\\predictions\\german_credit_nn_pred.csv'
-        german_nn_raw = pd.read_csv(file_path)
+        german_nn = pd.read_csv(file_path)
         
         # Remove single males
-        german_orig = pd.read_csv(
-            'data\\processed\\german_credit_full.csv', 
-            usecols=['person_id', 'personal_status_sex'])
-        german_nn = pd.merge(german_orig, german_nn_raw).query('personal_status_sex != "A93"')
+        if remove_singles:
+            german_orig = pd.read_csv(
+                'data\\processed\\german_credit_full.csv', 
+                usecols=['person_id', 'personal_status'])
+            german_nn = (pd.merge(german_orig, german_nn)
+                .query('personal_status != "single"'))
 
         fair_german_nn = FairKit(
             y = german_nn.credit_score, 
