@@ -9,3 +9,4 @@ data/raw/fairml_traffic_stops/NC_cleaned.csv
 references/.ipynb_checkpoints/optuna_pytorch_lightning_notebook-checkpoint.ipynb
 /checkpoints
 /.venv
+/data/ADNI
