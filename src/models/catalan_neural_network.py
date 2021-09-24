@@ -28,8 +28,8 @@ import logging
 logging.getLogger('lightning').setLevel(logging.ERROR)
 
 #%% Epochs and trials 
-max_epochs = 100
-n_trials = 1000
+max_epochs = 50
+n_trials = 500
 
 #%% Objective function for optuna optimizer
 def objective_function(trial: optuna.trial.Trial):

@@ -15,7 +15,7 @@
 ### -- job gets killed if it exceeds xGB per core/slot -- 
 #BSUB -M 5GB
 ### -- set walltime limit: hh:mm -- 
-#BSUB -W 00:20 
+#BSUB -W 02:00 
 ### -- send notification at completion -- 
 #BSUB -N 
 ### -- Specify the output and error file. %J is the job-id -- 
