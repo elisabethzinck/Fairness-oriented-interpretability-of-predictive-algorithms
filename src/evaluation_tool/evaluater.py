@@ -4,16 +4,18 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from src.evaluation_tool.layered_tool import FairKit
-
+#%%
 if __name__ == '__main__':
     figure_path = 'figures\\evaluation_plots\\'
     run_anym = False
     run_german_log_reg = True
     run_german_nn = True
     run_compas = True
+    run_catalan = True
 
     german_w_fp = 0.1
     compas_w_fp = 0.9
+    anym_w_fp = 0.2
 
     #######################################
     # Anonymous data (from german)
@@ -29,9 +31,12 @@ if __name__ == '__main__':
         fair_anym.l1_get_data()
         fair_anym.plot_confusion_matrix()
         plt.savefig(figure_path+'anym_confusion.pdf')
-        fair_anym.l2_plot(w_fp=0.2)
+        fair_anym.l2_plot(w_fp = anym_w_fp)
         plt.savefig(figure_path+'anym_l2.pdf')
         #plt.savefig('../Thesis-report/00_figures/L2_example_new.pdf', bbox_inches='tight')
+
+
+
 
     #######################################
     # German credit logistic regression
@@ -115,4 +120,22 @@ if __name__ == '__main__':
         fair_compas_race.l2_plot(w_fp=compas_w_fp)
         plt.savefig(figure_path+'compas_l2_race.pdf')
     
+# %%
+if run_catalan:
+    catalan_file_path = 'data\\predictions\\catalan-juvenile-recidivism\\catalan_recid_nn_pred.csv'
+    catalan = pd.read_csv(catalan_file_path)
+
+
+    fair_catalan = FairKit(
+        y = catalan.V115_RECID2015_recid, 
+        y_hat = catalan.nn_pred, 
+        a = catalan.V4_area_origin, 
+        r = catalan.nn_prob,
+        model_type='Catalan NN')
+
+    fair_catalan.plot_confusion_matrix()
+   # plt.savefig(figure_path+'compas_confusion_age.pdf')
+    fair_catalan.l2_plot(w_fp=0.9)
+    #plt.savefig(figure_path+'compas_l2_age.pdf')
+
 # %%
