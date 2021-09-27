@@ -39,12 +39,45 @@ bar2 = sns.barplot(
     palette = custom_palette(specific_col_idx = [2]),
     label ='Recidivated',
     ax = ax)
-ax.set_xlabel('')
+ax.set_xlabel('Number of Juveniles')
 ax.set_ylabel('')
 for pos in ['right', 'top', 'left']:
     ax.spines[pos].set_visible(False)
 ax.tick_params(left=False, labelsize=12)
 ax.set_title('#People by Area of Origin')
+plt.legend()
+
+#%% How do they distribute across V1_sex? 
+df_sex = (raw_data.groupby(['V1_sex'])
+                .agg(N_people = ('id', 'count'), 
+                     recidivated = ('V115_RECID2015_recid', lambda x: np.count_nonzero(x)),
+                     not_recidivated = ('V115_RECID2015_recid', lambda x: len(x)-np.count_nonzero(x)),
+                     recid_frac = ('V115_RECID2015_recid', lambda x: np.count_nonzero(x)/len(x)))
+                .reset_index()
+                .sort_values(by = 'N_people', ascending = False)
+            )
+
+fig = plt.figure(figsize=(4,3))
+ax = fig.add_subplot(1, 1, 1)
+bar1 = sns.barplot(
+    y = 'N_people', x = 'V1_sex', 
+    data = df_sex,
+    estimator=sum,
+    palette = custom_palette(specific_col_idx = [6]),
+    label = 'Not Recidivated',
+    ax = ax)
+bar2 = sns.barplot(
+    y = 'recidivated', x = 'V1_sex', 
+    data = df_sex,
+    palette = custom_palette(specific_col_idx = [2]),
+    label ='Recidivated',
+    ax = ax)
+ax.set_xlabel('Number of Juveniles')
+ax.set_ylabel('')
+for pos in ['right', 'top', 'left']:
+    ax.spines[pos].set_visible(False)
+ax.tick_params(left=False, labelsize=12)
+ax.set_title('#People by Sex')
 plt.legend()
 
 #%% How do they distribute across V6_province? 
@@ -91,7 +124,7 @@ df_age = (raw_data.groupby(['V8_age'])
                 .sort_values(by = 'N_people', ascending = False)
             )
 
-fig = plt.figure(figsize=(6,3))
+fig = plt.figure(figsize=(4,3))
 ax = fig.add_subplot(1, 1, 1)
 bar1 = sns.barplot(
     x = 'V8_age', y = 'N_people', 

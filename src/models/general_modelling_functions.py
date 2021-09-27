@@ -105,7 +105,7 @@ class BinaryClassificationTask(pl.LightningModule):
     def predict_step(self, batch, batch_idx):
         x, y = batch
         y_hat = self.model(x)
-        return y_hat.to_numpy()
+        return y_hat
 
     def configure_optimizers(self):
         return torch.optim.Adam(self.model.parameters(), lr = self.lr)
