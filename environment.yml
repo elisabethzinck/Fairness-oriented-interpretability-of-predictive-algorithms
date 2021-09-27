@@ -5,5 +5,4 @@ dependencies:
     - ipywidgets
     - pip
     - pip:
-        -r "requirements.txt"
-        
+        - -r "requirements.txt"

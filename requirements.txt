@@ -9,3 +9,4 @@ plotnine
 --editable .
 pytorch-lightning
 optuna
+xlrd
