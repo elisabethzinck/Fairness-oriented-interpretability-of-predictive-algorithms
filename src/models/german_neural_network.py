@@ -108,9 +108,10 @@ if __name__ == "__main__":
         X_train_val, y_train_val = X.iloc[train_val_idx], y[train_val_idx]
         X_test, y_test = X.iloc[test_idx], y[test_idx]
 
-        X_train, X_val, y_train, y_val = train_test_split(
+        X_train, X_val, y_train, y_val, train_idx, val_idx = train_test_split(
             X_train_val, 
             y_train_val, 
+            train_val_idx,
             test_size = 0.2, random_state = 42)
 
         # Standardize for optimization step
@@ -172,14 +173,16 @@ if __name__ == "__main__":
         # Save model weigths, hparams and indexes for train and test data
         checkpoint_file = f'{model_folder}NN_german_fold_{i}'
         save_dict = {
-            'model': trainer.model,
+            'model': plnet.model,
             'hparams': params,
-            'train_val_idx':train_val_idx, 
+            'train_idx': train_idx,
+            'val_idx': val_idx,
             'test_idx': test_idx,
             'fold': i}
         torch.save(save_dict, checkpoint_file)
 
         #%%
+        plnet.model.eval()
         predictions = plnet.model.forward(torch.Tensor(X_test))
         pred_binary = (predictions >= 0.5)
         acc = accuracy_score(y_test, pred_binary)
