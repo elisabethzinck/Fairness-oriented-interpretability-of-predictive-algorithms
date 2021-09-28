@@ -185,11 +185,4 @@ if __name__ == "__main__":
 
 #%%
 1+1
-# Loading checkpoint and datamodule 
-#ckpt = torch.load("models/german_credit/NN_german_fold_0_datamodule")
-#dm = GermanDataModule(fold = ckpt['fold'])
-# predicting 
-#ckpt['model'].forward(dm.test_data.X_data)
-
-
 # %%
