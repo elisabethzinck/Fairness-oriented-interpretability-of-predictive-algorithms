@@ -105,6 +105,7 @@ dfsub = dfsub.assign(
     V15_main_crime_cat = lambda x: x.V15_main_crime_cat.map(V15_map),
     V16_violent_crime = lambda x: x.V16_violent_crime.map(V16_map),
     V17_crime_classification = lambda x: x.V17_crime_classification.map(V17_map),
+    V26_finished_measure_grouped = lambda x: x.V26_finished_measure_grouped.map(V26_map),
     V27_program_duration_cat = lambda x: x.V27_program_duration_cat.map(V27_map),
     V115_RECID2015_recid = lambda x: x.V115_RECID2015_recid.map(V115_map)
 )
