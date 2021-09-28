@@ -79,8 +79,9 @@ df = df.drop(columns = ['personal_status_sex'])
 
 
 #%% making target binary 
-# (Bad,Good) credit score -> (0,1) in new definition
-df['credit_score'] = df.credit_score % 2
+# Original: 1 = Good, 2 = Bad
+# New: 0 = Good, 1 = Bad (the same as taiwanese)
+df['credit_score'] = df.credit_score - 1
 
 #%% Writing processed data
 df.to_csv(output_path, index = False)
