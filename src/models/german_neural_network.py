@@ -32,8 +32,8 @@ warnings.simplefilter("ignore")
 import logging
 logging.getLogger('lightning').setLevel(logging.ERROR)
 
-n_trails = 10
-max_epochs = 10
+n_trails = 100
+max_epochs = 50
 
 #%% Objective function for optuna optimizer
 def objective_function(trial: optuna.trial.Trial):
@@ -84,8 +84,8 @@ def objective_function(trial: optuna.trial.Trial):
 if __name__ == "__main__":
     pl.seed_everything(42)
     t0 = time.time()
-    output_path = 'data/predictions/german_credit_nn_pred_datamodule.csv'
-    param_path = 'data/predictions/german_credit_nn_pred_hyperparams_datamodule.csv'
+    output_path = 'data/predictions/german_credit_nn_pred.csv'
+    param_path = 'data/predictions/german_credit_nn_pred_hyperparams.csv'
 
     #Save models dir 
     model_folder = 'models/german_credit/'
@@ -148,13 +148,10 @@ if __name__ == "__main__":
         trainer.fit(plnet, GM)
 
         # Save model weigths, hparams and indexes for train and test data
-        checkpoint_file = f'{model_folder}NN_german_fold_{i}_datamodule'
+        checkpoint_file = f'{model_folder}NN_german_fold_{i}'
         save_dict = {
             'model': plnet.model.eval(),
             'hparams': params,
-            'train_idx': GM.train_idx,
-            'val_idx': GM.val_idx,
-            'test_idx': GM.test_idx,
             'fold': i}
         torch.save(save_dict, checkpoint_file)
 
