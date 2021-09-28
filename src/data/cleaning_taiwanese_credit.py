@@ -23,8 +23,8 @@ data.rename(
 # education and marriage map don't correspond to explanation in article, 
 # instead map from  https://www.kaggle.com/uciml/default-of-credit-card-clients-dataset/discussion/34608 is used
 sex_map = {
-    1: 'Male',
-    2: 'Female'
+    1: 'male',
+    2: 'female'
 }
 education_map = {
     0: 'others',
@@ -50,5 +50,5 @@ assert data.id.nunique() == 30000
 assert data.isnull().sum().sum() == 0
 
 # %% Write data
-data.to_csv(output_path)
+data.to_csv(output_path, index = False)
 
