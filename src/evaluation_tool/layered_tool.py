@@ -173,7 +173,7 @@ class FairKit:
                 a.set_text(new_text)
             plt.ylabel(None)
             plt.xlabel(None)
-            plt.title(f'{str.capitalize(grp)}\n N = {n_obs}')
+            plt.title(f'{str.capitalize(grp)} (N = {n_obs})')
 
     def l1_get_data(self, w_fp = 0.5):
         """Get data used for first layer of evaluation

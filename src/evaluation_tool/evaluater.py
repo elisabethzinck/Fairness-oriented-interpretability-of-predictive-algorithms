@@ -6,14 +6,21 @@ import numpy as np
 from src.evaluation_tool.layered_tool import FairKit
 #%%
 if __name__ == '__main__':
-    figure_path = 'figures\\evaluation_plots\\'
-    run_anym = False
+    figure_path = 'figures/evaluation_plots/'
+    fig_path_report = '../Thesis-report/00_figures/'
+    
+    run_anym = True
+
     run_german_log_reg = True
     run_german_nn = True
+
     run_compas = True
     run_catalan = True
 
-    german_w_fp = 0.1
+    update_report_figures = False # Write new figures to report repository?
+
+    credit_w_fp = 0.9
+
     compas_w_fp = 0.9
     anym_w_fp = 0.2
 
@@ -30,10 +37,11 @@ if __name__ == '__main__':
             r = anym.phat)
         fair_anym.l1_get_data()
         fair_anym.plot_confusion_matrix()
-        plt.savefig(figure_path+'anym_confusion.pdf')
+        plt.savefig(figure_path+'anym_confusion.png')
         fair_anym.l2_plot(w_fp = anym_w_fp)
-        plt.savefig(figure_path+'anym_l2.pdf')
-        #plt.savefig('../Thesis-report/00_figures/L2_example_new.pdf', bbox_inches='tight')
+        plt.savefig(figure_path+'anym_l2.png')
+        if update_report_figures:
+            plt.savefig(fig_path_report+'L2_example.pdf', bbox_inches='tight')
 
 
 
@@ -53,9 +61,9 @@ if __name__ == '__main__':
             r = german_log_reg.log_reg_prob,
             model_type='Logistic Regression')
         fair_german_log_reg.plot_confusion_matrix()
-        plt.savefig(figure_path+'german_log_reg_confusion.pdf')
-        fair_german_log_reg.l2_plot(w_fp=german_w_fp)
-        plt.savefig(figure_path+'german_log_reg_l2.pdf')
+        plt.savefig(figure_path+'german_log_reg_confusion.png')
+        fair_german_log_reg.l2_plot(w_fp=credit_w_fp)
+        plt.savefig(figure_path+'german_log_reg_l2.png')
         
 
     #######################################
@@ -81,9 +89,9 @@ if __name__ == '__main__':
             r = german_nn.nn_prob,
             model_type='Neural network')
         fair_german_nn.plot_confusion_matrix()
-        plt.savefig(figure_path+'german_nn_confusion.pdf')
-        fair_german_nn.l2_plot(w_fp=german_w_fp)
-        plt.savefig(figure_path+'german_nn_l2.pdf')
+        plt.savefig(figure_path+'german_nn_confusion.png')
+        fair_german_nn.l2_plot(w_fp=credit_w_fp)
+        plt.savefig(figure_path+'german_nn_l2.png')
 
 
     #######################################
@@ -100,9 +108,9 @@ if __name__ == '__main__':
             r = compas.decile_score,
             model_type='COMPAS Decile Scores')
         fair_compas_age.plot_confusion_matrix()
-        plt.savefig(figure_path+'compas_confusion_age.pdf')
+        plt.savefig(figure_path+'compas_confusion_age.png')
         fair_compas_age.l2_plot(w_fp=compas_w_fp)
-        plt.savefig(figure_path+'compas_l2_age.pdf')
+        plt.savefig(figure_path+'compas_l2_age.png')
 
         # filtering out hispanics to recreate the Propublica result 
         not_include_hispanics = False
@@ -116,26 +124,23 @@ if __name__ == '__main__':
             r = compas.decile_score,
             model_type='COMPAS Decile Scores')
         fair_compas_race.plot_confusion_matrix()
-        plt.savefig(figure_path+'compas_confusion_race.pdf')
+        plt.savefig(figure_path+'compas_confusion_race.png')
         fair_compas_race.l2_plot(w_fp=compas_w_fp)
-        plt.savefig(figure_path+'compas_l2_race.pdf')
+        plt.savefig(figure_path+'compas_l2_race.png')
     
-# %%
-if run_catalan:
-    catalan_file_path = 'data\\predictions\\catalan-juvenile-recidivism\\catalan_recid_nn_pred.csv'
-    catalan = pd.read_csv(catalan_file_path)
+    if run_catalan:
+        catalan_file_path = 'data\\predictions\\catalan-juvenile-recidivism\\catalan_recid_nn_pred.csv'
+        catalan = pd.read_csv(catalan_file_path)
 
 
-    fair_catalan = FairKit(
-        y = catalan.V115_RECID2015_recid, 
-        y_hat = catalan.nn_pred, 
-        a = catalan.V4_area_origin, 
-        r = catalan.nn_prob,
-        model_type='Catalan NN')
+        fair_catalan = FairKit(
+            y = catalan.V115_RECID2015_recid, 
+            y_hat = catalan.nn_pred, 
+            a = catalan.V4_area_origin, 
+            r = catalan.nn_prob,
+            model_type='Catalan NN')
 
-    fair_catalan.plot_confusion_matrix()
-   # plt.savefig(figure_path+'compas_confusion_age.pdf')
-    fair_catalan.l2_plot(w_fp=0.9)
-    #plt.savefig(figure_path+'compas_l2_age.pdf')
+        fair_catalan.plot_confusion_matrix()
+        fair_catalan.l2_plot(w_fp=0.9)
 
 # %%
