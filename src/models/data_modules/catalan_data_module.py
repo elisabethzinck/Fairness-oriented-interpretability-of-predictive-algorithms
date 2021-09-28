@@ -16,8 +16,10 @@ class CatalanDataModule(pl.LightningDataModule):
         super().__init__()
         self.file_path = 'data/processed/catalan-juvenile-recidivism/catalan-juvenile-recidivism-subset.csv'
         self.batch_size = 32 
-        self.kf = KFold(n_splits=5, shuffle = True, random_state=42)
-        self.fold = fold      
+        self.fold = fold
+        self.seed = 42
+        self.test_size = 0.2 
+        self.kf = KFold(n_splits=5, shuffle = True, random_state=self.seed)     
 
         self.load_raw_data()
         self.setup()
@@ -45,10 +47,11 @@ class CatalanDataModule(pl.LightningDataModule):
         X_test, y_test = X.iloc[test_idx], y[test_idx]
 
         X_train, X_val, y_train, y_val, train_idx, val_idx = train_test_split(
-        X_train_val, 
-        y_train_val, 
-        train_val_idx,
-        test_size = 0.2, random_state = 42)
+            X_train_val, 
+            y_train_val, 
+            train_val_idx,
+            test_size = self.test_size,
+            random_state = self.seed)
        
         #Scaler to standardize for optimization step
         scaler = StandardScaler()

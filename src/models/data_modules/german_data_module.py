@@ -16,7 +16,9 @@ class GermanDataModule(pl.LightningDataModule):
         super().__init__()
         self.file_path = 'data/processed/german_credit_full.csv'
         self.batch_size = 32 
-        self.kf = KFold(n_splits=5, shuffle = True, random_state=42)
+        self.seed = 42
+        self.test_size = 0.2
+        self.kf = KFold(n_splits=5, shuffle = True, random_state=self.seed)
         self.fold = fold      
 
         self.load_raw_data()
@@ -45,10 +47,11 @@ class GermanDataModule(pl.LightningDataModule):
         X_test, y_test = X.iloc[test_idx], y[test_idx]
 
         X_train, X_val, y_train, y_val, train_idx, val_idx = train_test_split(
-        X_train_val, 
-        y_train_val, 
-        train_val_idx,
-        test_size = 0.2, random_state = 42)
+            X_train_val, 
+            y_train_val, 
+            train_val_idx,
+            test_size = self.test_size,
+            random_state = self.seed)
        
         #Scaler to standardize for optimization step
         scaler = StandardScaler()
