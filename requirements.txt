@@ -1,7 +1,7 @@
 numpy
 pandas
 torch
-scikit-learn
+scikit-learn>=1.0
 matplotlib
 seaborn
 tqdm
