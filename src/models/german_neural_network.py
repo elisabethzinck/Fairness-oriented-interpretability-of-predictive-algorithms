@@ -20,7 +20,6 @@ from torch.utils.data import DataLoader
 
 import pytorch_lightning as pl
 from pytorch_lightning.callbacks import EarlyStopping
-from pytorch_lightning.callbacks.model_checkpoint import ModelCheckpoint
 
 import optuna
 from optuna.integration import PyTorchLightningPruningCallback
