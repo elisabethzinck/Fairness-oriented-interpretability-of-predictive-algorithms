@@ -19,16 +19,20 @@ class GermanDataModule(pl.LightningDataModule):
         self.kf = KFold(n_splits=5, shuffle = True, random_state=42)
         self.fold = fold      
 
+        self.load_raw_data()
         self.setup()
+
+    def load_raw_data(self):
+        self.raw_data = pd.read_csv(self.file_path)
     
     def setup(self, stage = None):
-        #Preparing data 
-        raw_data = pd.read_csv(self.file_path)
-        X = raw_data.drop(['credit_score', 'person_id'], axis = 1)
+        #One hot encoding 
+        y = self.raw_data['credit_score']
+        X = self.raw_data.drop(['credit_score', 'person_id'], axis = 1)
         X = one_hot_encode_mixed_data(X)
-        y = raw_data.credit_score.to_numpy()
         
         # Saving output and features for plNet
+        self.n_obs = X.shape[0]
         self.n_features = X.shape[1]
         self.n_output = 1
 
@@ -45,35 +49,35 @@ class GermanDataModule(pl.LightningDataModule):
         y_train_val, 
         train_val_idx,
         test_size = 0.2, random_state = 42)
-
-        # Saving test, train and val idx in self
-        self.train_idx = train_idx
-        self.val_idx = val_idx
-        self.test_idx = test_idx
-        
+       
         #Scaler to standardize for optimization step
         scaler = StandardScaler()
         X_train = scaler.fit_transform(X_train)
         X_val = scaler.transform(X_val)
         X_test = scaler.transform(X_test)
 
+        # Saving test, train and val idx in self
+        self.train_idx = train_idx
+        self.val_idx = val_idx
+        self.test_idx = test_idx
+
         if stage in (None, "fit"): 
-            self.german_train = myData(X_train, y_train)
-            self.german_val = myData(X_val, y_val)
+            self.train_data = myData(X_train, y_train)
+            self.val_data = myData(X_val, y_val)
         
         if stage in (None, "test"):
-            self.german_test = myData(X_test, y_test)
+            self.test_data = myData(X_test, y_test)
 
     def train_dataloader(self):
-        return DataLoader(self.german_train, batch_size=self.batch_size)
+        return DataLoader(self.train_data, batch_size=self.batch_size)
 
     def val_dataloader(self):
-        return DataLoader(self.german_val, batch_size=self.batch_size)
+        return DataLoader(self.val_data, batch_size=self.batch_size)
     
     def test_dataloader(self):
-        return DataLoader(self.german_test, batch_size=self.batch_size)
+        return DataLoader(self.test_data, batch_size=self.batch_size)
 
     def predict_dataloader(self):
-        return DataLoader(self.german_test, batch_size=self.batch_size)
+        return DataLoader(self.test_data, batch_size=self.batch_size)
 
 # %%

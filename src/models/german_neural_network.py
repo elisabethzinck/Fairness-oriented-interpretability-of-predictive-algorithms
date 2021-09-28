@@ -4,10 +4,12 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import time
+from pytorch_lightning.core import datamodule
 
 from sklearn.model_selection import train_test_split, KFold
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import accuracy_score
+from torch._C import _TensorBase
 
 from src.data.general_preprocess_functions import one_hot_encode_mixed_data
 from src.models.general_modelling_functions import (get_n_hidden_list, myData, Net, BinaryClassificationTask, print_timing)
@@ -82,19 +84,24 @@ def objective_function(trial: optuna.trial.Trial):
 if __name__ == "__main__":
     pl.seed_everything(42)
     t0 = time.time()
-    output_path = 'data/predictions/german_credit_nn_pred.csv'
-    param_path = 'data/predictions/german_credit_nn_pred_hyperparams.csv'
+    output_path = 'data/predictions/german_credit_nn_pred_datamodule.csv'
+    param_path = 'data/predictions/german_credit_nn_pred_hyperparams_datamodule.csv'
 
     #Save models dir 
     model_folder = 'models/german_credit/'
-
     params_list = []
+
+    #Load Data Module to get dimensions for y_preds
+    GM = GermanDataModule(fold = 0)
+    y_pred = np.empty(GM.n_obs)
+    
     print('--- Starting training ---')
     for i in range(5):
         print(f'** Fold {i} out of 5 **')
 
         #Loading Data Module 
         GM = GermanDataModule(fold = i)
+        assert GM.fold == i
 
         # Find optimal model
         print('Using optuna')
@@ -139,12 +146,11 @@ if __name__ == "__main__":
             gpus = GPU)
 
         trainer.fit(plnet, GM)
-        trainer.test(plnet, GM)
 
         # Save model weigths, hparams and indexes for train and test data
-        checkpoint_file = f'{model_folder}NN_german_fold_{i}_datamodule_small_test'
+        checkpoint_file = f'{model_folder}NN_german_fold_{i}_datamodule'
         save_dict = {
-            'model': plnet.model,
+            'model': plnet.model.eval(),
             'hparams': params,
             'train_idx': GM.train_idx,
             'val_idx': GM.val_idx,
@@ -152,17 +158,41 @@ if __name__ == "__main__":
             'fold': i}
         torch.save(save_dict, checkpoint_file)
 
-        # We can get predictions from the trainer by:
-        trainer.predict(plnet, datamodule=GM)
-        #..but we still dont know how to get them from trainer.model or plnet.model
-        #  with the use of the datamodule
+        #test accuracy
+        test_res = trainer.test(plnet, datamodule=GM)[0]
+        print(f"Accuracy is: {test_res['test_acc']}")
+
+        # Inference/predictions 
+        plnet.model.eval()
+        preds = plnet.model.forward(GM.test_data.X_data)
+        y_pred[GM.test_idx] = preds.detach().numpy().squeeze()
 
     # Save data
     print('--- Done training. Saving data ---')
-    # TODO Get predictions of the data from each fold's test set 
+    output_data = (GM.raw_data[['person_id', 'credit_score', 'sex', 'age']]
+        .assign(
+            nn_prob = y_pred,
+            nn_pred = y_pred >= 0.5
+        ))
+    output_data.to_csv(output_path, index = False)
+    acc = accuracy_score(output_data.nn_pred, output_data.credit_score)
+    params_df = pd.concat(
+        [pd.DataFrame([paramdict], columns = paramdict.keys()) for paramdict in params_list])
+    params_df.to_csv(param_path, index = False
+    )
+
+    print(f'Final accuracy score: {acc}')
     
     t1 = time.time()
     print_timing(t0, t1, text = 'Total time to run script:')
 
 #%%
 1+1
+# Loading checkpoint and datamodule 
+#ckpt = torch.load("models/german_credit/NN_german_fold_0_datamodule")
+#dm = GermanDataModule(fold = ckpt['fold'])
+# predicting 
+#ckpt['model'].forward(dm.test_data.X_data)
+
+
+# %%
