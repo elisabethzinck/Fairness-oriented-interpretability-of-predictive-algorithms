@@ -1,6 +1,6 @@
 # Preprocess the german credit data to make it easier to work with
 #%%
-remove_singles = True
+remove_singles = False
 #%% Initialization
 import pandas as pd
 input_path = 'data\\raw\\german_credit\\german.data'
