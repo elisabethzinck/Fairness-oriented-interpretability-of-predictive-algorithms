@@ -165,4 +165,12 @@ sns.boxplot(x = 'N_people',
 ax.set_ylabel('')
 ax.set_title('#People pr. Crime Category in V19_committed_crime \n Partitioned by Main Crime Category')
 
-# %%
+#%% How do they distribute across V26
+df_26 = (raw_data.groupby(['V26_finished_measure_grouped'])
+                .agg(N_people = ('id', 'count'), 
+                     recidivated = ('V115_RECID2015_recid', lambda x: np.count_nonzero(x)),
+                     not_recidivated = ('V115_RECID2015_recid', lambda x: len(x)-np.count_nonzero(x)),
+                     recid_frac = ('V115_RECID2015_recid', lambda x: np.count_nonzero(x)/len(x)))
+                .reset_index()
+                .sort_values(by = 'N_people', ascending = False)
+            )

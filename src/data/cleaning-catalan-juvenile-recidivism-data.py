@@ -58,7 +58,8 @@ dfsub = df.filter(list(df.columns[list(range(31))+[114]]))
 dfsub.drop(columns=['V3_nationality_country', 
                     'V5_age_cat', 
                     'V7_region',
-                    'V14_main_crime'], inplace=True)
+                    'V14_main_crime', 
+                    'V25_MRM_ATM_or_enforcement_actions'], inplace=True)
 
 #%% Replacing some of the catalan words with english 
 V1_map = {'Dona': 'female', 'Home': 'male'}
@@ -82,6 +83,12 @@ V15_map = {'Contra les persones': 'Against People',
             'Altres': 'Other'}
 V16_map = {'Violent': 1, 'No violent': 0}
 V17_map = {'Delicte': 1, 'Falta': 0}
+V26_map = {'Internament': 'Internment',
+           'LV': 'Probation', #Llibertat vigilada
+           'ATM': 'ATM', #report of technical advice
+           'MRM':  'MRM', #meditation
+           'Altres medi obert': 'Other', 
+           'PBC': 'Community Service'}
 V27_map = {'Menys de 6 mesos': '<6 months', 
                 'De 6 mesos a 1 any': '6 months < 1 year', 
                 "Més d'1 any": '>1 year'}
