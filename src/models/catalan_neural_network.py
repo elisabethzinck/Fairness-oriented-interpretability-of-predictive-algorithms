@@ -4,12 +4,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 import time
 
-from sklearn.model_selection import train_test_split, KFold
-from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import accuracy_score
+from src.models.data_modules.catalan_data_module import CatalanDataModule
 
-from src.data.general_preprocess_functions import one_hot_encode_mixed_data
-from src.models.general_modelling_functions import (get_n_hidden_list, myData, Net, BinaryClassificationTask, print_timing)
+from src.models.general_modelling_functions import (get_n_hidden_list, Net, BinaryClassificationTask, print_timing)
 
 import torch
 from torch.utils.data import  DataLoader
@@ -31,6 +29,9 @@ logging.getLogger('lightning').setLevel(logging.ERROR)
 max_epochs = 50
 n_trials = 500
 
+save_models_to_csv = True
+save_results_to_csv = True
+
 #%% Objective function for optuna optimizer
 def objective_function(trial: optuna.trial.Trial):
     logging.getLogger('lightning').setLevel(logging.ERROR)
@@ -45,9 +46,9 @@ def objective_function(trial: optuna.trial.Trial):
     
     # Define network and lightning
     net = Net(
-        num_features = n_features, 
+        num_features = dm.n_features, 
         num_hidden_list = n_hidden_list, 
-        num_output = n_output,
+        num_output = dm.n_output,
         p_dropout = p_dropout)
     plnet = BinaryClassificationTask(model = net, lr = lr)
 
@@ -67,7 +68,7 @@ def objective_function(trial: optuna.trial.Trial):
         progress_bar_refresh_rate = 0, 
         gpus = GPU)
 
-    trainer.fit(plnet, train_loader, val_loader)
+    trainer.fit(plnet, dm)
 
     return trainer.callback_metrics['val_loss'].item()
 
@@ -76,53 +77,25 @@ if __name__ == "__main__":
     t0 = time.time()
     pl.seed_everything(42)
 
-    #Load data
-    file_path = 'data/processed/catalan-juvenile-recidivism/catalan-juvenile-recidivism-subset.csv'
+    #Save models dir 
     output_path = 'data/predictions/catalan-juvenile-recidivism/catalan_recid_nn_pred.csv'
     param_path = 'data/predictions/catalan-juvenile-recidivism/catalan_recid_nn_pred_hyperparams.csv'
-    raw_data = pd.read_csv(file_path, index_col=0)
-
-    assert raw_data.isnull().sum(axis = 0).max() == 0
-
-    #Save models dir 
     model_folder = 'models/catalan-juvenile-recidivism/'
 
-    #Prepare data
-    X = raw_data.drop(['V115_RECID2015_recid', 'id'], axis = 1)
-    X = one_hot_encode_mixed_data(X)
-    y = raw_data.V115_RECID2015_recid.to_numpy()
-    n_features = X.shape[1]
-    n_output = 1
-
+    # load data module 
+    dm = CatalanDataModule(fold = 0)
     # Empty array for predictions and hyper parameters
-    y_preds = np.empty(X.shape[0])
-    y_preds[:] = np.nan
+    y_pred = np.empty(dm.n_obs)
     params_list = []
 
-    kf = KFold(n_splits=5, shuffle = True, random_state=42)
-
-    for i, (train_val_idx, test_idx) in enumerate(kf.split(X)):
-        X_train_val, y_train_val = X.iloc[train_val_idx], y[train_val_idx]
-        X_test, y_test = X.iloc[test_idx], y[test_idx]
-
-        X_train, X_val, y_train, y_val = train_test_split(
-            X_train_val, 
-            y_train_val, 
-            test_size = 0.2, random_state = 42)
-
-        # Standardize for optimization step
-        scaler = StandardScaler()
-        X_train = scaler.fit_transform(X_train)
-        X_val = scaler.transform(X_val)
-        X_test = scaler.transform(X_test)
-
-        # Define dataloaders
-        train_loader = DataLoader(
-            dataset=myData(X_train, y_train), batch_size=32)
-        val_loader = DataLoader(
-            dataset=myData(X_val, y_val), batch_size = 32)
+    print('--- Starting training ---')
+    for i in range(5):
+        #Load data module 
+        dm = CatalanDataModule(fold = i)
+        assert dm.fold == i
 
         # Find optimal model
+        print('Using optuna')
         study = optuna.create_study(
         direction = 'minimize', 
         sampler = TPESampler(seed=10))
@@ -133,17 +106,17 @@ if __name__ == "__main__":
             n_trials = n_trials,
             show_progress_bar=False)
 
-
         # %% Train model on all data
+        print('Finding best model')
         params = study.best_trial.params
         params_list.append(params)
         n_hidden_list = get_n_hidden_list(params)
 
         # Define network and lightning
         net = Net(
-            num_features = n_features, 
+            num_features = dm.n_features, 
             num_hidden_list = n_hidden_list, 
-            num_output = n_output,
+            num_output = dm.n_output,
             p_dropout = params['p_dropout'])
         plnet = BinaryClassificationTask(model = net, lr = params['lr'])
 
@@ -162,40 +135,45 @@ if __name__ == "__main__":
             progress_bar_refresh_rate = 0, 
             gpus = GPU)
 
-        trainer.fit(plnet, train_loader, val_loader)
+        trainer.fit(plnet, dm)
 
-        # Save model weigths, hparams and indexes for train and test data
-        checkpoint_file = f'{model_folder}NN_catalan_fold_{i}'
-        save_dict = {
-            'model': trainer.model,
-            'hparams': params,
-            'train_val_idx':train_val_idx, 
-            'test_idx': test_idx,
-            'fold': i}
-        torch.save(save_dict, checkpoint_file)
+        if save_models_to_csv:
+            # Save model weigths, hparams and indexes for train and test data
+            checkpoint_file = f'{model_folder}NN_catalan_fold_{i}'
+            save_dict = {
+                'model': plnet.model,
+                'hparams': params,
+                'fold': i}
+            torch.save(save_dict, checkpoint_file)
 
+        #test accuracy
+        test_res = trainer.test(plnet, datamodule=dm)[0]
+        print(f"Accuracy is: {test_res['test_acc']}")
 
-        #%%
-        predictions = plnet.model.forward(torch.Tensor(X_test))
-        pred_binary = (predictions >= 0.5)
-        acc = accuracy_score(y_test, pred_binary)
-        print(f'Accuracy is: {acc}')
-        y_preds[test_idx] = predictions.detach().numpy().squeeze()
-# %%
+        # Inference/predictions 
+        plnet.model.eval()
+        preds = plnet.model.forward(dm.test_data.X_data)
+        y_pred[dm.test_idx] = preds.detach().numpy().squeeze()
+        
     # Save data
+    print('--- Done training. Saving data ---')
     potential_sensitive = ['V1_sex', 'V2_nationality_type', 'V8_age',
                            'V4_area_origin', 'V6_province']
     output_cols = ['id', 'V115_RECID2015_recid'] + potential_sensitive
-    output_data = (raw_data[output_cols]
+    output_data = (dm.raw_data[output_cols]
             .assign(
-                nn_prob = y_preds,
-                nn_pred = y_preds >= 0.5
+                nn_prob = y_pred,
+                nn_pred = y_pred >= 0.5
             ))
-    output_data.to_csv(output_path, index = False)
     acc = accuracy_score(output_data.nn_pred, output_data.V115_RECID2015_recid)
     params_df = pd.concat(
             [pd.DataFrame([paramdict], columns = paramdict.keys()) for paramdict in params_list])
-    params_df.to_csv(param_path, index = False)
+    
+    if save_results_to_csv:
+        output_data.to_csv(output_path, index = False)
+        params_df.to_csv(param_path, index = False)
+
+    print(f'Final accuracy score: {acc}')
 
     t1 = time.time()
     print_timing(t0, t1, text = 'Total time to run script:')
