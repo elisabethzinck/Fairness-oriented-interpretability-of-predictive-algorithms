@@ -12,7 +12,7 @@ def one_hot_encode_mixed_data(X):
     
     enc = OneHotEncoder(drop='if_binary', sparse = False)
     X_cat_one_hot_fit = enc.fit_transform(X_cat)
-    X_cat_one_hot = pd.DataFrame(X_cat_one_hot_fit, columns=enc.get_feature_names(X_cat.columns))
+    X_cat_one_hot = pd.DataFrame(X_cat_one_hot_fit, columns=enc.get_feature_names_out(X_cat.columns))
     
     # Reseting indexes to avoid NaNs
     X_num.reset_index(inplace = True)

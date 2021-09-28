@@ -5,8 +5,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 from src.evaluation_tool.layered_tool import FairKit
-input_path = 'data\\processed\\german_credit_pred.csv'
-output_path = 'data\\processed\\anonymous_data.csv'
+input_path = 'data/predictions/german_credit_nn_pred.csv'
+output_path = 'data/processed/anonymous_data.csv'
 
 # %% Load data
 german_data = pd.read_csv(input_path)
@@ -33,8 +33,8 @@ plt.xlabel('age')
 name_map = {
     'age_cat': 'grp',
     'credit_score': 'y',
-    'log_reg_pred': 'yhat',
-    'log_reg_prob': 'phat',
+    'nn_pred': 'yhat',
+    'nn_prob': 'phat',
 }
 anym = german_data[name_map.keys()].rename(columns = name_map)
 
@@ -48,7 +48,7 @@ anym_instance = FairKit(
     a = anym.grp, 
     r = anym.phat)
 anym_instance.l1_get_data()
-anym_instance.l2_plot(as_subplot = False)
+anym_instance.l2_plot()
 # %% Visualization with 2 groups
 df = anym[anym.grp.isin(['A','B'])]
 anym2_instance = FairKit(
@@ -57,6 +57,6 @@ anym2_instance = FairKit(
     a = df.grp, 
     r = df.phat)
 anym2_instance.l1_get_data()
-anym2_instance.l2_plot(as_subplot = False)
+anym2_instance.l2_plot()
 
 # %%

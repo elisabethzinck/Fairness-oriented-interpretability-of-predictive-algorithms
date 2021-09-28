@@ -22,7 +22,7 @@ from sklearn.metrics import confusion_matrix, roc_curve
 
 # dir functions
 from src.evaluation_tool.utils import (
-    cm_matrix_to_dict, custom_palette, abs_percentage_tick, flatten_list)
+    cm_matrix_to_dict, custom_palette, abs_percentage_tick, flatten_list, cm_dict_to_matrix)
 
 #%%
 def get_minimum_rate(group):
@@ -148,23 +148,32 @@ class FairKit:
         n_grps = len(self.sens_grps)
         if self.model_type != None:
             plt.suptitle(f'Model: {self.model_type}')
+
+        # One plot for each group
         for i, grp in enumerate(self.sens_grps):
             n_obs = sum(self.cm[grp].values())
-            grp_cm = np.array(list(self.cm[grp].values())).reshape(2,2)
-            
+            grp_cm = cm_dict_to_matrix(self.cm[grp])
+    
             plt.subplot(1,n_grps,i+1)
             ax = sns.heatmap(
                 grp_cm/n_obs*100, 
                 annot = True, 
                 cmap = 'Blues', 
                 vmin = 0, vmax = 100,
-                xticklabels=['Positive', 'Negative'],
-                yticklabels=['Positive', 'Negative'], 
+                cbar = False,
+                xticklabels=['Predicted positive', 'Predicted negative'],
+                yticklabels=['Actual positive', 'Actual negative'], 
                 annot_kws={'size':15})
-            for a in ax.texts: a.set_text(f"{a.get_text()}%")
-            plt.ylabel('Actual (%)')
-            plt.xlabel('Predicted (%)')
-            plt.title(f'{str.capitalize(grp)} ({n_obs} observations)')
+
+            # Add % and labels to labels in figure
+            names = ['TP', 'FN', 'FP', 'TN']
+            for name, a in zip(names, ax.texts): 
+                old_text = a.get_text()
+                new_text = f"{name}: {old_text}%"
+                a.set_text(new_text)
+            plt.ylabel(None)
+            plt.xlabel(None)
+            plt.title(f'{str.capitalize(grp)}\n N = {n_obs}')
 
     def l1_get_data(self, w_fp = 0.5):
         """Get data used for first layer of evaluation
@@ -368,31 +377,6 @@ class FairKit:
 
 #%% Main
 if __name__ == "__main__":
-    #file_path = 'data\\predictions\\german_credit_log_reg.csv'
-    #data = pd.read_csv(file_path)
-    #data.head()
-
-    #fair_german = FairKit(
-    #    y = data.credit_score, 
-    #    y_hat = data.log_reg_pred, 
-    #    a = data.sex, 
-    #    r = data.log_reg_prob,
-    #    model_type='Logistic Regression')
-    #fair_german.l2_plot(w_fp=0.7)
-    #fair_german.l3_plot_fairness_criteria()
-
-    #compas_file_path = 'data\\processed\\compas\\compas-scores-two-years-pred.#csv'
-    #compas = pd.read_csv(compas_file_path)
-    #compas.head()
-
-    #fair_compas = FairKit(
-    #    y = compas.two_year_recid, 
-    #    y_hat = compas.pred_medium_high, 
-    #    a = compas.age_cat, 
-    #    r = compas.decile_score,
-    #    model_type='COMPAS Decile Scores')
-    #fair_compas.l2_plot()
-
     file_path = 'data\\processed\\anonymous_data.csv'
     df = pd.read_csv(file_path)
     df.head()
@@ -401,15 +385,9 @@ if __name__ == "__main__":
         y = df.y, 
         y_hat = df.yhat, 
         a = df.grp, 
-        r = df.phat,
-        model_type='')
+        r = df.phat)
     #fair_anym.l2_ratio_subplot(w_fp = 0.8)
-    #fair_anym.l3_plot_fairness_criteria(w_fp = 0.8)
-    fair_anym.l2_plot(w_fp=0.8)
-    plt.savefig('../Thesis-report/00_figures/L2_example_new.pdf', bbox_inches='tight')
-
-    #fair_anym.l3_plot_fairness_criteria()
-    #plt.savefig('../Thesis-report/00_figures/L3_obs_fair_example.pdf', bbox_inches='tight')
+    fair_anym.plot_confusion_matrix()
 
 
 # %%

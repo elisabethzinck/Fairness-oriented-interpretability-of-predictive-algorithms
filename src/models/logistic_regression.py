@@ -11,8 +11,8 @@ from src.data.general_preprocess_functions import one_hot_encode_mixed_data
 #%%
 
 if __name__ == "__main__":
-    file_path = 'data\\processed\\german_credit_full.csv'
-    output_path = 'data\\predictions\\german_credit_log_reg.csv'
+    file_path = 'data/processed/german_credit_full.csv'
+    output_path = 'data/predictions/german_credit_log_reg.csv'
     data = pd.read_csv(file_path)
     
     df = data[['credit_score', 'person_id', 'sex']].copy()
@@ -29,7 +29,7 @@ if __name__ == "__main__":
     standardizer = StandardScaler()
 
         
-    k = 10 # Number of splits
+    k = 5 # Number of splits
     kf = KFold(n_splits = k, random_state = 42, shuffle = True)
 
     for train_idx, test_idx in kf.split(X):
