@@ -47,6 +47,41 @@ ax.tick_params(left=False, labelsize=12)
 ax.set_title('#People by Area of Origin')
 plt.legend()
 
+
+#%% How do they distribute across V2_nationality_type
+df_foreign = (raw_data.groupby(['V2_nationality_type'])
+                .agg(N_people = ('id', 'count'), 
+                     recidivated = ('V115_RECID2015_recid', lambda x: np.count_nonzero(x)),
+                     not_recidivated = ('V115_RECID2015_recid', lambda x: len(x)-np.count_nonzero(x)),
+                     recid_frac = ('V115_RECID2015_recid', lambda x: np.count_nonzero(x)/len(x)))
+                .reset_index()
+                .sort_values(by = 'N_people', ascending = False)
+            )
+
+fig = plt.figure(figsize=(6,3))
+ax = fig.add_subplot(1, 1, 1)
+bar1 = sns.barplot(
+    x = 'N_people', y = 'V2_nationality_type', 
+    data = df_origin,
+    estimator=sum,
+    palette = custom_palette(specific_col_idx = [6]),
+    label = 'Not Recidivated',
+    ax = ax)
+bar2 = sns.barplot(
+    x = 'recidivated', y = 'V2_nationality_type', 
+    data = df_origin,
+    palette = custom_palette(specific_col_idx = [2]),
+    label ='Recidivated',
+    ax = ax)
+ax.set_xlabel('Number of Juveniles')
+ax.set_ylabel('')
+for pos in ['right', 'top', 'left']:
+    ax.spines[pos].set_visible(False)
+ax.tick_params(left=False, labelsize=12)
+ax.set_title('#People by Foreigner Satus')
+plt.legend()
+
+
 #%% How do they distribute across V1_sex? 
 df_sex = (raw_data.groupby(['V1_sex'])
                 .agg(N_people = ('id', 'count'), 
@@ -174,3 +209,4 @@ df_26 = (raw_data.groupby(['V26_finished_measure_grouped'])
                 .reset_index()
                 .sort_values(by = 'N_people', ascending = False)
             )
+# %%
