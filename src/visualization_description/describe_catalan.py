@@ -5,10 +5,6 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np 
 
-import matplotlib.ticker as mtick
-import matplotlib.patches as mpatches
-from seaborn.palettes import color_palette
-
 from src.evaluation_tool.utils import custom_palette, abs_percentage_tick
 
 file_path = 'data\\processed\\catalan-juvenile-recidivism\\catalan-juvenile-recidivism-subset.csv'
