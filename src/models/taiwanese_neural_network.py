@@ -33,8 +33,8 @@ if __name__ == "__main__":
     param_path = 'data/predictions/taiwanese_nn_pred_hyperparams.csv'
     model_path = 'models/taiwanese/NN_taiwanese'
 
-    n_trials = 1
-    max_epochs = 10
+    n_trials = 100
+    max_epochs = 50
 
     max_layers = 2
     max_hidden = 10
