@@ -152,6 +152,50 @@ class DescribeData:
             labelbottom=False)
         plt.title('t-SNE of Data')
 
+    def agg_table(self, target_tex_name = None, to_latex = False):
+        if target_tex_name is None: 
+            target_tex_name = self.y_name
+        
+        # helper lambda functions
+        N_pos_func = lambda x: np.count_nonzero(x)
+        pos_perc_func = lambda x: (np.count_nonzero(x)/len(x))*100
+        N_pos_tab_func = lambda x: f"{N_pos_func(x)} ({pos_perc_func(x):.0f})%"
+        
+        # Creating grouped table  
+        df_grouped = (self.data.groupby(["a"])
+           .agg(N = ("y", "count"),
+                N_positive = ("y", N_pos_tab_func))
+            .reset_index()
+        )
+
+        # appending total row: 
+        row_total = pd.DataFrame({
+            "a": 'All', 
+            "N": len(self.data.y),
+            "N_positive": N_pos_tab_func(self.data.y),
+            }, index = [0])
+
+        df_grouped =df_grouped.append(row_total, ignore_index=True)
+
+        df_grouped.rename(columns = {"a": self.a_name.capitalize(), 
+                                    "N_positive": target_tex_name},
+                        inplace = True)
+        
+        if to_latex: 
+            # Styling the data frame 
+            mid_rule = {'selector': 'midrule', 'props': ':hline;'}
+            s = df_grouped.style.format(escape = "latex")
+            s.hide_index()
+            s.set_table_styles([mid_rule])
+
+            # printing style to Latex 
+            column_format =  "lcr"
+            s_tex = s.to_latex(column_format = column_format,
+                            convert_css = False)
+            print(s_tex)
+            return
+        else: 
+            return df_grouped
 
 
 #%%
@@ -176,3 +220,4 @@ if __name__ == "__main__":
     
 
 # %%
+
