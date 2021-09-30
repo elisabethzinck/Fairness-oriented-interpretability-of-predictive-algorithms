@@ -35,7 +35,7 @@ class ADNIDataModule(pl.LightningDataModule):
         raw_data = {}
         patient_groups = ['ad', 'mci', 'nc']
         for pat_grp in patient_groups:
-            file_path = f'data/ADNI/raw/sorted_{pat_grp}{dataset}.csv'
+            file_path = f'data/ADNI/raw/sorted_{pat_grp}{self.dataset}.csv'
             raw_data[pat_grp] = pd.read_csv(file_path)
             raw_data[pat_grp].columns = raw_data[pat_grp].columns.str.lower()
         return raw_data
