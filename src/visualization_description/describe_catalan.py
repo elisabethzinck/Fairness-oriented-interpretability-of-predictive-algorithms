@@ -1,14 +1,32 @@
-#%%
-# imports 
+#%% imports 
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np 
 
 from src.evaluation_tool.utils import custom_palette, abs_percentage_tick
+from src.visualization_description.descriptive_functions import DescribeData
 
 file_path = 'data\\processed\\catalan-juvenile-recidivism\\catalan-juvenile-recidivism-subset.csv'
 raw_data = pd.read_csv(file_path, index_col=0)
+
+fig_path_report = '../Thesis-report/00_figures/'
+update_report_figs = True
+
+#%% Aggregated tables 
+desc_V2 = DescribeData(a_name = "V2_nationality_type", 
+                    y_name = "V115_RECID2015_recid", 
+                    id_name = 'id', 
+                    data = raw_data)
+
+desc_V4 = DescribeData(a_name = "V4_area_origin", 
+                    y_name = "V115_RECID2015_recid", 
+                    id_name = 'id', 
+                    data = raw_data)
+
+desc_V4.agg_table(to_latex=True, target_tex_name='Recidivists')
+
+
 
 #%% How do they distribute across V4_area_origin? 
 df_origin = (raw_data.groupby(['V4_area_origin'])
@@ -20,7 +38,7 @@ df_origin = (raw_data.groupby(['V4_area_origin'])
                 .sort_values(by = 'N_people', ascending = False)
             )
 
-fig = plt.figure(figsize=(6,3))
+fig = plt.figure(figsize=(5,3.5))
 ax = fig.add_subplot(1, 1, 1)
 bar1 = sns.barplot(
     x = 'N_people', y = 'V4_area_origin', 
@@ -40,8 +58,11 @@ ax.set_ylabel('')
 for pos in ['right', 'top', 'left']:
     ax.spines[pos].set_visible(False)
 ax.tick_params(left=False, labelsize=12)
-ax.set_title('#People by Area of Origin')
+ax.set_title('Number of People by Area of Origin')
 plt.legend()
+if update_report_figs: 
+    plt.savefig(fig_path_report+'V4_area_origin.pdf', bbox_inches='tight')
+
 
 
 #%% How do they distribute across V2_nationality_type
@@ -54,18 +75,18 @@ df_foreign = (raw_data.groupby(['V2_nationality_type'])
                 .sort_values(by = 'N_people', ascending = False)
             )
 
-fig = plt.figure(figsize=(6,3))
+fig = plt.figure(figsize=(5,2.5))
 ax = fig.add_subplot(1, 1, 1)
 bar1 = sns.barplot(
     x = 'N_people', y = 'V2_nationality_type', 
-    data = df_origin,
+    data = df_foreign,
     estimator=sum,
     palette = custom_palette(specific_col_idx = [6]),
     label = 'Not Recidivated',
     ax = ax)
 bar2 = sns.barplot(
     x = 'recidivated', y = 'V2_nationality_type', 
-    data = df_origin,
+    data = df_foreign,
     palette = custom_palette(specific_col_idx = [2]),
     label ='Recidivated',
     ax = ax)
@@ -74,8 +95,10 @@ ax.set_ylabel('')
 for pos in ['right', 'top', 'left']:
     ax.spines[pos].set_visible(False)
 ax.tick_params(left=False, labelsize=12)
-ax.set_title('#People by Foreigner Satus')
+ax.set_title('Number of People by Nationality Type')
 plt.legend()
+if update_report_figs: 
+    plt.savefig(fig_path_report+'V2_nationality_type.pdf', bbox_inches='tight')
 
 
 #%% How do they distribute across V1_sex? 

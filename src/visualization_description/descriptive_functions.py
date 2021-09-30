@@ -166,6 +166,7 @@ class DescribeData:
            .agg(N = ("y", "count"),
                 N_positive = ("y", N_pos_tab_func))
             .reset_index()
+            .sort_values(by = 'N', ascending = False)
         )
 
         # appending total row: 
@@ -177,7 +178,7 @@ class DescribeData:
 
         df_grouped =df_grouped.append(row_total, ignore_index=True)
 
-        df_grouped.rename(columns = {"a": self.a_name.capitalize(), 
+        df_grouped.rename(columns = {"a": self.a_name.capitalize().replace("_", "\_"), 
                                     "N_positive": target_tex_name},
                         inplace = True)
         

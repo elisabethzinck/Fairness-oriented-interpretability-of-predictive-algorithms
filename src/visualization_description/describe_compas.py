@@ -13,4 +13,4 @@ desc = DescribeData(data = df,
                     a_name = 'race', 
                     id_name = 'id')
 
-desc.agg_table(to_latex=False, target_tex_name="Recidivists")
+desc.agg_table(to_latex=True, target_tex_name="Recidivists")
