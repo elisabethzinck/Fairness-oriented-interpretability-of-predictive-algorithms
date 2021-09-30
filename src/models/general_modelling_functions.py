@@ -5,6 +5,10 @@ import torch.nn.functional as F
 from torch.utils.data import Dataset
 
 import pytorch_lightning as pl
+from pytorch_lightning.callbacks import EarlyStopping
+
+import optuna
+from optuna.integration import PyTorchLightningPruningCallback
 
 import warnings
 warnings.simplefilter("ignore")
@@ -115,3 +119,43 @@ class BinaryClassificationTask(pl.LightningModule):
 def print_timing(t0, t1, text = 'Minutes elapsed:'):
     n_mins = (t1-t0)/60
     print(f'{text} {n_mins:.2f} mins')
+
+def objective_function(trial, dm, max_layers, max_hidden, max_epochs):
+    
+    # Define hyperparameters
+    n_layers = trial.suggest_int('n_layers', 1, max_layers)
+    n_hidden_list = []
+    for i in range(n_layers):
+        name = 'n_hidden_' + str(i)
+        n_hidden_list.append(trial.suggest_int(name, 1, max_hidden))
+    lr = trial.suggest_loguniform('lr', 1e-6, 1e-1)
+    p_dropout = trial.suggest_uniform('p_dropout', 0, 0.5)
+    
+    # Define network and lightning
+    net = Net(
+        num_features = dm.n_features, 
+        num_hidden_list = n_hidden_list, 
+        num_output = dm.n_output,
+        p_dropout = p_dropout)
+    plnet = BinaryClassificationTask(model = net, lr = lr)
+
+    if torch.cuda.is_available():
+        GPU = 1
+    else:
+        GPU = None
+
+    early_stopping = EarlyStopping('val_loss', patience = 3)
+    optuna_pruning = PyTorchLightningPruningCallback(trial, monitor="val_loss")
+    trainer = pl.Trainer(
+        fast_dev_run = False,
+        log_every_n_steps = 1, 
+        max_epochs = max_epochs,
+        callbacks = [early_stopping, optuna_pruning], 
+        deterministic = True,
+        logger = False,
+        progress_bar_refresh_rate = 0,
+        gpus = GPU)
+
+    trainer.fit(plnet, dm)
+
+    return trainer.callback_metrics['val_loss'].item()

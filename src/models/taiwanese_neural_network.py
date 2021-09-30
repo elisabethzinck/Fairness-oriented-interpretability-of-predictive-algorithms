@@ -11,104 +11,68 @@ import pytorch_lightning as pl
 from pytorch_lightning.callbacks import EarlyStopping
 
 import optuna
-from optuna.integration import PyTorchLightningPruningCallback
 from optuna.samplers import TPESampler
 
 from src.models.general_modelling_functions import (get_n_hidden_list, Net,\
-    BinaryClassificationTask, print_timing)
+    BinaryClassificationTask, print_timing, \
+    objective_function)
 from src.models.data_modules.taiwanese_data_module import TaiwaneseDataModule
 
-n_trials = 1
-max_epochs = 10
-
-#%% Objective function for optuna optimizer
-def objective_function(trial: optuna.trial.Trial):
-    
-    # Define hyperparameters
-    n_layers = trial.suggest_int('n_layers', 1, 2)
-    n_hidden_list = []
-    for i in range(n_layers):
-        name = 'n_hidden_' + str(i)
-        n_hidden_list.append(trial.suggest_int(name, 1, 10))
-    lr = trial.suggest_loguniform('lr', 1e-6, 1e-1)
-    p_dropout = trial.suggest_uniform('p_dropout', 0, 0.5)
-    
-    # Define network and lightning
-    net = Net(
-        num_features = dm.n_features, 
-        num_hidden_list = n_hidden_list, 
-        num_output = dm.n_output,
-        p_dropout = p_dropout)
-    plnet = BinaryClassificationTask(model = net, lr = lr)
-
+#%%
+if __name__ == "__main__":
+    ##### Setup #########
     if torch.cuda.is_available():
         GPU = 1
     else:
         GPU = None
-
-    early_stopping = EarlyStopping('val_loss', patience = 3)
-    optuna_pruning = PyTorchLightningPruningCallback(trial, monitor="val_loss")
-    trainer = pl.Trainer(
-        fast_dev_run = False,
-        log_every_n_steps = 1, 
-        max_epochs = max_epochs,
-        callbacks = [early_stopping, optuna_pruning], 
-        deterministic = True,
-        logger = False,
-        progress_bar_refresh_rate = 0,
-        gpus = GPU)
-
-    trainer.fit(plnet, dm)
-
-    return trainer.callback_metrics['val_loss'].item()
-
-#%%
-
-if __name__ == "__main__":
     pl.seed_everything(42)
     t0 = time.time()
+    
+    ##### DEFINITIONS #######
     output_path = 'data/predictions/taiwanese_nn_pred.csv'
     param_path = 'data/predictions/taiwanese_nn_pred_hyperparams.csv'
+    model_path = 'models/taiwanese/NN_taiwanese'
 
-    #Save models dir 
-    model_folder = 'models/taiwanese/'
+    n_trials = 1
+    max_epochs = 10
 
-    #Load Data Module
+    max_layers = 2
+    max_hidden = 10
+
+    #### Prepare data #######
     dm = TaiwaneseDataModule()
-    y_pred = np.empty(dm.n_obs)
-    
-    print('--- Starting training ---')
 
-    # Find optimal model
-    print('Using optuna')
+    cols_to_keep = [dm.id_var, dm.y_var] + dm.sens_vars
+    output_data = (dm.raw_data[cols_to_keep]
+        .iloc[dm.test_idx]
+        .assign(
+            nn_prob = np.nan,
+            nn_pred = np.nan
+        ))
+    
+
+    print('--- Finding optimal hyperparameters ---')
     study = optuna.create_study(
         direction = 'minimize', 
         sampler = TPESampler(seed=10))
     study.optimize(
-        objective_function, 
+        lambda trial: objective_function(
+            trial, dm, max_layers, max_hidden, max_epochs), 
         n_trials = n_trials,
         show_progress_bar=False)
 
-    # %% Train model with optimal hyperparameters
-    print('Finding best model')
+    print('--- Re-training best model ---')
     params = study.best_trial.params
     n_hidden_list = get_n_hidden_list(params)
-
-    # Define network and lightning
     net = Net(
-        num_features = dm.n_features, # <-- perhaps these should not be defined in data module
+        num_features = dm.n_features, 
         num_hidden_list = n_hidden_list, 
-        num_output = dm.n_output, # <-- perhaps these should not be defined in data module
+        num_output = dm.n_output, 
         p_dropout = params['p_dropout'])
     plnet = BinaryClassificationTask(model = net, lr = params['lr'])
-
-    # Callbacks for training
     early_stopping = EarlyStopping('val_loss', patience = 3)
 
-    if torch.cuda.is_available():
-        GPU = 1
-    else:
-        GPU = None
+    
     trainer = pl.Trainer(
         fast_dev_run = False,
         log_every_n_steps = 1, 
@@ -117,40 +81,32 @@ if __name__ == "__main__":
         callbacks = [early_stopping],
         progress_bar_refresh_rate = 0,
         gpus = GPU)
-
     trainer.fit(plnet, dm)
 
-    # Save model weigths, hparams and indexes for train and test data
-    checkpoint_file = f'{model_folder}NN_taiwanese'
+    print('--- Testing and making predictions using best model ---')
+    plnet.model.eval()
+    nn_prob = (plnet.model
+        .forward(dm.test_data.X_data)
+        .detach().numpy().squeeze())
+    assert(nn_prob.shape[0] == output_data.shape[0])
+    output_data.nn_prob = nn_prob
+    output_data.nn_pred = nn_prob >= 0.5
+    
+    acc = accuracy_score(output_data.nn_pred, output_data[dm.y_var])
+    print(f'Final accuracy score: {acc}')
+
+    print('--- Saving best model and predictions---')
     save_dict = {
         'model': plnet.model.eval(),
         'hparams': params}
-    torch.save(save_dict, checkpoint_file)
+    torch.save(save_dict, model_path)
 
-    #test accuracy
-    test_res = trainer.test(plnet, datamodule=dm)[0]
-    print(f"Accuracy is: {test_res['test_acc']}")
-
-    # Inference/predictions 
-    plnet.model.eval()
-    preds = plnet.model.forward(dm.test_data.X_data)
-    y_pred[dm.test_idx] = preds.detach().numpy().squeeze()
-
-    # Save data
-    print('--- Done training. Saving data ---')
-    cols_to_keep = [dm.id_var, dm.y_var] + dm.sens_vars
-    output_data = (dm.raw_data[cols_to_keep]
-        .assign(
-            nn_prob = y_pred,
-            nn_pred = y_pred >= 0.5
-        ))
+    
     output_data.to_csv(output_path, index = False)
-    acc = accuracy_score(output_data.nn_pred, output_data[dm.y_var])
     params_df = pd.DataFrame([params], columns = params.keys())
     params_df.to_csv(param_path, index = False)
 
-    print(f'Final accuracy score: {acc}')
-    
+    ### FINISHING UP ####
     t1 = time.time()
     print_timing(t0, t1, text = 'Total time to run script:')
 
