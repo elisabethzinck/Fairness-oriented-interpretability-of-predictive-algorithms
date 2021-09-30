@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 import pytorch_lightning as pl
 
-from sklearn.model_selection import train_test_split, KFold
+from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from torch.utils.data.dataloader import DataLoader
 
@@ -15,10 +15,15 @@ class TaiwaneseDataModule(pl.LightningDataModule):
     def __init__(self):
         super().__init__()
         self.file_path = 'data/processed/taiwanese_credit.csv'
+
         self.batch_size = 32 
         self.test_size = 0.2
         self.val_size = 0.2 # Relative to train val
         self.seed = 42
+
+        self.id_var = 'id'
+        self.sens_vars = ['sex', 'age']
+        self.y_var = 'default_next_month'
 
         self.load_raw_data()
         self.setup()
@@ -28,9 +33,9 @@ class TaiwaneseDataModule(pl.LightningDataModule):
     
     def setup(self, stage = None):
         #One hot encoding 
-        X = self.raw_data.drop(['default_next_month', 'id'], axis = 1)
+        X = self.raw_data.drop(columns = [self.y_var, self.id_var], axis = 1)
         X = one_hot_encode_mixed_data(X)
-        y = self.raw_data.default_next_month.to_numpy()
+        y = self.raw_data[self.y_var].to_numpy()
         
         # Saving output and features for plNet
         self.n_obs = X.shape[0]
