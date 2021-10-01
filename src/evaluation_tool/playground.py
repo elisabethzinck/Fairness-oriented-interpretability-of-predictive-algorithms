@@ -164,7 +164,7 @@ def get_WMR(FP, FN, N, w_fp):
 
     return WMR
 
-N = 5
+N = 100
 possible_vals = np.linspace(0,N, num = N+1)
 FP_vals,FN_vals = np.meshgrid(possible_vals, possible_vals)
 N_in_sample = FP_vals + FN_vals
@@ -172,9 +172,9 @@ idx_out_of_bounds = N_in_sample > N
 FP_vals[idx_out_of_bounds] = np.nan
 FN_vals[idx_out_of_bounds] = np.nan
 
-WMR_vals = get_WMR(FP_vals, FN_vals, N, 0.5)
+WMR_vals = get_WMR(FP_vals, FN_vals, N, 0.7)
 
-plt.imshow(WMR_vals, origin = 'lower')
+plt.imshow(WMR_vals, origin = 'lower', cmap = 'Blues')
 plt.colorbar()
 
 
