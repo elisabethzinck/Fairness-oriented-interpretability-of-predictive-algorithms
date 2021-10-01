@@ -75,7 +75,7 @@ df_foreign = (raw_data.groupby(['V2_nationality_type'])
                 .sort_values(by = 'N_people', ascending = False)
             )
 
-fig = plt.figure(figsize=(5,2.5))
+fig = plt.figure(figsize=(5,1.5))
 ax = fig.add_subplot(1, 1, 1)
 bar1 = sns.barplot(
     x = 'N_people', y = 'V2_nationality_type', 

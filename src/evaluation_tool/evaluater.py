@@ -9,12 +9,14 @@ if __name__ == '__main__':
     figure_path = 'figures/evaluation_plots/'
     fig_path_report = '../Thesis-report/00_figures/'
     
-    run_anym = True
+    run_anym = False
 
-    run_german_log_reg = True
-    run_german_nn = True
+    run_german_log_reg = False
+    run_german_nn = False
 
-    run_compas = True
+    run_taiwanese = True
+
+    run_compas = False
     run_catalan = True
 
     update_report_figures = False # Write new figures to report repository?
@@ -22,6 +24,8 @@ if __name__ == '__main__':
     credit_w_fp = 0.9
 
     compas_w_fp = 0.9
+    catalan_w_fp = 0.9
+    
     anym_w_fp = 0.2
 
     #######################################
@@ -128,19 +132,60 @@ if __name__ == '__main__':
         fair_compas_race.l2_plot(w_fp=compas_w_fp)
         plt.savefig(figure_path+'compas_l2_race.png')
     
+
+
+# %%
+    #######################################
+    # Catalan Juvenile Recidivism NN
+    #######################################
     if run_catalan:
-        catalan_file_path = 'data\\predictions\\catalan-juvenile-recidivism\\catalan_recid_nn_pred.csv'
+        catalan_file_path = 'data/predictions/catalan-juvenile-recidivism/catalan_recid_nn_pred.csv'
         catalan = pd.read_csv(catalan_file_path)
 
+    # Sensitive: Nationality Type 
+        fair_catalan_V2 = FairKit(
+            y = catalan.V115_RECID2015_recid, 
+            y_hat = catalan.nn_pred, 
+            a = catalan.V2_nationality_type, 
+            r = catalan.nn_prob,
+            model_type='Catalan NN')
 
-        fair_catalan = FairKit(
+        fair_catalan_V2.plot_confusion_matrix()
+        plt.savefig(figure_path+'catalan_confusion_V2_nationality_type.png')
+        fair_catalan_V2.l2_plot(w_fp=0.9)
+        plt.savefig(figure_path+'catalan_l2_V2_nationality_type.png')
+
+    # Sensitive: Area of Origin
+        fair_catalan_V4 = FairKit(
             y = catalan.V115_RECID2015_recid, 
             y_hat = catalan.nn_pred, 
             a = catalan.V4_area_origin, 
             r = catalan.nn_prob,
             model_type='Catalan NN')
 
-        fair_catalan.plot_confusion_matrix()
-        fair_catalan.l2_plot(w_fp=0.9)
+        fair_catalan_V4.plot_confusion_matrix()
+        plt.savefig(figure_path+'catalan_confusion_V4_area_origin.png')
+        fair_catalan_V4.l2_plot(w_fp=0.9)
+        plt.savefig(figure_path+'catalan_l2_V4_area_origin.png')
 
+# %%
+    #######################################
+    # Taiwanese NN
+    #######################################
+    if run_taiwanese:
+        taiwanese_file_path = 'data/predictions/taiwanese_nn_pred.csv'
+        taiwanese = pd.read_csv(taiwanese_file_path)
+
+    # Sensitive: Nationality Type 
+        fair_taiwanese = FairKit(
+            y = taiwanese.default_next_month, 
+            y_hat = taiwanese.nn_pred, 
+            a = taiwanese.sex, 
+            r = taiwanese.nn_prob,
+            model_type='Taiwanese NN')
+
+        fair_taiwanese.plot_confusion_matrix()
+        plt.savefig(figure_path+'taiwanese_confusion_sex.png')
+        fair_taiwanese.l2_plot(w_fp=credit_w_fp)
+        plt.savefig(figure_path+'taiwanese_l2_sex.png')
 # %%
