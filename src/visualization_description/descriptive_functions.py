@@ -159,7 +159,7 @@ class DescribeData:
         # helper lambda functions
         N_pos_func = lambda x: np.count_nonzero(x)
         pos_perc_func = lambda x: (np.count_nonzero(x)/len(x))*100
-        N_pos_tab_func = lambda x: f"{N_pos_func(x)} ({pos_perc_func(x):.0f})%"
+        N_pos_tab_func = lambda x: f"{N_pos_func(x)} ({pos_perc_func(x):.0f}%)"
         
         # Creating grouped table  
         df_grouped = (self.data.groupby(["a"])
