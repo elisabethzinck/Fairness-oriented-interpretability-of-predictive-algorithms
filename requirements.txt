@@ -6,6 +6,8 @@ matplotlib
 seaborn
 tqdm
 plotnine
+plotly
+kaleido
 --editable .
 pytorch-lightning
 optuna

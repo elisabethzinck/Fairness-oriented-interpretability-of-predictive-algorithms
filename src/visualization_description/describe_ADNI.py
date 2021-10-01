@@ -8,12 +8,6 @@ from src.models.data_modules.ADNI_data_module import ADNIDataModule
 
 #%%
 dm = ADNIDataModule(dataset = 1)
-# %%
-mci = dm.raw_data['mci']
-# %%
-mci.head()
-# %% Create Sankey diagram
-
 
 
 # %% Create node labels
@@ -26,6 +20,7 @@ for t in time_frames:
 # %% Create links
 n_flows = len(time_frames)-1
 links = [None]*n_flows
+mci = dm.raw_data['mci']
 for i in range(n_flows):
     source = time_frames[i]
     target = time_frames[i+1]
@@ -57,9 +52,12 @@ fig = go.Figure(data=[go.Sankey(
       color = "blue"
     ),
     link = dict(
-      source = links.source, # indices correspond to labels, eg A1, A2, A1, B1, ...
+      source = links.source,
       target = links.target,
       value = links.value
   ))])
 fig.show()
+# %%
+fig.write_image('figures/descriptive_plots/ADNI_sankey.png')
+
 # %%
