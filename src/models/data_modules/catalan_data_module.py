@@ -82,5 +82,6 @@ class CatalanDataModule(pl.LightningDataModule):
 
     def predict_dataloader(self):
         return DataLoader(self.test_data, batch_size=self.batch_size)
-
 # %%
+if __name__ == '__main__':
+    dm = CatalanDataModule(fold = 1)

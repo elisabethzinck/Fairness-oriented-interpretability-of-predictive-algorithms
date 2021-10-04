@@ -21,11 +21,12 @@ class GermanDataModule(pl.LightningDataModule):
         self.kf = KFold(n_splits=5, shuffle = True, random_state=self.seed)
         self.fold = fold      
 
-        self.load_raw_data()
+        self.raw_data = self.load_raw_data()
         self.setup()
 
     def load_raw_data(self):
-        self.raw_data = pd.read_csv(self.file_path)
+        raw_data = pd.read_csv(self.file_path)
+        return raw_data
     
     def setup(self, stage = None):
         #One hot encoding 
@@ -84,3 +85,6 @@ class GermanDataModule(pl.LightningDataModule):
         return DataLoader(self.test_data, batch_size=self.batch_size)
 
 # %%
+if __name__ == '__main__':
+    dm = GermanDataModule(fold = 1)
+

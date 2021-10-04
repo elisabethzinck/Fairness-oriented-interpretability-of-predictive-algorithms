@@ -22,7 +22,7 @@ class ADNIDataModule(pl.LightningDataModule):
         self.sens_vars = ['sex', 'age']
         self.y_var = 'y'
 
-        label_to_y_map = {
+        self.label_to_y_map = {
             0: np.nan,          # Censoring
             1: 0,               # Normal controls
             2: 0,               # MCI deemed stable
@@ -42,12 +42,17 @@ class ADNIDataModule(pl.LightningDataModule):
 
     def setup(self):
         # Gather training and validation data
-        trainval_data = pd.concat([raw_data['ad'], raw_data['nc']])
-        trainval_data[y_var] = trainval_data.label.map(label_to_y_map)
+        trainval_data = pd.concat([self.raw_data['ad'], self.raw_data['nc']])
+        trainval_data[self.y_var] = trainval_data.label.map(self.label_to_y_map)
 
         # Clean test data
-        test_data = raw_data['mci']
-        test_data[y_var] = test_data[time_horizon].map(label_to_y_map)
+        test_data = self.raw_data['mci']
+        test_data[self.y_var] = test_data[self.time_horizon].map(self.label_to_y_map)
+
+        # One hot encode sex 
+        trainval_data = one_hot_encode_mixed_data(trainval_data)
+        test_data = one_hot_encode_mixed_data(test_data)
+
         # To do: Figure out how to solve censoring
 
         # To do: Split trainval into train and val
