@@ -8,16 +8,15 @@ import pandas as pd
 def one_hot_encode_mixed_data(X):
     # splitting into categorical and numerical columns 
     X_cat = X.loc[:, (X.dtypes=='object').values]
-    X_num = X[X.columns.difference(X_cat.columns)]
+    X_num = X.drop(columns = X_cat.columns)
     
     enc = OneHotEncoder(drop='if_binary', sparse = False)
     X_cat_one_hot_fit = enc.fit_transform(X_cat)
-    X_cat_one_hot = pd.DataFrame(X_cat_one_hot_fit, columns=enc.get_feature_names(X_cat.columns))
-    
-    # Reseting indexes to avoid NaNs
-    X_num.reset_index(inplace = True)
-    X_cat_one_hot.reset_index(inplace = True)
-
+    X_cat_one_hot = pd.DataFrame(
+        X_cat_one_hot_fit, 
+        columns=enc.get_feature_names(X_cat.columns), 
+        index = X_cat.index)
+        
     # Concatenating into a final data frame 
     X_final = pd.concat([X_num, X_cat_one_hot], axis = 1)
 
