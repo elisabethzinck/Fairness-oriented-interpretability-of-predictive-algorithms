@@ -60,6 +60,7 @@ class ADNIDataModule(pl.LightningDataModule):
             .assign(y = lambda x: x[self.time_horizon].map(self.label_to_y_map))
             .set_index('rid')
             .drop(columns = ['label', '1y', '2y', '3y', '4y', '5y'])
+            .dropna()
         )
         processed_data = {'trainval_data': trainval_data, 
                           'test_data': test_data}
@@ -78,8 +79,6 @@ class ADNIDataModule(pl.LightningDataModule):
         # One hot encode sex attribute 
         X_trainval = one_hot_encode_mixed_data(X_trainval)
         X_test = one_hot_encode_mixed_data(X_test)
-
-        # TODO: Figure out how to solve censoring
 
         #Split trainval into train and val
         X_train, X_val, y_train, y_val, train_idx, val_idx = train_test_split(
