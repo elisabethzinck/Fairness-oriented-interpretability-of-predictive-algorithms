@@ -245,6 +245,7 @@ class FairKit:
         ax.legend(loc = 'upper right', frameon = False)
         ax.set_xlabel('')
         ax.set_ylabel('')
+        ax.set_title('Group rates', fontsize=14, loc = 'left')
         ax.set_ylim(0,1)
         for pos in ['bottom', 'top', 'right']:
             ax.spines[pos].set_visible(False)
@@ -313,8 +314,7 @@ class FairKit:
         ax.set_yticklabels(list(rate_positions.keys()))
         ax.set_ylabel('')
         ax.set_xlabel('')
-        ax.set_title(
-            'Relative Difference of Group Rate vs. Minimum Group Rate', fontsize=14)
+        ax.set_title('Relative rates', fontsize=14, loc = 'left')
         xmin, xmax = ax.get_xlim()
         ax.set_xlim(left = -0.05*xmax) # To see all of leftmost dots
         ax.set_ylim((.125,1.125))
@@ -322,6 +322,57 @@ class FairKit:
         for pos in ['right', 'top', 'left']:
                     ax.spines[pos].set_visible(False)
         ax.tick_params(left=False, labelsize=12)
+
+    def l2_fairness_criteria_subplot(self, w_fp = 0.5, ax = None):
+        fairness_crit = pd.DataFrame([
+            ['Independence', 'PN/n'],
+            ['Separation', 'FPR'],
+            ['Separation', 'FNR'],
+            ['FPR balance', 'FPR'],
+            ['Equal opportunity', 'FNR'],
+            ['Sufficiency', 'FDR'],
+            ['Sufficiency', 'FOR'],
+            ['Predictive parity', 'FDR'],
+            ['Weighted misclassification rate', 'WMR']],
+            columns = ['criterion', 'rate'])
+
+        rel_WMR = self.get_relative_WMR(w_fp = w_fp)
+        all_data = (pd.concat([rel_WMR, self.rel_rates])
+            .merge(fairness_crit))
+        idx = (all_data
+            .groupby(by = ['rate', 'criterion'], as_index = False)
+            .rate_ratio
+            .idxmax())
+        plot_df = (all_data.loc[idx.rate_ratio]
+            .groupby(by = 'criterion', as_index = False)
+            .agg({
+                'rate_ratio': 'mean',
+                'grp': lambda x: list(pd.unique(x))})
+            .assign(tmp_color = lambda x: x.grp.str[0])) 
+            # Todo: Make stripes. Currently just picks one randomly
+
+        criteria_order = (plot_df
+            .sort_values('rate_ratio', ascending = False)
+            .criterion
+            .tolist())
+
+        if ax is None:
+            fig = plt.figure(figsize=(6,3))
+            ax = fig.add_subplot(1, 1, 1)
+        sns.barplot(
+            x = 'rate_ratio', y = 'criterion', 
+            data = plot_df,
+            order = criteria_order,
+            palette = custom_palette(specific_col_idx = [7]),
+            ax = ax, zorder = 2)
+        ax.axvline(x = 20, color = 'grey', zorder = 1, linewidth = 0.5)
+        ax.set_xlabel('')
+        ax.set_ylabel('')
+        ax.set_title('Unfairness barometer', fontsize=14, loc = 'left')
+        for pos in ['right', 'top', 'left']:
+            ax.spines[pos].set_visible(False)
+        ax.tick_params(left=False, labelsize=12)
+        ax.xaxis.set_major_formatter(mtick.FuncFormatter(abs_percentage_tick))
     
 
     def l2_plot(self, w_fp = 0.5):
@@ -336,64 +387,17 @@ class FairKit:
         
         # Insert plots
         self.l2_rate_subplot(ax = ax0, w_fp = w_fp)
-        ax0.set_title('Group Rates', fontsize=14)
         self.l2_ratio_subplot(ax = ax1, w_fp = w_fp)
-        self.l3_plot_fairness_criteria(ax = ax2, w_fp = w_fp)
-        
-        #ax0.legend(title='Group', frameon = False)
+        self.l2_fairness_criteria_subplot(ax = ax2, w_fp = w_fp)
 
         # Adjustments
-        f.subplots_adjust(wspace = 0.5)
+        f.subplots_adjust(wspace = 0.5, hspace = 0.7)
 
     def l2_interactive_plot(self):
        return interact(self.l2_plot, w_fp=FloatSlider(min=0,max=1,atep=0.1,value=0.8))
 
 
-    def l3_plot_fairness_criteria(self, w_fp = 0.5, ax = None):
-        fairness_crit = pd.DataFrame([
-            ['Independence', 'PN/n'],
-            ['Separation', 'FPR'],
-            ['Separation', 'FNR'],
-            ['FPR balance', 'FPR'],
-            ['Equal Opportunity', 'FNR'],
-            ['Sufficiency', 'FDR'],
-            ['Sufficiency', 'FOR'],
-            ['Predictive Parity', 'FDR'],
-            ['Our Measure', 'WMR']],
-            columns = ['criterion', 'rate'])
-
-        rel_WMR = self.get_relative_WMR(w_fp = w_fp)
-        plot_df = (pd.concat([rel_WMR, self.rel_rates[['rate', 'rate_ratio']]])
-            .merge(fairness_crit)
-            .groupby(by = ['rate', 'criterion'], as_index = False)
-            .agg('max') # Get maximum of the rate ratio of sensitive groups
-            .drop('rate', axis = 1)
-            .groupby(by = 'criterion', as_index = False)
-            .agg('mean')) # Get mean of rate ratio by rates
-
-        if plot_df is None:
-            plot_df = self.l3_get_fairness_criteria(w_fp)
-        criteria_order = (plot_df
-            .sort_values('rate_ratio', ascending = False)
-            .criterion
-            .tolist())
-
-        if ax is None:
-            fig = plt.figure(figsize=(6,3))
-            ax = fig.add_subplot(1, 1, 1)
-        sns.barplot(
-            x = 'rate_ratio', y = 'criterion', 
-            data = plot_df,
-            order = criteria_order,
-            palette = custom_palette(specific_col_idx = [7]),
-            ax = ax)
-        ax.set_xlabel('')
-        ax.set_ylabel('')
-        for pos in ['right', 'top', 'left']:
-            ax.spines[pos].set_visible(False)
-        ax.tick_params(left=False, labelsize=12)
-        ax.xaxis.set_major_formatter(mtick.FuncFormatter(abs_percentage_tick))
-        #ax.set_title('Fairness Criteria Expressed by Mean Maximum Relative Rate')
+    
         
 
 #%% Main
@@ -408,7 +412,8 @@ if __name__ == "__main__":
         a = df.grp, 
         r = df.phat)
     fair_anym.l2_plot(w_fp = 0.8)
-    fair_anym.plot_confusion_matrix()
+    #fair_anym.l2_fairness_criteria_subplot(w_fp = 0.5)
+    #fair_anym.plot_confusion_matrix()
 
 
 # %%
