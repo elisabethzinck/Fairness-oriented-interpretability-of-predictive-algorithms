@@ -30,10 +30,31 @@ def get_minimum_rate(group):
     group['min_rate'] = group['rate_val'].agg('min')
     return group
 
+def get_WMR_normalization(w_fp):
+    """Calculate normalization for weighted misclassification rate"""
+    if w_fp < 1/2:
+        c = 1/(1-w_fp)
+    else:
+        c = 1/w_fp
+    return c
+
 def get_WMR(cm, w_fp):
+    """Calculate weighted misclassification rate
+    
+    Args:
+        cm (dict): Confusion matrix dictionary containing keys 'FP' and 'FN'
+        w_fp (int): 
+    """
+    # Input check of w_fp
+    if not isinstance(w_fp, int) and not isinstance(w_fp, float):
+        raise TypeError("w_fp must be a float or integer.")
+    if w_fp < 0 or w_fp > 1:
+        raise ValueError(f"w_fp must be in [0,1]. You supplied w_fp = {w_fp}")
+
+    # Calculate weighted misclassification rate
+    c = get_WMR_normalization(w_fp)
     n = sum(cm.values())
-    w_fn = (1-w_fp)
-    wmr = (w_fp*cm['FP'] + (1-w_fp)*cm['FN'])/(2*n)
+    wmr = c*(w_fp*cm['FP'] + (1-w_fp)*cm['FN'])/n
     return wmr
 
 class FairKit:
@@ -386,7 +407,7 @@ if __name__ == "__main__":
         y_hat = df.yhat, 
         a = df.grp, 
         r = df.phat)
-    #fair_anym.l2_ratio_subplot(w_fp = 0.8)
+    fair_anym.l2_plot(w_fp = 0.8)
     fair_anym.plot_confusion_matrix()
 
 

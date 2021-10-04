@@ -156,26 +156,45 @@ our_playground = interactive(
     FNb=(0,2))
 our_playground
 
-# %%
+# %% Visualize how normalization works
+def wfp_normalization(w_fp):
+    if w_fp < 1/2:
+        c = 1/(1-w_fp)
+    else:
+        c = 1/w_fp
+    return c
+
 def get_WMR(FP, FN, N, w_fp):
-    normalization = -4*w_fp**2 + 4*w_fp + 1
+    normalization = wfp_normalization(w_fp)
 
     WMR = normalization*(w_fp*FP + (1-w_fp)*FN)/N
 
     return WMR
 
-N = 100
-possible_vals = np.linspace(0,N, num = N+1)
-FP_vals,FN_vals = np.meshgrid(possible_vals, possible_vals)
-N_in_sample = FP_vals + FN_vals
-idx_out_of_bounds = N_in_sample > N
-FP_vals[idx_out_of_bounds] = np.nan
-FN_vals[idx_out_of_bounds] = np.nan
+def viz_wfp(w_fp):
+    # Generate grid of possible values
+    N = 1000
+    possible_vals = np.linspace(0,N, num = N+1)
+    FP_vals,FN_vals = np.meshgrid(possible_vals, possible_vals)
 
-WMR_vals = get_WMR(FP_vals, FN_vals, N, 0.7)
+    # Remove obs where FP + FN > N
+    idx_too_many_obs = (FP_vals + FN_vals) > N
+    FP_vals[idx_too_many_obs] = np.nan
+    FN_vals[idx_too_many_obs] = np.nan
 
-plt.imshow(WMR_vals, origin = 'lower', cmap = 'Blues')
-plt.colorbar()
+    # Visualize weighted misclassification rate
+    WMR_vals = get_WMR(FP_vals, FN_vals, N, w_fp)
+    plt.clf()
+    plt.imshow(WMR_vals, origin = 'lower', cmap = 'BuPu')
+    plt.xlabel('FP')
+    plt.ylabel('FN')
+    plt.colorbar()
+    plt.show()
 
-
+# %%
+interactive_viz = interactive(
+    viz_wfp,
+    w_fp = (0,1, 0.1)
+)
+interactive_viz
 # %%

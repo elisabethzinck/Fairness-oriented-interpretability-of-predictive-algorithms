@@ -9,29 +9,26 @@ if __name__ == '__main__':
     figure_path = 'figures/evaluation_plots/'
     fig_path_report = '../Thesis-report/00_figures/'
     
-    run_anym = False
+    run_all = True
+    update_report_figures = True # Write new figures to report repository?
 
-    run_german_log_reg = False
-    run_german_nn = False
-
+    run_anym = True
+    run_german = False
     run_taiwanese = True
-
     run_compas = False
     run_catalan = True
 
-    update_report_figures = False # Write new figures to report repository?
+    
 
     credit_w_fp = 0.9
-
     compas_w_fp = 0.9
     catalan_w_fp = 0.9
-    
     anym_w_fp = 0.2
 
     #######################################
     # Anonymous data (from german)
     #######################################
-    if run_anym:
+    if run_anym or run_all:
         file_path = 'data\\processed\\anonymous_data.csv'
         anym = pd.read_csv(file_path)
         fair_anym = FairKit(
@@ -54,7 +51,7 @@ if __name__ == '__main__':
     # German credit logistic regression
     #######################################
 
-    if run_german_log_reg:
+    if run_german or run_all:
         file_path = 'data\\predictions\\german_credit_log_reg.csv'
         german_log_reg = pd.read_csv(file_path)
 
@@ -73,7 +70,7 @@ if __name__ == '__main__':
     #######################################
     # German credit neural network
     #######################################
-    if run_german_nn:
+    if run_german or run_all:
         remove_singles = False
         file_path = 'data\\predictions\\german_credit_nn_pred.csv'
         german_nn = pd.read_csv(file_path)
@@ -101,7 +98,7 @@ if __name__ == '__main__':
     #######################################
     # Compas decile score
     #######################################
-    if run_compas:
+    if run_compas or run_all:
         compas_file_path = 'data\\processed\\compas\\compas-scores-two-years-pred.csv'
         compas = pd.read_csv(compas_file_path)
 
@@ -138,7 +135,7 @@ if __name__ == '__main__':
     #######################################
     # Catalan Juvenile Recidivism NN
     #######################################
-    if run_catalan:
+    if run_catalan or run_all:
         catalan_file_path = 'data/predictions/catalan-juvenile-recidivism/catalan_recid_nn_pred.csv'
         catalan = pd.read_csv(catalan_file_path)
 
@@ -172,7 +169,7 @@ if __name__ == '__main__':
     #######################################
     # Taiwanese NN
     #######################################
-    if run_taiwanese:
+    if run_taiwanese or run_all:
         taiwanese_file_path = 'data/predictions/taiwanese_nn_pred.csv'
         taiwanese = pd.read_csv(taiwanese_file_path)
 
