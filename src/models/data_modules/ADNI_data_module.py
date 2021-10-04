@@ -14,6 +14,9 @@ from src.models.general_modelling_functions import myData
 
 class ADNIDataModule(pl.LightningDataModule):
     def __init__(self, dataset = None):
+
+        super().__init__()
+
         assert(dataset == 1 or dataset == 2)
         self.dataset = dataset # 1 or 2 (which field strength of MRI)
         self.time_horizon = '2y'
@@ -29,7 +32,12 @@ class ADNIDataModule(pl.LightningDataModule):
             3: 1,               # AD
         }
 
+        self.val_size = 0.2
+        self.seed = 42
+
         self.raw_data = self.load_raw_data()
+        self.processed_data = self.process_raw_data()
+        self.setup()
 
     def load_raw_data(self):
         raw_data = {}
@@ -40,24 +48,77 @@ class ADNIDataModule(pl.LightningDataModule):
             raw_data[pat_grp].columns = raw_data[pat_grp].columns.str.lower()
         return raw_data
 
-    def setup(self):
-        # Gather training and validation data
-        trainval_data = pd.concat([self.raw_data['ad'], self.raw_data['nc']])
-        trainval_data[self.y_var] = trainval_data.label.map(self.label_to_y_map)
+    def process_raw_data(self):
+        trainval_data = (
+            pd.concat([self.raw_data['ad'], self.raw_data['nc']])
+            .assign(y = lambda x: x.label.map(self.label_to_y_map))
+            .set_index('rid')
+            .drop(columns = 'label')
+        )
+        test_data = (
+            self.raw_data['mci']
+            .assign(y = lambda x: x[self.time_horizon].map(self.label_to_y_map))
+            .set_index('rid')
+            .drop(columns = ['label', '1y', '2y', '3y', '4y', '5y'])
+        )
+        processed_data = {'trainval_data': trainval_data, 
+                          'test_data': test_data}
+        return processed_data
 
-        # Clean test data
-        test_data = self.raw_data['mci']
-        test_data[self.y_var] = test_data[self.time_horizon].map(self.label_to_y_map)
+    def setup(self, stage = None):
+        #Dividing data into X and y
+        trainval_data = self.processed_data['trainval_data']
+        X_trainval = trainval_data.drop(columns = 'y')
+        y_trainval = trainval_data.y
 
-        # One hot encode sex 
-        trainval_data = one_hot_encode_mixed_data(trainval_data)
-        test_data = one_hot_encode_mixed_data(test_data)
+        test_data = self.processed_data['test_data']
+        X_test = test_data.drop(columns = 'y')
+        y_test = test_data.y
 
-        # To do: Figure out how to solve censoring
+        # One hot encode sex attribute 
+        X_trainval = one_hot_encode_mixed_data(X_trainval)
+        X_test = one_hot_encode_mixed_data(X_test)
 
-        # To do: Split trainval into train and val
+        # TODO: Figure out how to solve censoring
 
-        # To do: Standardize
+        #Split trainval into train and val
+        X_train, X_val, y_train, y_val, train_idx, val_idx = train_test_split(
+            X_trainval, 
+            y_trainval, 
+            X_trainval.index,
+            test_size = self.val_size, 
+            random_state = self.seed)
+
+        # Saving rid/index of train val split
+        self.train_rid = train_idx
+        self.val_rid = val_idx
+
+        #Standardize
+        scaler = StandardScaler()
+        X_train = scaler.fit_transform(X_train)
+        X_val = scaler.transform(X_val)
+        X_test = scaler.transform(X_test)
+
+        if stage in (None, "fit"): 
+            self.train_data = myData(X_train, y_train)
+            self.val_data = myData(X_val, y_val)
+        
+        if stage in (None, "test"):
+            self.test_data = myData(X_test, y_test)
+
+    def train_dataloader(self):
+        return DataLoader(self.train_data, batch_size=self.batch_size)
+
+    def val_dataloader(self):
+        return DataLoader(self.val_data, batch_size=self.batch_size)
+    
+    def test_dataloader(self):
+        return DataLoader(self.test_data, batch_size=self.batch_size)
+
+    def predict_dataloader(self):
+        return DataLoader(self.test_data, batch_size=self.batch_size)
+
+
 #%%
 if __name__ == '__main__':
     dm = ADNIDataModule(dataset = 1)
