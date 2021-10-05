@@ -9,7 +9,7 @@ if __name__ == '__main__':
     figure_path = 'figures/evaluation_plots/'
     fig_path_report = '../Thesis-report/00_figures/'
     
-    run_all = False
+    run_all = True
     update_report_figures = True # Write new figures to report repository?
 
     run_anym = False
