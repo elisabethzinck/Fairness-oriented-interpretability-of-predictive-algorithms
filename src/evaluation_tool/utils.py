@@ -116,12 +116,13 @@ def add_colors_with_stripes(ax, color_dict, color_variable):
 
 def get_alpha_weights(w_fp):
     """Return alpha weight for each rate"""
+    c = 0.2 # Factor added to make colors stronger
     if w_fp == 0.5:
         alpha_weights = {'FPR': 1, 'FNR': 1, 'FDR': 1, 'FOR': 1, 'WMR': 1}
     elif w_fp > 0.5:
-        alpha_weights = {'FPR': 1, 'FNR': 1.2-w_fp, 'FDR':1, 'FOR':1.2-w_fp, 'WMR': 1}
+        alpha_weights = {'FPR': 1, 'FNR': 1+c-w_fp, 'FDR':1, 'FOR':1+c-w_fp, 'WMR': 1}
     else: 
-        alpha_weights = {'FPR': .2+w_fp, 'FNR': 1, 'FDR':.2+w_fp, 'FOR':1, 'WMR': 1}
+        alpha_weights = {'FPR': c+w_fp, 'FNR': 1, 'FDR':c+w_fp, 'FOR':1, 'WMR': 1}
     return alpha_weights
 
 if __name__ == '__main__':

@@ -30,35 +30,28 @@ def get_minimum_rate(group):
     group['min_rate'] = group['rate_val'].agg('min')
     return group
 
-def get_WMR_normalization(w_fp):
-    """Calculate normalization for weighted misclassification rate"""
-    if w_fp < 1/2:
-        c = 1/(1-w_fp)
-    else:
-        c = 1/w_fp
-    return c
 
-def get_WMR(cm, w_fp):
+def calculate_WMR(cm, w_fp):
     """Calculate weighted misclassification rate
     
     Args:
         cm (dict): Confusion matrix dictionary containing keys 'FP' and 'FN'
-        w_fp (int): 
+        w_fp (int or float): False positive error weight 
     """
+
     # Input check of w_fp
     if not isinstance(w_fp, int) and not isinstance(w_fp, float):
         raise TypeError("w_fp must be a float or integer.")
     if w_fp < 0 or w_fp > 1:
         raise ValueError(f"w_fp must be in [0,1]. You supplied w_fp = {w_fp}")
 
-    # Calculate weighted misclassification rate
-    c = get_WMR_normalization(w_fp)
+    c = min(1/(1-w_fp), 1/w_fp) # normalization constant
     n = sum(cm.values())
     wmr = c*(w_fp*cm['FP'] + (1-w_fp)*cm['FN'])/n
     return wmr
 
 class FairKit:
-    def __init__(self, y, y_hat, a, r, model_type = None):
+    def __init__(self, y, y_hat, a, r, w_fp, model_type = None):
         """Saves and calculates all necessary attributes for FairKit object
         
         Args:
@@ -66,103 +59,150 @@ class FairKit:
             y_hat (binary array): Predictions of length n
             a (string array): Sensitive groups of length n. 
             r (float array): Scores of length n
-            model_type (str): Name of the model used. Defaults to None.
+            w_fp (int or float): False positive error rate
+            model_type (str): Name of the model or dataset used.
         
         """
+        
         self.y = y
         self.y_hat = y_hat
         self.a = a
         self.r = r
         self.model_type = model_type
+        self.w_fp = w_fp
 
         self.classifier = pd.DataFrame({'y': y, 'a': a, 'y_hat': y_hat})
         self.sens_grps = np.sort(self.a.unique())
         self.n_sens_grps = len(self.sens_grps)
-        self.w_fp = 0.5 
+        
 
         self.cm = self.get_confusion_matrix()
         self.rates = self.get_rates()
+        self.WMR_rates = self.get_WMR_rates()
+        self.WMR_rel_rates = self.get_relative_rates(self.WMR_rates)
         self.rel_rates = self.get_relative_rates()
+        self.sens_grps_cols = dict(
+            zip(self.sens_grps, custom_palette(n_colors = self.n_sens_grps))
+            )
 
-        # Define color palette
-        cols = custom_palette(n_colors = self.n_sens_grps) #sns.color_palette(n_colors = self.n_sens_grps)
-        self.sens_grps_cols = dict(zip(self.sens_grps, cols))
 
+    ###############################################################
+    #                  CALCULATION METHODS
+    ###############################################################
     def get_confusion_matrix(self):
         """Calculate the confusion matrix for sensitive groups"""
-        if hasattr(self, 'cm'):
-            return self.cm
-        else:
-            cm = {}
-            for grp in self.sens_grps:
-                df_group = self.classifier[self.classifier.a == grp]
-                cm_sklearn = confusion_matrix(
-                    y_true = df_group.y, 
-                    y_pred = df_group.y_hat)
-                cm[grp] = cm_matrix_to_dict(cm_sklearn)
-            return cm
+        cm = {}
+        for grp in self.sens_grps:
+            df_group = self.classifier[self.classifier.a == grp]
+            cm_sklearn = confusion_matrix(
+                y_true = df_group.y, 
+                y_pred = df_group.y_hat)
+            cm[grp] = cm_matrix_to_dict(cm_sklearn)
+        return cm
 
 
-    def get_rates(self):
-        """Calculate rates by senstitive group"""
-        if hasattr(self, 'rates'):
-            return self.rates
-        else:
-            rates = {}   
-            for grp in self.sens_grps:
-                TP, FN, FP, TN = self.cm[grp].values()
-                rates[grp] = {
-                    'TPR': TP/(TP + FN), 
-                    'FNR': FN/(TP + FN), 
-                    'TNR': TN/(TN + FP),
-                    'FPR': FP/(TN + FP),
-                    'PPV': TP/(TP + FP),
-                    'FDR': FP/(TP + FP),
-                    'NPV': TN/(TN + FN),
-                    'FOR': FN/(TN + FN),
-                    'PN/n': (TN+FN)/(TP+FP+TN+FN)
-                    }
-            return rates
+    def get_rates(self, w_fp = None):
+        """Calculate rates by sensitive group"""
+        if w_fp is None:
+            w_fp = self.w_fp
+        rates = {}   
+        for grp in self.sens_grps:
+            TP, FN, FP, TN = self.cm[grp].values()
+            rates[grp] = {
+                'TPR': TP/(TP + FN), 
+                'FNR': FN/(TP + FN), 
+                'TNR': TN/(TN + FP),
+                'FPR': FP/(TN + FP),
+                'PPV': TP/(TP + FP),
+                'FDR': FP/(TP + FP),
+                'NPV': TN/(TN + FN),
+                'FOR': FN/(TN + FN),
+                'PN/n': (TN+FN)/(TP+FP+TN+FN),
+                'PP/n': (TP+FP)/(TP+FP+TN+FN)
+                }
 
-    def get_relative_rates(self):
-        """Calculate relative difference in rates between group rate 
-        and minimum rate. Dataframe used for ratio plot in 
-        second layer of evaluation
-        """
-        if hasattr(self, 'rel_rates'):
-            return self.rel_rates
-        else:
-            discrim_rates = ['FPR', 'FNR', 'FDR', 'FOR', 'PN/n']
+        # Convert rate dict to data frame
+        rates = pd.DataFrame(
+            [(grp, rate, val) 
+            for grp,grp_dict in rates.items() 
+            for rate,val in grp_dict.items()], 
+            columns = ['grp', 'rate', 'rate_val'])
         
-            # Convert rate dict to data frame
-            rates_df = pd.DataFrame(
-                [(grp, rate, val) 
-                for grp,grp_dict in self.rates.items() 
-                for rate,val in grp_dict.items()], 
-                columns = ['grp', 'rate', 'rate_val'])
-            
-            # Calculate relative rates
-            rel_rates = (rates_df[rates_df.rate.isin(discrim_rates)]
-                .groupby(by = 'rate')
-                .apply(get_minimum_rate)
-                .assign(
-                    rate_ratio = lambda x: 
-                        (x.rate_val-x.min_rate)/x.min_rate*100))
+        return rates
 
-            return rel_rates
+    def get_relative_rates(self, rates = None):
+        """Calculate relative difference in rates between group rate 
+        and minimum rate.
 
+        Args:
+            rate_names (DataFrame): Contains rates that should be calculated
+        """
+        if rates is None:
+            rate_names = ['FPR', 'FNR', 'FDR', 'FOR']
+            rates = self.rates[self.rates.rate.isin(rate_names)]
 
-    def get_relative_WMR(self, w_fp):
-        wmr_relative = pd.DataFrame({
-            'grp': self.sens_grps,
-            'rate': 'WMR'})
-        wmr_relative['rate_val'] = [get_WMR(self.cm[grp], w_fp) for grp in wmr_relative.grp]
-        wmr_relative = (wmr_relative
+        # Calculate relative rates
+        rel_rates = (rates
             .groupby(by = 'rate')
             .apply(get_minimum_rate)
-            .assign(rate_ratio = lambda x: 
-                        (x.rate_val-x.min_rate)/x.min_rate*100))
-        return wmr_relative
+            .assign(
+                relative_rate = lambda x: 
+                    (x.rate_val-x.min_rate)/x.min_rate*100))
+
+        return rel_rates
+    
+    def get_WMR_rates(self, w_fp = None):
+        if w_fp is None:
+            w_fp = self.w_fp
+        WMR = pd.DataFrame({
+            'grp': self.sens_grps,
+            'rate': 'WMR'})
+        WMR['rate_val'] = [calculate_WMR(self.cm[grp], w_fp) for grp in WMR.grp]
+        return WMR
+
+    def get_relative_WMR(self, w_fp = None):
+        if w_fp == self.w_fp or w_fp is None:
+            res = self.WMR_rel_rates
+        else:
+            WMR_rates = self.get_WMR_rates(w_fp)
+            res = self.get_relative_rates(WMR_rates)
+        return res
+
+    def get_fairness_barometer(self, w_fp = None):
+        if w_fp is None:
+            w_fp = self.w_fp
+
+        fairness_crit = pd.DataFrame([
+            ['Independence', 'PN/n'],
+            ['Separation', 'FPR'],
+            ['Separation', 'FNR'],
+            ['FPR balance', 'FPR'],
+            ['Equal opportunity', 'FNR'],
+            ['Sufficiency', 'FDR'],
+            ['Sufficiency', 'FOR'],
+            ['Predictive parity', 'FDR'],
+            ['WMR balance', 'WMR']],
+            columns = ['criterion', 'rate'])
+        
+        rel_WMR = self.get_relative_WMR(w_fp = w_fp)
+        all_data = (pd.concat([rel_WMR, self.rel_rates])
+            .merge(fairness_crit))
+        idx = (all_data
+            .groupby(by = ['rate', 'criterion'], as_index = False)
+            .relative_rate
+            .idxmax())
+        fairness_barometer = (all_data.loc[idx.relative_rate]
+            .groupby(by = 'criterion', as_index = False)
+            .agg({
+                'relative_rate': 'mean',
+                'grp': lambda x: list(pd.unique(x))})
+            .sort_values('relative_rate', ascending = False))
+        return fairness_barometer
+
+
+    ###############################################################
+    #                  VISUALIZATION METHODS
+    ###############################################################
 
     def plot_confusion_matrix(self):
         plt.figure(figsize = (15,5))
@@ -170,7 +210,7 @@ class FairKit:
         if self.model_type != None:
             plt.suptitle(self.model_type)
 
-        # One plot for each group
+        # One plot for each sensitive group
         for i, grp in enumerate(self.sens_grps):
             n_obs = sum(self.cm[grp].values())
             grp_cm = cm_dict_to_matrix(self.cm[grp])
@@ -186,7 +226,7 @@ class FairKit:
                 yticklabels=['Actual positive', 'Actual negative'], 
                 annot_kws={'size':15})
 
-            # Add % and labels to labels in figure
+            # Adjust figure labels
             names = ['TP', 'FN', 'FP', 'TN']
             for name, a in zip(names, ax.texts): 
                 old_text = a.get_text()
@@ -196,41 +236,14 @@ class FairKit:
             plt.xlabel(None)
             plt.title(f'{str.capitalize(grp)} (N = {n_obs})')
 
-    def l1_get_data(self, w_fp = 0.5):
-        """Get data used for first layer of evaluation
-        
-        Args:
-            w_fp (float): False positive error weight
-        """
-        df = (pd.DataFrame(self.cm)
-            .T.reset_index()
-            .rename(columns = {'index': 'group'})
-            .assign(
-                n = lambda x: x.TP + x.FN + x.FP + x.TN,
-                percent_positive = lambda x: (x.TP + x.FN)/x.n*100,
-                WMR = lambda x: (w_fp*x.FP + (1-w_fp)*x.FN)/(2*x.n)))
-        WMR_min = min(df.WMR)
-        df['unfair'] = (df.WMR-WMR_min)/abs(WMR_min)*100
 
-        # Make table pretty
-        cols_to_keep = ['group', 'unfair', 'WMR', 'n', 'percent_positive']
-        digits = {'unfair': 1, 'WMR': 3, 'percent_positive': 1}
-        df = (df[cols_to_keep]
-            .round(digits))
-
-        return df
-
-
-    def l2_rate_subplot(self, ax = None, w_fp = 0.5):
+    def l2_rate_subplot(self, ax = None, w_fp = None):
         """Plot FPR, FNR, FDR, FOR for each group"""
-        plot_df = self.rel_rates.query("rate != 'PN/n'")
-
-        if w_fp >= 0.5:
-            # List in order [FPR, FNR, FDR, FOR] to match plot order
-            weight_list = [1, 1.3-w_fp, 1, 1.3-w_fp] 
-        else:
-            # List in order [FPR, FNR, FDR, FOR] to match plot order
-            weight_list = [.3+w_fp, 1, .3+w_fp, 1]
+        rate_names = ['FPR', 'FNR', 'FDR', 'FOR']
+        if w_fp is None:
+            w_fp = self.w_fp
+        plot_df = self.rates[self.rates.rate.isin(rate_names)]
+        alpha_weights = get_alpha_weights(w_fp)
 
         if ax is None:
             fig = plt.figure()
@@ -239,7 +252,7 @@ class FairKit:
             x = 'rate', y = 'rate_val', 
             hue = 'grp', palette = self.sens_grps_cols,
             data = plot_df,
-            order = ['FPR', 'FNR', 'FDR', 'FOR'],
+            order = rate_names,
             ax = ax)
         ax.legend(loc = 'upper right', frameon = False)
         ax.set_xlabel('')
@@ -250,22 +263,23 @@ class FairKit:
         ax.tick_params(labelsize=12)
 
         # Set alpha values
-        if w_fp != 0.5:
-            containers = flatten_list(
-                [list(ax.containers[i][0:4]) for i in range(self.n_sens_grps)])
-            for bar, alpha in zip(containers, weight_list*self.n_sens_grps):
-                bar.set_alpha(alpha)
+        containers = flatten_list(
+            [list(ax.containers[i][0:4]) for i in range(self.n_sens_grps)])
+        for bar, rate in zip(containers, plot_df.rate):
+            alpha = alpha_weights[rate]
+            bar.set_alpha(alpha)
 
         return ax
 
-    def l2_ratio_subplot(self, ax = None, w_fp = 0.5):
+    def l2_ratio_subplot(self, ax = None, w_fp = None):
         """Plot the rate ratio for each sensitive groups
         
         Args:
             w_fp (float in (0,1)): False positive error weight
         
         """
-
+        if w_fp is None:
+            w_fp = self.w_fp
         rate_positions = {'WMR': 1, 'FPR': 0.8, 'FNR': 0.6, 'FDR': 0.4, 'FOR': 0.2}
         alpha_weights = get_alpha_weights(w_fp)
         plot_df = (pd.concat([
@@ -281,14 +295,14 @@ class FairKit:
             fig = plt.figure()
             ax = fig.add_subplot(1, 1, 1)
         ax.hlines(
-            y= 'rate_position', xmin = 0, xmax = 'rate_ratio',
+            y= 'rate_position', xmin = 0, xmax = 'relative_rate',
             data = plot_df,
             color = 'lightgrey', linewidth = 1,
             zorder = 1)
         for _, alpha in enumerate(plot_df.alpha.unique()):
             sns.scatterplot(
                 data = plot_df[plot_df['alpha'] == alpha], 
-                x = 'rate_ratio', y='rate_position', hue='grp',
+                x = 'relative_rate', y='rate_position', hue='grp',
                 palette = self.sens_grps_cols, 
                 legend = False,
                 ax = ax,
@@ -306,38 +320,13 @@ class FairKit:
         sns.despine(ax = ax, left = True, top = True, right = True)
         ax.tick_params(left=False, labelsize=12)
 
-    def l2_fairness_criteria_subplot(self, w_fp = 0.5, ax = None):
-        fairness_crit = pd.DataFrame([
-            ['Independence', 'PN/n'],
-            ['Separation', 'FPR'],
-            ['Separation', 'FNR'],
-            ['FPR balance', 'FPR'],
-            ['Equal opportunity', 'FNR'],
-            ['Sufficiency', 'FDR'],
-            ['Sufficiency', 'FOR'],
-            ['Predictive parity', 'FDR'],
-            ['WMR balance', 'WMR']],
-            columns = ['criterion', 'rate'])
-
-        rel_WMR = self.get_relative_WMR(w_fp = w_fp)
-        all_data = (pd.concat([rel_WMR, self.rel_rates])
-            .merge(fairness_crit))
-        idx = (all_data
-            .groupby(by = ['rate', 'criterion'], as_index = False)
-            .rate_ratio
-            .idxmax())
-        plot_df = (all_data.loc[idx.rate_ratio]
-            .groupby(by = 'criterion', as_index = False)
-            .agg({
-                'rate_ratio': 'mean',
-                'grp': lambda x: list(pd.unique(x))})
-            .sort_values('rate_ratio', ascending = False))
-
+    def l2_fairness_criteria_subplot(self, w_fp = None, ax = None):
+        plot_df = self.get_fairness_barometer(w_fp = w_fp)
         if ax is None:
             fig = plt.figure(figsize=(6,3))
             ax = fig.add_subplot(1, 1, 1)
         sns.barplot(
-            x = 'rate_ratio', y = 'criterion', 
+            x = 'relative_rate', y = 'criterion', 
             data = plot_df,
             ax = ax, zorder = 2)
         ax.axvline(x = 20, color = 'grey', zorder = 1, linewidth = 0.5)
@@ -353,7 +342,7 @@ class FairKit:
             color_variable = plot_df.grp)
     
 
-    def l2_plot(self, w_fp = 0.5):
+    def l2_plot(self, w_fp = None):
         
         # Define grid
         gs = GridSpec(nrows = 10, ncols = 3)
@@ -385,8 +374,11 @@ if __name__ == "__main__":
         y = df.y, 
         y_hat = df.yhat, 
         a = df.grp, 
-        r = df.phat)
-    fair_anym.l2_plot(w_fp = 0.7)
-    #fair_anym.l2_fairness_criteria_subplot(w_fp = 0.7)
+        r = df.phat,
+        w_fp = 0.8)
+    fair_anym.l2_plot()
+    #fair_anym.l2_fairness_criteria_subplot()
     #fair_anym.plot_confusion_matrix()
 #%%
+
+# %%
