@@ -9,16 +9,14 @@ if __name__ == '__main__':
     figure_path = 'figures/evaluation_plots/'
     fig_path_report = '../Thesis-report/00_figures/'
     
-    run_all = True
+    run_all = False
     update_report_figures = True # Write new figures to report repository?
 
-    run_anym = True
+    run_anym = False
     run_german = False
-    run_taiwanese = True
-    run_compas = False
-    run_catalan = True
-
-    
+    run_taiwanese = False
+    run_compas = True
+    run_catalan = False
 
     credit_w_fp = 0.9
     compas_w_fp = 0.9
