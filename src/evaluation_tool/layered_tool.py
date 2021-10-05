@@ -168,7 +168,7 @@ class FairKit:
         plt.figure(figsize = (15,5))
         n_grps = len(self.sens_grps)
         if self.model_type != None:
-            plt.suptitle(f'Model: {self.model_type}')
+            plt.suptitle(self.model_type)
 
         # One plot for each group
         for i, grp in enumerate(self.sens_grps):
@@ -347,7 +347,10 @@ class FairKit:
         sns.despine(ax = ax, left = True, top = True, right = True)
         ax.tick_params(left=False, labelsize=12)
         ax.xaxis.set_major_formatter(mtick.FuncFormatter(abs_percentage_tick))
-        add_colors_with_stripes(ax = ax, color_dict = fair_anym.sens_grps_cols, color_variable = plot_df.grp)
+        add_colors_with_stripes(
+            ax = ax, 
+            color_dict = self.sens_grps_cols, 
+            color_variable = plot_df.grp)
     
 
     def l2_plot(self, w_fp = 0.5):
@@ -384,6 +387,6 @@ if __name__ == "__main__":
         a = df.grp, 
         r = df.phat)
     fair_anym.l2_plot(w_fp = 0.7)
-    fair_anym.l2_fairness_criteria_subplot(w_fp = 0.7)
+    #fair_anym.l2_fairness_criteria_subplot(w_fp = 0.7)
     #fair_anym.plot_confusion_matrix()
 #%%
