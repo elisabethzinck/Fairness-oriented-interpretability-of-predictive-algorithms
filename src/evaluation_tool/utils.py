@@ -54,14 +54,17 @@ def flip_dataframe(df, new_colname = 'index'):
 
 def custom_palette(n_colors = 1, specific_col_idx = None):
     """returns a custom palette of n_colors from 
-       https://coolors.co/f94144-f3722c-f8961e-f9844a-f9c74f-90be6d-43aa8b-4d908e-577590-277da1 
+       https://coolors.co/f94d50-f3722c-f8961e-f9844a-f9c74f-a1c680-3a9278-7ab8b6-577590-206683
         
         Args:
             n_color: The number of desired colors max 10. Defaults to 1.
             specific_col_idx: list of desired color indexes. Defaults to None.
     """
-    colors =  ["f94144","f3722c","f8961e","f9844a","f9c74f",
-               "90be6d","43aa8b","4d908e","577590","277da1"]
+    colors =  ["f94d50","f3722c","f8961e","f9844a","f9c74f","a1c680","3a9278","7ab8b6","577590","206683"]
+
+
+
+
     max_colors = len(colors)
     assert n_colors < max_colors, "n_colors must be less than 10"    
     

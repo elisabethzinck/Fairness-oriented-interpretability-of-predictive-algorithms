@@ -15,8 +15,8 @@ if __name__ == '__main__':
     run_anym = False
     run_german = False
     run_taiwanese = False
-    run_compas = True
-    run_catalan = False
+    run_compas = False
+    run_catalan = True
 
     credit_w_fp = 0.9
     compas_w_fp = 0.9
