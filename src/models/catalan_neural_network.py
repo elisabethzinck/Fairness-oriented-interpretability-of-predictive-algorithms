@@ -7,7 +7,8 @@ import time
 from sklearn.metrics import accuracy_score
 from src.models.data_modules.catalan_data_module import CatalanDataModule
 
-from src.models.general_modelling_functions import (get_n_hidden_list, Net, BinaryClassificationTask, print_timing)
+from src.models.general_modelling_functions import (get_n_hidden_list, Net, 
+BinaryClassificationTask, print_timing, objective_function)
 
 import torch
 from torch.utils.data import  DataLoader
@@ -25,55 +26,24 @@ warnings.simplefilter("ignore")
 import logging
 logging.getLogger('lightning').setLevel(logging.ERROR)
 
-#%% Epochs and trials 
-max_epochs = 50
-n_trials = 500
+#%% Epochs, trials, max_layers and max_hidden for optuna
+max_epochs = 5
+n_trials = 5
 
+max_layers = 5
+max_hidden = 15
+
+# Save models 
 save_models_to_csv = True
 save_results_to_csv = True
 
-#%% Objective function for optuna optimizer
-def objective_function(trial: optuna.trial.Trial):
-    logging.getLogger('lightning').setLevel(logging.ERROR)
-    # Define parameters
-    n_layers = trial.suggest_int('n_layers', 1, 5)
-    n_hidden_list = []
-    for i in range(n_layers):
-        name = 'n_hidden_' + str(i)
-        n_hidden_list.append(trial.suggest_int(name, 1, 20))
-    lr = trial.suggest_loguniform('lr', 1e-6, 1e-1)
-    p_dropout = trial.suggest_uniform('p_dropout', 0, 0.7)
-    
-    # Define network and lightning
-    net = Net(
-        num_features = dm.n_features, 
-        num_hidden_list = n_hidden_list, 
-        num_output = dm.n_output,
-        p_dropout = p_dropout)
-    plnet = BinaryClassificationTask(model = net, lr = lr)
-
-    early_stopping = EarlyStopping('val_loss', patience = 3)
+#%%
+if __name__ == "__main__":
+    # Setup 
     if torch.cuda.is_available():
         GPU = 1
     else:
         GPU = None
-    optuna_pruning = PyTorchLightningPruningCallback(trial, monitor="val_loss")
-    trainer = pl.Trainer(
-        fast_dev_run = False,
-        log_every_n_steps = 1, 
-        max_epochs = max_epochs,
-        callbacks = [early_stopping, optuna_pruning], 
-        deterministic = True,
-        logger = False,
-        progress_bar_refresh_rate = 0, 
-        gpus = GPU)
-
-    trainer.fit(plnet, dm)
-
-    return trainer.callback_metrics['val_loss'].item()
-
-#%%
-if __name__ == "__main__":
     t0 = time.time()
     pl.seed_everything(42)
 
@@ -88,26 +58,23 @@ if __name__ == "__main__":
     y_pred = np.empty(dm.n_obs)
     params_list = []
 
-    print('--- Starting training ---')
     for i in range(5):
         #Load data module 
         dm = CatalanDataModule(fold = i)
         assert dm.fold == i
 
-        # Find optimal model
-        print('Using optuna')
+        print('--- Finding optimal hyperparameters ---')
         study = optuna.create_study(
-        direction = 'minimize', 
-        sampler = TPESampler(seed=10))
-        max_minutes = 2
+            direction = 'minimize', 
+            sampler = TPESampler(seed=10))
         study.optimize(
-            objective_function, 
-            #timeout = max_minutes*60,
+            lambda trial: objective_function(
+                trial, dm, max_layers, max_hidden, max_epochs), 
             n_trials = n_trials,
             show_progress_bar=False)
 
         # %% Train model on all data
-        print('Finding best model')
+        print('--- Starting training ---')
         params = study.best_trial.params
         params_list.append(params)
         n_hidden_list = get_n_hidden_list(params)
@@ -119,11 +86,6 @@ if __name__ == "__main__":
             num_output = dm.n_output,
             p_dropout = params['p_dropout'])
         plnet = BinaryClassificationTask(model = net, lr = params['lr'])
-
-        if torch.cuda.is_available():
-            GPU = 1
-        else:
-            GPU = None
 
         early_stopping = EarlyStopping('val_loss', patience = 3)
         trainer = pl.Trainer(

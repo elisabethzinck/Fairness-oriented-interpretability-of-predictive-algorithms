@@ -120,8 +120,18 @@ def print_timing(t0, t1, text = 'Minutes elapsed:'):
     n_mins = (t1-t0)/60
     print(f'{text} {n_mins:.2f} mins')
 
+# Objective function for optuna
 def objective_function(trial, dm, max_layers, max_hidden, max_epochs):
-    
+    """General objective function to find hyper parameters of a 
+    NN with optuna
+
+    Args:
+        trial (lambda function): to be passed from study.optimize  
+        dm (class): data module 
+        max_layers (int): maximum number of layers in NN
+        max_hidden (int): maximum number of units in each layer 
+        max_epochs (int): maximum number of epochs
+    """
     # Define hyperparameters
     n_layers = trial.suggest_int('n_layers', 1, max_layers)
     n_hidden_list = []
