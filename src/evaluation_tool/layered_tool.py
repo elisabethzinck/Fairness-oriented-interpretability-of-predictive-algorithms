@@ -22,7 +22,7 @@ from sklearn.metrics import confusion_matrix, roc_curve
 
 # dir functions
 from src.evaluation_tool.utils import (
-    cm_matrix_to_dict, custom_palette, abs_percentage_tick, flatten_list, cm_dict_to_matrix)
+    cm_matrix_to_dict, custom_palette, abs_percentage_tick, flatten_list, cm_dict_to_matrix, add_colors_with_stripes, get_alpha_weights)
 
 #%%
 def get_minimum_rate(group):
@@ -168,7 +168,7 @@ class FairKit:
         plt.figure(figsize = (15,5))
         n_grps = len(self.sens_grps)
         if self.model_type != None:
-            plt.suptitle(f'Model: {self.model_type}')
+            plt.suptitle(self.model_type)
 
         # One plot for each group
         for i, grp in enumerate(self.sens_grps):
@@ -223,8 +223,7 @@ class FairKit:
 
     def l2_rate_subplot(self, ax = None, w_fp = 0.5):
         """Plot FPR, FNR, FDR, FOR for each group"""
-        rate_order = ['FPR', 'FNR', 'FDR', 'FOR']
-        plot_df = self.rel_rates[self.rel_rates.rate != 'PN/n']
+        plot_df = self.rel_rates.query("rate != 'PN/n'")
 
         if w_fp >= 0.5:
             # List in order [FPR, FNR, FDR, FOR] to match plot order
@@ -240,18 +239,20 @@ class FairKit:
             x = 'rate', y = 'rate_val', 
             hue = 'grp', palette = self.sens_grps_cols,
             data = plot_df,
-            order = rate_order,
+            order = ['FPR', 'FNR', 'FDR', 'FOR'],
             ax = ax)
         ax.legend(loc = 'upper right', frameon = False)
         ax.set_xlabel('')
         ax.set_ylabel('')
         ax.set_title('Group rates', fontsize=14, loc = 'left')
         ax.set_ylim(0,1)
-        for pos in ['bottom', 'top', 'right']:
-            ax.spines[pos].set_visible(False)
-        ax.tick_params(left=False, labelsize=12)
+        sns.despine(ax = ax, bottom = True, top = True, right = True)
+        ax.tick_params(labelsize=12)
+
+        # Set alpha values
         if w_fp != 0.5:
-            containers = flatten_list([list(ax.containers[i][0:4]) for i in range(self.n_sens_grps)])
+            containers = flatten_list(
+                [list(ax.containers[i][0:4]) for i in range(self.n_sens_grps)])
             for bar, alpha in zip(containers, weight_list*self.n_sens_grps):
                 bar.set_alpha(alpha)
 
@@ -264,51 +265,34 @@ class FairKit:
             w_fp (float in (0,1)): False positive error weight
         
         """
-        w_size = 1000
+
         rate_positions = {'WMR': 1, 'FPR': 0.8, 'FNR': 0.6, 'FDR': 0.4, 'FOR': 0.2}
-        rate_weights = {
-            'FPR': w_size*w_fp, 'FNR': w_size*(1-w_fp), 
-            'FDR': w_size*w_fp, 'FOR': w_size*(1-w_fp),
-            'WMR': w_size}
-        if w_fp == 0.5:
-            alpha_weights = {'FPR': 1, 'FNR': 1, 'FDR': 1, 'FOR': 1, 'WMR': 1}
-        elif w_fp > 0.5:
-            alpha_weights = {'FPR': 1, 'FNR': 1.2-w_fp, 'FDR':1, 'FOR':1.2-w_fp, 'WMR': 1}
-        else: 
-            alpha_weights = {'FPR': .2+w_fp, 'FNR': 1, 'FDR':.2+w_fp, 'FOR':1, 'WMR': 1}
-        rel_WMR = self.get_relative_WMR(w_fp = w_fp)
-        plot_df = (pd.concat([self.rel_rates, rel_WMR])
+        alpha_weights = get_alpha_weights(w_fp)
+        plot_df = (pd.concat([
+                self.rel_rates, 
+                self.get_relative_WMR(w_fp = w_fp)
+            ])
             .query("rate != 'PN/n'")
             .assign(
                 rate_position = lambda x: x.rate.map(rate_positions),
-                point_size = lambda x: x.rate.map(rate_weights),
                 alpha = lambda x: x.rate.map(alpha_weights)))
         
         if ax is None:
             fig = plt.figure()
             ax = fig.add_subplot(1, 1, 1)
         ax.hlines(
-            y=plot_df.rate_position,
-            xmin = 0,
-            xmax = plot_df.rate_ratio,
-            color = 'lightgrey', 
-            alpha = 1, 
-            linestyles='solid', 
-            linewidth=1, 
+            y= 'rate_position', xmin = 0, xmax = 'rate_ratio',
+            data = plot_df,
+            color = 'lightgrey', linewidth = 1,
             zorder = 1)
         for _, alpha in enumerate(plot_df.alpha.unique()):
             sns.scatterplot(
                 data = plot_df[plot_df['alpha'] == alpha], 
-                x = 'rate_ratio',
-                y='rate_position',
-                hue='grp',
+                x = 'rate_ratio', y='rate_position', hue='grp',
                 palette = self.sens_grps_cols, 
-                size = 'point_size',
-                sizes = (150, 150),
                 legend = False,
                 ax = ax,
-                marker = 'o', 
-                alpha = alpha,
+                marker = 'o', alpha = alpha, s = 150,
                 zorder = 2)
         ax.set_yticks(list(rate_positions.values()))
         ax.set_yticklabels(list(rate_positions.keys()))
@@ -319,8 +303,7 @@ class FairKit:
         ax.set_xlim(left = -0.05*xmax) # To see all of leftmost dots
         ax.set_ylim((.125,1.125))
         ax.xaxis.set_major_formatter(mtick.FuncFormatter(abs_percentage_tick))
-        for pos in ['right', 'top', 'left']:
-                    ax.spines[pos].set_visible(False)
+        sns.despine(ax = ax, left = True, top = True, right = True)
         ax.tick_params(left=False, labelsize=12)
 
     def l2_fairness_criteria_subplot(self, w_fp = 0.5, ax = None):
@@ -333,7 +316,7 @@ class FairKit:
             ['Sufficiency', 'FDR'],
             ['Sufficiency', 'FOR'],
             ['Predictive parity', 'FDR'],
-            ['Weighted misclassification rate', 'WMR']],
+            ['WMR balance', 'WMR']],
             columns = ['criterion', 'rate'])
 
         rel_WMR = self.get_relative_WMR(w_fp = w_fp)
@@ -348,13 +331,7 @@ class FairKit:
             .agg({
                 'rate_ratio': 'mean',
                 'grp': lambda x: list(pd.unique(x))})
-            .assign(tmp_color = lambda x: x.grp.str[0])) 
-            # Todo: Make stripes. Currently just picks one randomly
-
-        criteria_order = (plot_df
-            .sort_values('rate_ratio', ascending = False)
-            .criterion
-            .tolist())
+            .sort_values('rate_ratio', ascending = False))
 
         if ax is None:
             fig = plt.figure(figsize=(6,3))
@@ -362,17 +339,18 @@ class FairKit:
         sns.barplot(
             x = 'rate_ratio', y = 'criterion', 
             data = plot_df,
-            order = criteria_order,
-            palette = custom_palette(specific_col_idx = [7]),
             ax = ax, zorder = 2)
         ax.axvline(x = 20, color = 'grey', zorder = 1, linewidth = 0.5)
         ax.set_xlabel('')
         ax.set_ylabel('')
         ax.set_title('Unfairness barometer', fontsize=14, loc = 'left')
-        for pos in ['right', 'top', 'left']:
-            ax.spines[pos].set_visible(False)
+        sns.despine(ax = ax, left = True, top = True, right = True)
         ax.tick_params(left=False, labelsize=12)
         ax.xaxis.set_major_formatter(mtick.FuncFormatter(abs_percentage_tick))
+        add_colors_with_stripes(
+            ax = ax, 
+            color_dict = self.sens_grps_cols, 
+            color_variable = plot_df.grp)
     
 
     def l2_plot(self, w_fp = 0.5):
@@ -395,10 +373,7 @@ class FairKit:
 
     def l2_interactive_plot(self):
        return interact(self.l2_plot, w_fp=FloatSlider(min=0,max=1,atep=0.1,value=0.8))
-
-
-    
-        
+   
 
 #%% Main
 if __name__ == "__main__":
@@ -411,9 +386,7 @@ if __name__ == "__main__":
         y_hat = df.yhat, 
         a = df.grp, 
         r = df.phat)
-    fair_anym.l2_plot(w_fp = 0.8)
-    #fair_anym.l2_fairness_criteria_subplot(w_fp = 0.5)
+    fair_anym.l2_plot(w_fp = 0.7)
+    #fair_anym.l2_fairness_criteria_subplot(w_fp = 0.7)
     #fair_anym.plot_confusion_matrix()
-
-
-# %%
+#%%

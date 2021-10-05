@@ -1,5 +1,8 @@
 import numpy as np
 import seaborn as sns
+import matplotlib as plt
+import colorsys
+
 def flatten_list(t):
     """Flattens a list of list"""
     flat_list = [item for sublist in t for item in sublist]
@@ -72,6 +75,51 @@ def custom_palette(n_colors = 1, specific_col_idx = None):
     hex_colors = [f'#{colors[col_idx[i]]}' for i in range(n_colors)]
 
     return sns.color_palette(hex_colors)
+
+def add_colors_with_stripes(ax, color_dict, color_variable):
+    """Add colors to barplot including striped colors.
+    
+    Args:
+        ax (AxesSubplot): ax of plot to color
+        color_dict (dict): Dict of colors with keys as color group
+        color_variable (pd.Series): Series of color groups used in bars. 
+            Each item in series is a list. 
+    """
+    # Adjust colors to match other seaborn plots
+    def desaturate(color, prop = 0.75):
+        """Desaturate color just like in default seaborn plot"""
+        h,l,s = colorsys.rgb_to_hls(*color)
+        s *= prop
+        new_color = colorsys.hls_to_rgb(h, l, s)
+        return new_color
+    muted_colors = {k:desaturate(col) for (k,col) in color_dict.items()}
+    bar_colors = [[muted_colors[grp] for grp in grp_list] for grp_list in color_variable]
+
+    # Set colors of bars.
+    plt.rcParams['hatch.linewidth'] = 8 # Controls thickness of stripes
+    for bar, var in zip(ax.containers[0], color_variable):
+        if len(var) == 1:
+            col = muted_colors[var[0]]
+            bar.set_facecolor(col)
+        elif len(var) == 2:
+            col0 = muted_colors[var[0]]
+            col1 = muted_colors[var[1]]
+            bar.set_facecolor(col0)
+            bar.set_edgecolor(col1)
+            bar.set_hatch('/')
+            bar.set_linewidth(0) # No outline around bar when striped
+        else:
+            raise IndexError('Cannot use > 2 colors for stripes in barplot')
+
+def get_alpha_weights(w_fp):
+    """Return alpha weight for each rate"""
+    if w_fp == 0.5:
+        alpha_weights = {'FPR': 1, 'FNR': 1, 'FDR': 1, 'FOR': 1, 'WMR': 1}
+    elif w_fp > 0.5:
+        alpha_weights = {'FPR': 1, 'FNR': 1.2-w_fp, 'FDR':1, 'FOR':1.2-w_fp, 'WMR': 1}
+    else: 
+        alpha_weights = {'FPR': .2+w_fp, 'FNR': 1, 'FDR':.2+w_fp, 'FOR':1, 'WMR': 1}
+    return alpha_weights
 
 if __name__ == '__main__':
     n_colors = 3

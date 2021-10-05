@@ -149,7 +149,7 @@ if __name__ == '__main__':
 
         fair_catalan_V2.plot_confusion_matrix()
         plt.savefig(figure_path+'catalan_confusion_V2_nationality_type.png')
-        fair_catalan_V2.l2_plot(w_fp=0.9)
+        fair_catalan_V2.l2_plot(w_fp=catalan_w_fp)
         plt.savefig(figure_path+'catalan_l2_V2_nationality_type.png')
 
     # Sensitive: Area of Origin
@@ -162,7 +162,7 @@ if __name__ == '__main__':
 
         fair_catalan_V4.plot_confusion_matrix()
         plt.savefig(figure_path+'catalan_confusion_V4_area_origin.png')
-        fair_catalan_V4.l2_plot(w_fp=0.9)
+        fair_catalan_V4.l2_plot(w_fp=catalan_w_fp)
         plt.savefig(figure_path+'catalan_l2_V4_area_origin.png')
 
 # %%
