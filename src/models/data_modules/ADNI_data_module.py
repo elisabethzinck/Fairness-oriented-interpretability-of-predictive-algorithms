@@ -35,6 +35,8 @@ class ADNIDataModule(pl.LightningDataModule):
         self.val_size = 0.2
         self.seed = 42
 
+        self.batch_size = 32
+
         self.raw_data = self.load_raw_data()
         self.processed_data = self.process_raw_data()
         self.setup()
@@ -80,6 +82,10 @@ class ADNIDataModule(pl.LightningDataModule):
         X_trainval = one_hot_encode_mixed_data(X_trainval)
         X_test = one_hot_encode_mixed_data(X_test)
 
+        # Saving output dim and feature dim for plNet
+        self.n_features = X_trainval.shape[1]
+        self.n_output = 1
+
         #Split trainval into train and val
         X_train, X_val, y_train, y_val, train_idx, val_idx = train_test_split(
             X_trainval, 
@@ -89,8 +95,9 @@ class ADNIDataModule(pl.LightningDataModule):
             random_state = self.seed)
 
         # Saving rid/index of train val split
-        self.train_rid = train_idx
-        self.val_rid = val_idx
+        self.train_idx = train_idx
+        self.val_idx = val_idx
+        self.test_idx = pd.Series(test_data.index)
 
         #Standardize
         scaler = StandardScaler()
@@ -121,6 +128,5 @@ class ADNIDataModule(pl.LightningDataModule):
 #%%
 if __name__ == '__main__':
     dm = ADNIDataModule(dataset = 1)
-
 
 # %%
