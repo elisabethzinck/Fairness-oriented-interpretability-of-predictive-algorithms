@@ -23,6 +23,8 @@ warnings.simplefilter("ignore")
 import logging
 logging.getLogger('lightning').setLevel(logging.ERROR)
 
+import argparse
+
 #%%
 if __name__ == "__main__":
     ##### Setup #########
@@ -33,12 +35,18 @@ if __name__ == "__main__":
     t0 = time.time()
     pl.seed_everything(42)
 
+    parser = argparse.ArgumentParser(description = "ADNI NN")
+    parser.add_argument("ADNI_no", help="Choose ADNI dataset 1 or 2", type = int) 
+    args = parser.parse_args()
+
     ##### DEFINITIONS #######
     # Type of ADNI data set (1 or 2)
-    ADNI_no = 1
+    ADNI_no = args.ADNI_no
+    print(f"ADNI no: {ADNI_no}\n ADNI no type:{type(ADNI_no)}")
+    #assert (args.ADNI_no == 1 | args.ADNI_no == 2)
     
-    max_epochs = 50
-    n_trials = 500
+    max_epochs = 5
+    n_trials = 5
     max_layers = 3
     max_hidden = 20
     
