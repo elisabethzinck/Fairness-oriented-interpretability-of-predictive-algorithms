@@ -27,8 +27,8 @@ import logging
 logging.getLogger('lightning').setLevel(logging.ERROR)
 
 #%% Epochs, trials, max_layers and max_hidden for optuna
-max_epochs = 5
-n_trials = 5
+max_epochs = 100
+n_trials = 500
 
 max_layers = 5
 max_hidden = 15
