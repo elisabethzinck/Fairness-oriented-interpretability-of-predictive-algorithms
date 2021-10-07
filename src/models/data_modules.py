@@ -125,7 +125,7 @@ class ADNIDataModule(pl.LightningDataModule):
         return DataLoader(self.test_data, batch_size=self.batch_size)
 
 class CatalanDataModule(pl.LightningDataModule):
-    def __init__(self, fold):
+    def __init__(self, fold = None):
         super().__init__()
         self.file_path = 'data/processed/catalan-juvenile-recidivism/catalan-juvenile-recidivism-subset.csv'
         self.batch_size = 32 
@@ -136,6 +136,8 @@ class CatalanDataModule(pl.LightningDataModule):
 
         self.load_raw_data()
         self.setup()
+        if fold is not None:
+            self.make_KFold_split(fold = fold)
 
     def load_raw_data(self):
         self.raw_data = pd.read_csv(self.file_path)
@@ -143,21 +145,25 @@ class CatalanDataModule(pl.LightningDataModule):
     def setup(self, stage = None):
         #One hot encoding 
         X = self.raw_data.drop(['V115_RECID2015_recid', 'id'], axis = 1)
-        X = one_hot_encode_mixed_data(X)
-        y = self.raw_data.V115_RECID2015_recid.to_numpy()
+        self.X = one_hot_encode_mixed_data(X)
+        self.y = self.raw_data.V115_RECID2015_recid.to_numpy()
         
         # Saving output and features for plNet
         self.n_obs = X.shape[0]
         self.n_features = X.shape[1]
         self.n_output = 1
 
+    def make_KFold_split(self, fold, stage = None):
         #splitting data into 5 folds and extracting desired fold_idx
-        splits = self.kf.split(X)
+        self.fold = fold
+        splits = self.kf.split(self.X)
         train_val_idx, test_idx = next(x for i,x in enumerate(splits) if i==self.fold)
         
         # Partitioning data into train_val and test
-        X_train_val, y_train_val = X.iloc[train_val_idx], y[train_val_idx]
-        X_test, y_test = X.iloc[test_idx], y[test_idx]
+        X_train_val = self.X.iloc[train_val_idx]
+        y_train_val = self.y[train_val_idx]
+        X_test = self.X.iloc[test_idx]
+        y_test = self.y[test_idx]
 
         X_train, X_val, y_train, y_val, train_idx, val_idx = train_test_split(
             X_train_val, 
@@ -197,17 +203,23 @@ class CatalanDataModule(pl.LightningDataModule):
         return DataLoader(self.test_data, batch_size=self.batch_size)
 
 class GermanDataModule(pl.LightningDataModule):
-    def __init__(self, fold):
+    def __init__(self, fold = None):
         super().__init__()
         self.file_path = 'data/processed/german_credit_full.csv'
         self.batch_size = 32 
         self.seed = 42
         self.test_size = 0.2
         self.kf = KFold(n_splits=5, shuffle = True, random_state=self.seed)
-        self.fold = fold      
+        self.fold = fold   
+
+        self.id_var = 'person_id'
+        self.sens_vars = ['sex', 'age']   
+        self.y_var = 'credit_score'
 
         self.raw_data = self.load_raw_data()
         self.setup()
+        if fold is not None:
+            self.make_KFold_split(fold = fold)
 
     def load_raw_data(self):
         raw_data = pd.read_csv(self.file_path)
@@ -215,22 +227,26 @@ class GermanDataModule(pl.LightningDataModule):
     
     def setup(self, stage = None):
         #One hot encoding 
-        y = self.raw_data['credit_score']
+        self.y = self.raw_data['credit_score']
         X = self.raw_data.drop(['credit_score', 'person_id'], axis = 1)
-        X = one_hot_encode_mixed_data(X)
+        self.X = one_hot_encode_mixed_data(X)
         
         # Saving output and features for plNet
         self.n_obs = X.shape[0]
         self.n_features = X.shape[1]
         self.n_output = 1
 
+    def make_KFold_split(self, fold, stage = None):
         #splitting data into 5 folds and extracting desired fold_idx
-        splits = self.kf.split(X)
+        self.fold = fold
+        splits = self.kf.split(self.X)
         train_val_idx, test_idx = next(x for i,x in enumerate(splits) if i==self.fold)
         
         # Partitioning data into train_val and test
-        X_train_val, y_train_val = X.iloc[train_val_idx], y[train_val_idx]
-        X_test, y_test = X.iloc[test_idx], y[test_idx]
+        X_train_val = self.X.iloc[train_val_idx]
+        y_train_val = self.y[train_val_idx]
+        X_test = self.X.iloc[test_idx]
+        y_test = self.y[test_idx]
 
         X_train, X_val, y_train, y_val, train_idx, val_idx = train_test_split(
             X_train_val, 
@@ -351,7 +367,9 @@ class TaiwaneseDataModule(pl.LightningDataModule):
 if __name__ == '__main__':
     dm_adni = ADNIDataModule(dataset = 1)
     dm_taiwan = TaiwaneseDataModule()
-    dm_german = GermanDataModule(fold = 1)
-    dm_catalan = CatalanDataModule(fold = 1)
+    dm_german = GermanDataModule()
+    dm_german.make_KFold_split(fold = 2)
+    dm_catalan = CatalanDataModule()
+    dm_catalan.make_KFold_split(fold = 1)
 
 # %%
