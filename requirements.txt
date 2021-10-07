@@ -12,3 +12,4 @@ kaleido
 pytorch-lightning
 optuna
 xlrd
+statsmodels

@@ -217,8 +217,16 @@ if __name__ == "__main__":
     desc.plot_fraction_of_target()
     #figure_path = 'figures/descriptive_plots/'
     #plt.savefig(figure_path+'tsne_sex.pdf', bbox_inches='tight')
-
-    
+   
 
 # %%
 
+# Creating positive proportion plot w. confidence interval. 
+import statsmodels
+
+(data.groupby(['sex'])
+    .agg(N_pos = ("credit_score", lambda x: np.count_nonzero(x)),
+    N = ("person_id", "count"))
+)
+
+# %%
