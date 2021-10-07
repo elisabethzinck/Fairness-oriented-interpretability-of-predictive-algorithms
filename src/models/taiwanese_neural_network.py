@@ -16,7 +16,7 @@ from optuna.samplers import TPESampler
 from src.models.general_modelling_functions import (get_n_hidden_list, Net,\
     BinaryClassificationTask, print_timing, \
     objective_function)
-from src.models.data_modules.taiwanese_data_module import TaiwaneseDataModule
+from src.models.data_modules import TaiwaneseDataModule
 
 #%%
 if __name__ == "__main__":

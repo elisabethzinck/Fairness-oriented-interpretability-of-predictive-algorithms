@@ -4,7 +4,7 @@ import numpy as np
 import time
 
 from sklearn.metrics import accuracy_score
-from src.models.data_modules.ADNI_data_module import ADNIDataModule
+from src.models.data_modules import ADNIDataModule
 
 from src.models.general_modelling_functions import (get_n_hidden_list, Net, 
 BinaryClassificationTask, print_timing, objective_function)

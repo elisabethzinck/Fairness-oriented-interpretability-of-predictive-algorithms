@@ -13,7 +13,7 @@ from torch._C import _TensorBase
 
 from src.data.general_preprocess_functions import one_hot_encode_mixed_data
 from src.models.general_modelling_functions import (get_n_hidden_list, myData, Net, BinaryClassificationTask, print_timing)
-from src.models.data_modules.german_data_module import GermanDataModule
+from src.models.data_modules import GermanDataModule
 
 import torch
 from torch.utils.data import DataLoader
