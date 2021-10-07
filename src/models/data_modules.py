@@ -149,8 +149,8 @@ class CatalanDataModule(pl.LightningDataModule):
         self.y = self.raw_data.V115_RECID2015_recid.to_numpy()
         
         # Saving output and features for plNet
-        self.n_obs = X.shape[0]
-        self.n_features = X.shape[1]
+        self.n_obs = self.X.shape[0]
+        self.n_features = self.X.shape[1]
         self.n_output = 1
 
     def make_KFold_split(self, fold, stage = None):
@@ -191,15 +191,19 @@ class CatalanDataModule(pl.LightningDataModule):
             self.test_data = myData(X_test, y_test)
 
     def train_dataloader(self):
+        assert self.fold is not None, "Please specify a fold before using dataloader"
         return DataLoader(self.train_data, batch_size=self.batch_size)
 
     def val_dataloader(self):
+        assert self.fold is not None, "Please specify a fold before using dataloader"
         return DataLoader(self.val_data, batch_size=self.batch_size)
     
     def test_dataloader(self):
+        assert self.fold is not None, "Please specify a fold before using dataloader"
         return DataLoader(self.test_data, batch_size=self.batch_size)
 
     def predict_dataloader(self):
+        assert self.fold is not None, "Please specify a fold before using dataloader"
         return DataLoader(self.test_data, batch_size=self.batch_size)
 
 class GermanDataModule(pl.LightningDataModule):
@@ -232,8 +236,8 @@ class GermanDataModule(pl.LightningDataModule):
         self.X = one_hot_encode_mixed_data(X)
         
         # Saving output and features for plNet
-        self.n_obs = X.shape[0]
-        self.n_features = X.shape[1]
+        self.n_obs = self.X.shape[0]
+        self.n_features = self.X.shape[1]
         self.n_output = 1
 
     def make_KFold_split(self, fold, stage = None):
@@ -274,15 +278,19 @@ class GermanDataModule(pl.LightningDataModule):
             self.test_data = myData(X_test, y_test)
 
     def train_dataloader(self):
+        assert self.fold is not None, "Please specify a fold before using dataloader"
         return DataLoader(self.train_data, batch_size=self.batch_size)
 
     def val_dataloader(self):
+        assert self.fold is not None, "Please specify a fold before using dataloader"
         return DataLoader(self.val_data, batch_size=self.batch_size)
     
     def test_dataloader(self):
+        assert self.fold is not None, "Please specify a fold before using dataloader"
         return DataLoader(self.test_data, batch_size=self.batch_size)
 
     def predict_dataloader(self):
+        assert self.fold is not None, "Please specify a fold before using dataloader"
         return DataLoader(self.test_data, batch_size=self.batch_size)
 
 class TaiwaneseDataModule(pl.LightningDataModule):
