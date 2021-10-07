@@ -25,11 +25,6 @@ from src.evaluation_tool.utils import (
     cm_matrix_to_dict, custom_palette, abs_percentage_tick, flatten_list, cm_dict_to_matrix, add_colors_with_stripes, get_alpha_weights)
 
 #%%
-def get_minimum_rate(group):
-    """Helper function to calculate minimum rate by group"""
-    group['min_rate'] = group['rate_val'].agg('min')
-    return group
-
 
 def calculate_WMR(cm, w_fp):
     """Calculate weighted misclassification rate
@@ -45,7 +40,12 @@ def calculate_WMR(cm, w_fp):
     if w_fp < 0 or w_fp > 1:
         raise ValueError(f"w_fp must be in [0,1]. You supplied w_fp = {w_fp}")
 
-    c = min(1/(1-w_fp), 1/w_fp) # normalization constant
+    # normalization constant
+    if w_fp < 0.5:
+        c = 1/(1-w_fp)
+    else:
+        c = 1/w_fp
+
     n = sum(cm.values())
     wmr = c*(w_fp*cm['FP'] + (1-w_fp)*cm['FN'])/n
     return wmr
@@ -130,16 +130,26 @@ class FairKit:
         
         return rates
 
-    def get_relative_rates(self, rates = None):
+    def get_relative_rates(self, rates = None, rate_names = None):
         """Calculate relative difference in rates between group rate 
         and minimum rate.
 
         Args:
-            rate_names (DataFrame): Contains rates that should be calculated
+            rates (DataFrame): Contains data frame with rates from which relative rates should be calculated
+            rate_names (list): list of names of rates for which to calculate relative rates
         """
-        if rates is None:
+        def get_minimum_rate(group):
+            group['min_rate'] = group['rate_val'].agg('min')
+            return group
+        
+        if rate_names == [np.nan]:
+            return None
+        elif rate_names is not None:
+            rates = self.rates[self.rates.rate.isin(rate_names)]
+        elif rates is None and rate_names is None:
             rate_names = ['FPR', 'FNR', 'FDR', 'FOR']
             rates = self.rates[self.rates.rate.isin(rate_names)]
+    
 
         # Calculate relative rates
         rel_rates = (rates
@@ -172,8 +182,18 @@ class FairKit:
         if w_fp is None:
             w_fp = self.w_fp
 
+        # Decide unfavorable outcome used for independence measure
+        if w_fp > 0.5:
+            independence_measure = 'PP/n'
+        elif w_fp < 0.5:
+            independence_measure = 'PN/n'
+        else:
+            # Independence not measured if w=0.5
+            independence_measure = np.nan
+
+
         fairness_crit = pd.DataFrame([
-            ['Independence', 'PN/n'],
+            ['Independence', independence_measure],
             ['Separation', 'FPR'],
             ['Separation', 'FNR'],
             ['FPR balance', 'FPR'],
@@ -182,16 +202,18 @@ class FairKit:
             ['Sufficiency', 'FOR'],
             ['Predictive parity', 'FDR'],
             ['WMR balance', 'WMR']],
-            columns = ['criterion', 'rate'])
+            columns = ['criterion', 'rate']).dropna()
         
         rel_WMR = self.get_relative_WMR(w_fp = w_fp)
-        all_data = (pd.concat([rel_WMR, self.rel_rates])
+        rel_independence = self.get_relative_rates(
+            rate_names = [independence_measure])
+        all_data = (pd.concat([rel_WMR, self.rel_rates, rel_independence])
             .merge(fairness_crit))
-        idx = (all_data
+        idx_discrim = (all_data
             .groupby(by = ['rate', 'criterion'], as_index = False)
             .relative_rate
-            .idxmax())
-        fairness_barometer = (all_data.loc[idx.relative_rate]
+            .idxmax()) # Idx for discriminated groups
+        fairness_barometer = (all_data.loc[idx_discrim.relative_rate]
             .groupby(by = 'criterion', as_index = False)
             .agg({
                 'relative_rate': 'mean',
@@ -286,7 +308,6 @@ class FairKit:
                 self.rel_rates, 
                 self.get_relative_WMR(w_fp = w_fp)
             ])
-            .query("rate != 'PN/n'")
             .assign(
                 rate_position = lambda x: x.rate.map(rate_positions),
                 alpha = lambda x: x.rate.map(alpha_weights)))
