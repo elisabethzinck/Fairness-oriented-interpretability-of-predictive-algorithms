@@ -285,9 +285,8 @@ class FairKit:
         ax.tick_params(labelsize=12)
 
         # Set alpha values
-        containers = flatten_list(
-            [list(ax.containers[i][0:4]) for i in range(self.n_sens_grps)])
-        for bar, rate in zip(containers, plot_df.rate):
+        containers = flatten_list(ax.containers) # order = from left to right by group
+        for bar, rate in zip(containers, rate_names*self.n_sens_grps):
             alpha = alpha_weights[rate]
             bar.set_alpha(alpha)
 

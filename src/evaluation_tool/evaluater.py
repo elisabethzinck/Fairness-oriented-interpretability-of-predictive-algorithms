@@ -33,11 +33,11 @@ if __name__ == '__main__':
             y = anym.y, 
             y_hat = anym.yhat, 
             a = anym.grp, 
-            r = anym.phat)
-        fair_anym.l1_get_data()
+            r = anym.phat,
+            w_fp = anym_w_fp)
         fair_anym.plot_confusion_matrix()
         plt.savefig(figure_path+'anym_confusion.png')
-        fair_anym.l2_plot(w_fp = anym_w_fp)
+        fair_anym.l2_plot()
         plt.savefig(figure_path+'anym_l2.png')
         if update_report_figures:
             plt.savefig(fig_path_report+'L2_example.pdf', bbox_inches='tight')
@@ -58,10 +58,11 @@ if __name__ == '__main__':
             y_hat = german_log_reg.log_reg_pred, 
             a = german_log_reg.sex, 
             r = german_log_reg.log_reg_prob,
+            w_fp = credit_w_fp,
             model_type='Logistic Regression')
         fair_german_log_reg.plot_confusion_matrix()
         plt.savefig(figure_path+'german_log_reg_confusion.png')
-        fair_german_log_reg.l2_plot(w_fp=credit_w_fp)
+        fair_german_log_reg.l2_plot()
         plt.savefig(figure_path+'german_log_reg_l2.png')
         
 
@@ -86,10 +87,11 @@ if __name__ == '__main__':
             y_hat = german_nn.nn_pred, 
             a = german_nn.sex, 
             r = german_nn.nn_prob,
+            w_fp = credit_w_fp,
             model_type='Neural network')
         fair_german_nn.plot_confusion_matrix()
         plt.savefig(figure_path+'german_nn_confusion.png')
-        fair_german_nn.l2_plot(w_fp=credit_w_fp)
+        fair_german_nn.l2_plot()
         plt.savefig(figure_path+'german_nn_l2.png')
 
 
@@ -105,10 +107,11 @@ if __name__ == '__main__':
             y_hat = compas.pred_medium_high, 
             a = compas.age_cat, 
             r = compas.decile_score,
+            w_fp = compas_w_fp,
             model_type='COMPAS Decile Scores')
         fair_compas_age.plot_confusion_matrix()
         plt.savefig(figure_path+'compas_confusion_age.png')
-        fair_compas_age.l2_plot(w_fp=compas_w_fp)
+        fair_compas_age.l2_plot()
         plt.savefig(figure_path+'compas_l2_age.png')
 
         # filtering out hispanics to recreate the Propublica result 
@@ -121,10 +124,11 @@ if __name__ == '__main__':
             y_hat = compas.pred_medium_high, 
             a = compas.race, 
             r = compas.decile_score,
+            w_fp = compas_w_fp,
             model_type='COMPAS Decile Scores')
         fair_compas_race.plot_confusion_matrix()
         plt.savefig(figure_path+'compas_confusion_race.png')
-        fair_compas_race.l2_plot(w_fp=compas_w_fp)
+        fair_compas_race.l2_plot()
         plt.savefig(figure_path+'compas_l2_race.png')
     
 
@@ -143,11 +147,12 @@ if __name__ == '__main__':
             y_hat = catalan.nn_pred, 
             a = catalan.V2_nationality_type, 
             r = catalan.nn_prob,
+            w_fp = catalan_w_fp,
             model_type='Catalan NN')
 
         fair_catalan_V2.plot_confusion_matrix()
         plt.savefig(figure_path+'catalan_confusion_V2_nationality_type.png')
-        fair_catalan_V2.l2_plot(w_fp=catalan_w_fp)
+        fair_catalan_V2.l2_plot()
         plt.savefig(figure_path+'catalan_l2_V2_nationality_type.png')
 
     # Sensitive: Area of Origin
@@ -156,11 +161,12 @@ if __name__ == '__main__':
             y_hat = catalan.nn_pred, 
             a = catalan.V4_area_origin, 
             r = catalan.nn_prob,
+            w_fp = catalan_w_fp,
             model_type='Catalan NN')
 
         fair_catalan_V4.plot_confusion_matrix()
         plt.savefig(figure_path+'catalan_confusion_V4_area_origin.png')
-        fair_catalan_V4.l2_plot(w_fp=catalan_w_fp)
+        fair_catalan_V4.l2_plot()
         plt.savefig(figure_path+'catalan_l2_V4_area_origin.png')
 
 # %%
@@ -177,10 +183,11 @@ if __name__ == '__main__':
             y_hat = taiwanese.nn_pred, 
             a = taiwanese.sex, 
             r = taiwanese.nn_prob,
+            w_fp = credit_w_fp,
             model_type='Taiwanese NN')
 
         fair_taiwanese.plot_confusion_matrix()
         plt.savefig(figure_path+'taiwanese_confusion_sex.png')
-        fair_taiwanese.l2_plot(w_fp=credit_w_fp)
+        fair_taiwanese.l2_plot()
         plt.savefig(figure_path+'taiwanese_l2_sex.png')
 # %%
