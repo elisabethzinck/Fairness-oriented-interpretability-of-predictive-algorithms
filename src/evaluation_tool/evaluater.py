@@ -9,19 +9,21 @@ if __name__ == '__main__':
     figure_path = 'figures/evaluation_plots/'
     fig_path_report = '../Thesis-report/00_figures/'
     
-    run_all = True
-    update_report_figures = True # Write new figures to report repository?
+    run_all = False
+    update_report_figures = False # Write new figures to report repository?
 
     run_anym = False
     run_german = False
     run_taiwanese = False
     run_compas = False
-    run_catalan = True
+    run_catalan = False
+    run_ADNI = True
 
     credit_w_fp = 0.9
     compas_w_fp = 0.9
     catalan_w_fp = 0.9
     anym_w_fp = 0.2
+    adni_w_fp = 0.1
 
     #######################################
     # Anonymous data (from german)
@@ -132,8 +134,6 @@ if __name__ == '__main__':
         plt.savefig(figure_path+'compas_l2_race.png')
     
 
-
-# %%
     #######################################
     # Catalan Juvenile Recidivism NN
     #######################################
@@ -169,7 +169,7 @@ if __name__ == '__main__':
         fair_catalan_V4.l2_plot()
         plt.savefig(figure_path+'catalan_l2_V4_area_origin.png')
 
-# %%
+
     #######################################
     # Taiwanese NN
     #######################################
@@ -190,4 +190,24 @@ if __name__ == '__main__':
         plt.savefig(figure_path+'taiwanese_confusion_sex.png')
         fair_taiwanese.l2_plot()
         plt.savefig(figure_path+'taiwanese_l2_sex.png')
+
+    if run_ADNI or run_all:
+        for adni_no in [1,2]:
+            file_path = f'data/ADNI/predictions/ADNI_{adni_no}_nn_pred.csv'
+            adni = pd.read_csv(file_path)
+            fair_adni = FairKit(
+                y = adni.y, 
+                y_hat = adni.nn_pred, 
+                a = adni.sex, 
+                r = adni.nn_prob,
+                w_fp = adni_w_fp,
+                model_type=f'ADNI{adni_no} NN')
+            fair_adni.plot_confusion_matrix()
+            plt.savefig(figure_path+f'adni{adni_no}_confusion.png')
+            fair_adni.l2_plot()
+            plt.savefig(figure_path+f'adni{adni_no}_l2.png')
+            
+            
+
+
 # %%
