@@ -1,7 +1,6 @@
 #%% Imports
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
 import time
 
 from sklearn.metrics import accuracy_score
@@ -11,13 +10,11 @@ from src.models.general_modelling_functions import (get_n_hidden_list, Net,
 BinaryClassificationTask, print_timing, objective_function)
 
 import torch
-from torch.utils.data import  DataLoader
 
 import pytorch_lightning as pl
 from pytorch_lightning.callbacks import EarlyStopping
 
 import optuna
-from optuna.integration import PyTorchLightningPruningCallback
 from optuna.samplers import TPESampler
 
 import warnings
@@ -27,8 +24,8 @@ import logging
 logging.getLogger('lightning').setLevel(logging.ERROR)
 
 #%% Epochs, trials, max_layers and max_hidden for optuna
-max_epochs = 100
-n_trials = 500
+max_epochs = 200
+n_trials = 700
 
 max_layers = 5
 max_hidden = 15
@@ -53,14 +50,14 @@ if __name__ == "__main__":
     model_folder = 'models/catalan-juvenile-recidivism/'
 
     # load data module 
-    dm = CatalanDataModule(fold = 0)
+    dm = CatalanDataModule()
     # Empty array for predictions and hyper parameters
     y_pred = np.empty(dm.n_obs)
     params_list = []
 
     for i in range(5):
         #Load data module 
-        dm = CatalanDataModule(fold = i)
+        dm.make_KFold_split(fold = i)
         assert dm.fold == i
 
         print('--- Finding optimal hyperparameters ---')
@@ -119,7 +116,7 @@ if __name__ == "__main__":
         
     # Save data
     print('--- Done training. Saving data ---')
-    potential_sensitive = ['V1_sex', 'V2_nationality_type', 'V8_age',
+    potential_sensitive = ['V1_sex', 'V8_age',
                            'V4_area_origin', 'V6_province']
     output_cols = ['id', 'V115_RECID2015_recid'] + potential_sensitive
     output_data = (dm.raw_data[output_cols]
