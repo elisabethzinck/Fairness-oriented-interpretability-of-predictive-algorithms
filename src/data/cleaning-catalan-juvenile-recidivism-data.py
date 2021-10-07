@@ -55,7 +55,8 @@ dfsub = df.filter(list(df.columns[list(range(31))+[114]]))
 # Dropping the column V14_main_crime, V7_region,
 # and V3_nationality_country as they are too specific 
 # Also dropping V5_age_cat, as we have the numeric variable 
-dfsub.drop(columns=['V3_nationality_country', 
+dfsub.drop(columns=['V2_nationality_type',
+                    'V3_nationality_country', 
                     'V5_age_cat', 
                     'V7_region',
                     'V14_main_crime', 
@@ -63,7 +64,6 @@ dfsub.drop(columns=['V3_nationality_country',
 
 #%% Replacing some of the catalan words with english 
 V1_map = {'Dona': 'female', 'Home': 'male'}
-V2_map = {'Espanyol': 'Spanish', 'Estranger': 'Foreign'}
 V4_map = {'Espanya': 'Spain', 
           'Magrib': 'Maghreb', 
           'Centre i Sud Amèrica': 'Latin America',
@@ -96,7 +96,6 @@ V115_map = {'Sí': 1, 'No': 0}
 
 dfsub = dfsub.assign(
     V1_sex = lambda x: x.V1_sex.map(V1_map),
-    V2_nationality_type = lambda x: x.V2_nationality_type.map(V2_map),
     V4_area_origin = lambda x: x.V4_area_origin.map(V4_map),
     V8_age = lambda x: x.V8_age.astype(int),
     V11_criminal_record = lambda x: x.V11_criminal_record.map(V11_map),
