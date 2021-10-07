@@ -45,8 +45,8 @@ if __name__ == "__main__":
     print(f"ADNI no: {ADNI_no}\n ADNI no type:{type(ADNI_no)}")
     #assert (args.ADNI_no == 1 | args.ADNI_no == 2)
     
-    max_epochs = 5
-    n_trials = 5
+    max_epochs = 1000
+    n_trials = 100
     max_layers = 3
     max_hidden = 20
     
@@ -123,3 +123,4 @@ if __name__ == "__main__":
     ### FINISHING UP ####
     t1 = time.time()
     print_timing(t0, t1, text = 'Total time to run script:')
+# %%
