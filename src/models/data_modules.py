@@ -132,7 +132,14 @@ class CatalanDataModule(pl.LightningDataModule):
         self.fold = fold
         self.seed = 42
         self.test_size = 0.2 
-        self.kf = KFold(n_splits=5, shuffle = True, random_state=self.seed)     
+        self.kf = KFold(n_splits=5, shuffle = True, random_state=self.seed)  
+
+        self.id_var = 'id'
+        self.sens_vars = [
+            'V1_sex', 'V8_age', 
+            'V4_area_origin', 'V6_province'
+            ]   
+        self.y_var = 'V115_RECID2015_recid'   
 
         self.load_raw_data()
         self.setup()
