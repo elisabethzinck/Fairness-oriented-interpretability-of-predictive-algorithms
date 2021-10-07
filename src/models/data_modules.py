@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 import pytorch_lightning as pl
 
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split, KFold
 from sklearn.preprocessing import StandardScaler
 from torch.utils.data.dataloader import DataLoader
 
