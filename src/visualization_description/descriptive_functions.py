@@ -17,7 +17,6 @@ from sklearn.manifold import TSNE
 
 from src.data.general_preprocess_functions import one_hot_encode_mixed_data
 from src.evaluation_tool.utils import custom_palette, error_bars, desaturate
-
 #%% 
 def get_fraction_of_group(group):
     """Helper function to calculate fraction of positives and negatives in
@@ -231,7 +230,7 @@ class DescribeData:
 
     def plot_positive_rate(self, title =None):
         if title is None: 
-            title = ""
+            title = "Positive Fraction per Group"
 
         plot_df = (self.agg_data.query("a != 'Total'")
             .sort_values(by = 'a'))
@@ -246,17 +245,17 @@ class DescribeData:
                     order = self.sens_grps,
                     alpha = 0.95)
         ax.set_ylim((0,1))
-        ax.set_ylabel('Positive Fraction', fontsize = 12)
-        ax.set_xlabel(a_name, fontsize = 12)
+        ax.set_ylabel('', fontsize = 12)
+        ax.set_xlabel(self.a_name.capitalize(), fontsize = 12)
         sns.despine(ax = ax, top = True, right = True)
         ax.tick_params(left=False, labelsize=12)
-        for bar, col in zip(ax.patches, desc.sens_grps_cols.values()):
+        for bar, col in zip(ax.patches, self.sens_grps_cols.values()):
             bar.set_color(desaturate(col))
-            bar.set_x(bar.get_x())
+
         error_bars(ax, data = plot_df)
         ax.set_title(title)
         ax.legend()
-
+        ax.set_xticklabels([self.sens_grps[i].capitalize() for i in range(self.n_sens_grps)])
 
 #%%
 
@@ -278,3 +277,5 @@ if __name__ == "__main__":
     #figure_path = 'figures/descriptive_plots/'
     #plt.savefig(figure_path+'tsne_sex.pdf', bbox_inches='tight')
    
+
+# %%

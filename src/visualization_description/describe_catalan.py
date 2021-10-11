@@ -14,17 +14,13 @@ fig_path_report = '../Thesis-report/00_figures/'
 update_report_figs = True
 
 #%% Aggregated tables 
-desc_V2 = DescribeData(a_name = "V2_nationality_type", 
+desc = DescribeData(a_name = "V4_area_origin", 
                     y_name = "V115_RECID2015_recid", 
                     id_name = 'id', 
                     data = raw_data)
 
-desc_V4 = DescribeData(a_name = "V4_area_origin", 
-                    y_name = "V115_RECID2015_recid", 
-                    id_name = 'id', 
-                    data = raw_data)
-
-desc_V4.agg_table(to_latex=True, target_tex_name='Recidivists')
+desc.agg_table_to_tex(target_tex_name='Recidivists')
+desc.plot_positive_rate(title = 'Percentage of Recidivists')
 
 
 

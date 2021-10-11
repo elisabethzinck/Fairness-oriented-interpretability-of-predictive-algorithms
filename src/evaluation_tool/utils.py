@@ -138,20 +138,19 @@ def error_bars(ax, data):
 
     n_patches = len(ax.patches)
     x_coords = [p.get_x() + 0.5*p.get_width() for p in ax.patches]
-    bar_width = ax.patches[0].get_width()
     ax.vlines(x=x_coords, 
             ymin=data.conf_lwr,
             ymax=data.conf_upr,
             colors = (58/255, 58/255, 58/255),
             linewidth = 2, label = '95% Confidence Interval')
     ax.hlines(y=data.conf_lwr, 
-            xmin=[x_coords[i]-round(bar_width*0.08,2) for i in range(2)],
-            xmax=[x_coords[i]+round(bar_width*0.08,2) for i in range(2)],
+            xmin=[x_coords[i]-0.15 for i in range(n_patches)],
+            xmax=[x_coords[i]+0.15 for i in range(n_patches)],
             colors = (58/255, 58/255, 58/255),
             linewidth = 2)
     ax.hlines(y=data.conf_upr, 
-            xmin=[x_coords[i]-round(bar_width*0.08,2) for i in range(n_patches)],
-            xmax=[x_coords[i]+round(bar_width*0.08,2) for i in range(n_patches)],
+            xmin=[x_coords[i]-0.15 for i in range(n_patches)],
+            xmax=[x_coords[i]+0.15 for i in range(n_patches)],
             colors = (58/255, 58/255, 58/255),
             linewidth = 2)
 
