@@ -13,11 +13,11 @@ if __name__ == '__main__':
     update_report_figures = False # Write new figures to report repository?
 
     run_anym = False
-    run_german = False
+    run_german = True
     run_taiwanese = False
     run_compas = False
     run_catalan = False
-    run_ADNI = True
+    run_ADNI = False
 
     credit_w_fp = 0.9
     compas_w_fp = 0.9

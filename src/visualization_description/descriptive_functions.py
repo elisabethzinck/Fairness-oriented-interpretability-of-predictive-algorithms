@@ -9,12 +9,15 @@ from matplotlib.gridspec import GridSpec
 import seaborn as sns
 from seaborn.axisgrid import FacetGrid 
 
+from statsmodels.stats.proportion import proportion_confint
+
 from sklearn.decomposition import PCA 
 from sklearn.preprocessing import StandardScaler
 from sklearn.manifold import TSNE
 
 from src.data.general_preprocess_functions import one_hot_encode_mixed_data
 from src.evaluation_tool.utils import custom_palette, error_bars, desaturate
+
 #%% 
 def get_fraction_of_group(group):
     """Helper function to calculate fraction of positives and negatives in
@@ -50,6 +53,7 @@ class DescribeData:
             )
 
         self.grp_data = self.group_data()
+        self.agg_data = self.agg_table_2()
 
     def group_data(self):
         if hasattr(self, 'rel_rates'):
@@ -153,57 +157,110 @@ class DescribeData:
             labelbottom=False)
         plt.title('t-SNE of Data')
 
-    def agg_table(self, target_tex_name = None, to_latex = False):
+
+    def agg_table_2(self):
+        """Positive Rates and confidence intervals of data 
+        aggregated on the sensitive variable"""
+        # helper lambda functions
+        N_pos = lambda x: np.count_nonzero(x)
+        pos_perc = lambda x: (np.count_nonzero(x)/len(x))
+        confint = lambda x: proportion_confint(count=N_pos(x),
+                                       nobs=len(x),
+                                       method = "wilson")
+        confint_lwr = lambda x: confint(x)[0]
+        confint_upr = lambda x: confint(x)[1]
+        # Creating grouped table  
+        df_agg = (self.data.groupby(["a"])
+            .agg(N = ("y", "count"),
+                N_positive = ("y", N_pos),
+                positive_frac = ("y", pos_perc), 
+                conf_lwr = ("y", confint_lwr),
+                conf_upr = ("y", confint_upr))
+            .sort_values(by = 'N', ascending = False)
+            .reset_index()
+        )
+        # appending total row: 
+        row_total = pd.DataFrame({
+            "a": 'Total', 
+            "N": len(self.data.y),
+            "N_positive": N_pos(self.data.y),
+            "positive_frac": pos_perc(self.data.y),
+            "conf_lwr": confint_lwr(self.data.y),
+            "conf_upr": confint_upr(self.data.y)
+            }, index = [self.n_sens_grps])
+        df_agg =df_agg.append(row_total, ignore_index=True)
+
+        return df_agg
+
+    def agg_table_to_tex(self, target_tex_name = None):
+        """Formats self.agg_data to a latex table"""
         if target_tex_name is None: 
             target_tex_name = self.y_name
         
         # helper lambda functions
-        N_pos_func = lambda x: np.count_nonzero(x)
-        pos_perc_func = lambda x: (np.count_nonzero(x)/len(x))*100
-        N_pos_tab_func = lambda x: f"{N_pos_func(x)} ({pos_perc_func(x):.0f}%)"
-        
-        # Creating grouped table  
-        df_grouped = (self.data.groupby(["a"])
-           .agg(N = ("y", "count"),
-                N_positive = ("y", N_pos_tab_func))
-            .reset_index()
-            .sort_values(by = 'N', ascending = False)
+        tex_pos_rate = (lambda x :
+            [f"{x.N_positive[i]} ({x.positive_frac[i]*100:.0f}%)" for i in range(x.shape[0])]
+            )
+        tex_conf_int = (lambda x :
+            [f"[{x.conf_lwr[i]*100:.0f}%, {x.conf_upr[i]*100:.0f}%]" for i in range(x.shape[0])]
+            )
+
+        agg_data_tex = (self.agg_data
+            .assign(
+                N_positive = tex_pos_rate, 
+                CI = tex_conf_int)
+            .drop(columns = ["conf_lwr", "conf_upr", "positive_frac"])
         )
-
-        # appending total row: 
-        row_total = pd.DataFrame({
-            "a": 'All', 
-            "N": len(self.data.y),
-            "N_positive": N_pos_tab_func(self.data.y),
-            }, index = [0])
-
-        df_grouped =df_grouped.append(row_total, ignore_index=True)
-
-        df_grouped.rename(columns = {"a": self.a_name.capitalize().replace("_", "\_"), 
-                                    "N_positive": target_tex_name},
-                        inplace = True)
+        agg_data_tex.rename(columns = 
+            {"a": self.a_name.capitalize().replace("_", "\_"), 
+             "N_positive": target_tex_name},
+             inplace = True)
         
-        if to_latex: 
-            # Styling the data frame 
-            mid_rule = {'selector': 'midrule', 'props': ':hline;'}
-            s = df_grouped.style.format(escape = "latex")
-            s.hide_index()
-            s.set_table_styles([mid_rule])
+        # Styling the data frame
+        mid_rule = {'selector': 'midrule', 'props': ':hline;'}
+        s = agg_data_tex.style.format(escape = "latex")
+        s.hide_index()
+        s.set_table_styles([mid_rule])
+        column_format =  "lcr"
+        s_tex = s.to_latex(column_format = column_format,
+                        convert_css = False)
+        
+        # printing Tex code and returning df 
+        print(s_tex)
+        return s
 
-            # printing style to Latex 
-            column_format =  "lcr"
-            s_tex = s.to_latex(column_format = column_format,
-                            convert_css = False)
-            print(s_tex)
-            return
-        else: 
-            return df_grouped
+    def plot_positive_rate(self, title =None):
+        if title is None: 
+            title = ""
+
+        plot_df = (self.agg_data.query("a != 'Total'")
+            .sort_values(by = 'a'))
+        
+        fig = plt.figure(figsize = (4,4))
+        gs = GridSpec(nrows = 1, ncols = 1)
+        ax = fig.add_subplot(gs[0,0])
+        sns.barplot(y="positive_frac",
+                    x = "a",
+                    ax = ax,
+                    data = plot_df,
+                    order = self.sens_grps,
+                    alpha = 0.95)
+        ax.set_ylim((0,1))
+        ax.set_ylabel('Positive Fraction', fontsize = 12)
+        ax.set_xlabel(a_name, fontsize = 12)
+        sns.despine(ax = ax, top = True, right = True)
+        ax.tick_params(left=False, labelsize=12)
+        for bar, col in zip(ax.patches, desc.sens_grps_cols.values()):
+            bar.set_color(desaturate(col))
+            bar.set_x(bar.get_x())
+        error_bars(ax, data = plot_df)
+        ax.set_title(title)
+        ax.legend()
 
 
 #%%
 
 if __name__ == "__main__":
-
     # German
     file_path = 'data\\processed\\german_credit_full.csv'
 
@@ -216,55 +273,8 @@ if __name__ == "__main__":
 
     #desc.plot_tSNE(n_tries = 3)
     desc.plot_fraction_of_target()
+    #desc.agg_table_to_tex(target_tex_name='Defaulted')
+    desc.plot_positive_rate('Fraction of Bad Credit Scores')
     #figure_path = 'figures/descriptive_plots/'
     #plt.savefig(figure_path+'tsne_sex.pdf', bbox_inches='tight')
    
-
-# %%
-
-# Creating positive proportion plot w. confidence interval. 
-from statsmodels.stats.proportion import proportion_confint
-import colorsys 
-
-a_name = 'sex'
-y_name = 'credit_score'
-id_name = 'person_id'
-
-N_pos = lambda x: np.count_nonzero(x)
-pos_frac = lambda x: np.count_nonzero(x)/len(x)
-confint = lambda x: proportion_confint(count=N_pos(x),
-                                       nobs=len(x),
-                                       method = "wilson")
-confint_lwr = lambda x: confint(x)[0]
-confint_upr = lambda x: confint(x)[1]
-
-pos_rate_df = (data.groupby([a_name])
-    .agg(N = (id_name, "count"),
-        N_pos = (y_name, N_pos),
-        pos_frac = (y_name, pos_frac), 
-        conf_lwr = (y_name, confint_lwr),
-        conf_upr = (y_name, confint_upr))
-    .reset_index()
-    .assign(x_ticks = [0.25, 0.3])
-)
-
-fig = plt.figure(figsize = (4,4))
-gs = GridSpec(nrows = 1, ncols = 1)
-ax = fig.add_subplot(gs[0,0])
-sns.barplot(y="pos_frac",
-            x = "sex",
-            ax = ax,
-            data = pos_rate_df,
-            alpha = 0.95)
-ax.set_ylim((0,1))
-ax.set_ylabel('Positive Fraction', fontsize = 12)
-ax.set_xlabel(a_name, fontsize = 12)
-sns.despine(ax = ax, top = True, right = True)
-ax.tick_params(left=False, labelsize=12)
-for bar, col in zip(ax.patches, desc.sens_grps_cols.values()):
-    bar.set_color(desaturate(col))
-    bar.set_x(bar.get_x())
-error_bars(ax, data = pos_rate_df)
-ax.legend()
-
-# %%

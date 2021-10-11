@@ -132,6 +132,10 @@ def error_bars(ax, data):
         ax(matplotlib.axes): ax with barplot 
         data(pandas data frame): must include columns "conf_lwr" and "conf_upr"
     """
+    
+    assert "conf_lwr" in data.columns, 'column "conf_lwr" must be in data' 
+    assert "conf_upr" in data.columns, 'column "conf_upr" must be in data'
+
     n_patches = len(ax.patches)
     x_coords = [p.get_x() + 0.5*p.get_width() for p in ax.patches]
     bar_width = ax.patches[0].get_width()
