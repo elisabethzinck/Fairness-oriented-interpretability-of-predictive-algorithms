@@ -125,6 +125,39 @@ def get_alpha_weights(w_fp):
         alpha_weights = {'FPR': c+w_fp, 'FNR': 1, 'FDR':c+w_fp, 'FOR':1, 'WMR': 1}
     return alpha_weights
 
+def error_bars(ax, data):
+    """Draws error bars on ax with barplot.
+    
+    Args: 
+        ax(matplotlib.axes): ax with barplot 
+        data(pandas data frame): must include columns "conf_lwr" and "conf_upr"
+    """
+    n_patches = len(ax.patches)
+    x_coords = [p.get_x() + 0.5*p.get_width() for p in ax.patches]
+    bar_width = ax.patches[0].get_width()
+    ax.vlines(x=x_coords, 
+            ymin=data.conf_lwr,
+            ymax=data.conf_upr,
+            colors = (58/255, 58/255, 58/255),
+            linewidth = 2, label = '95% Confidence Interval')
+    ax.hlines(y=data.conf_lwr, 
+            xmin=[x_coords[i]-round(bar_width*0.08,2) for i in range(2)],
+            xmax=[x_coords[i]+round(bar_width*0.08,2) for i in range(2)],
+            colors = (58/255, 58/255, 58/255),
+            linewidth = 2)
+    ax.hlines(y=data.conf_upr, 
+            xmin=[x_coords[i]-round(bar_width*0.08,2) for i in range(n_patches)],
+            xmax=[x_coords[i]+round(bar_width*0.08,2) for i in range(n_patches)],
+            colors = (58/255, 58/255, 58/255),
+            linewidth = 2)
+
+def desaturate(color, prop = 0.75):
+        """Desaturate color just like in default seaborn plot"""
+        h,l,s = colorsys.rgb_to_hls(*color)
+        s *= prop
+        new_color = colorsys.hls_to_rgb(h, l, s)
+        return new_color
+
 if __name__ == '__main__':
     n_colors = 3
     cp = custom_palette(n_colors = n_colors)

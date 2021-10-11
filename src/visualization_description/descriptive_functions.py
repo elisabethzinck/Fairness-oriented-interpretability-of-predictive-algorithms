@@ -14,7 +14,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.manifold import TSNE
 
 from src.data.general_preprocess_functions import one_hot_encode_mixed_data
-
+from src.evaluation_tool.utils import custom_palette, error_bars, desaturate
 #%% 
 def get_fraction_of_group(group):
     """Helper function to calculate fraction of positives and negatives in
@@ -40,13 +40,14 @@ class DescribeData:
         self.data = data 
         self.data = self.data.rename(columns = {self.y_name: 'y', self.a_name: 'a'})
         
-        self.sens_grps = self.data.a.unique()
+        self.sens_grps = sorted(self.data.a.unique())
         self.n_sens_grps = len(self.sens_grps)
         self.group_n = self.data.groupby('a').size()
 
         # Define color palette
-        cols = sns.color_palette(n_colors = self.n_sens_grps)
-        self.sens_grps_cols = dict(zip(self.sens_grps, cols))
+        self.sens_grps_cols = dict(
+            zip(self.sens_grps, custom_palette(n_colors = self.n_sens_grps))
+            )
 
         self.grp_data = self.group_data()
 
@@ -222,11 +223,48 @@ if __name__ == "__main__":
 # %%
 
 # Creating positive proportion plot w. confidence interval. 
-import statsmodels
+from statsmodels.stats.proportion import proportion_confint
+import colorsys 
 
-(data.groupby(['sex'])
-    .agg(N_pos = ("credit_score", lambda x: np.count_nonzero(x)),
-    N = ("person_id", "count"))
+a_name = 'sex'
+y_name = 'credit_score'
+id_name = 'person_id'
+
+N_pos = lambda x: np.count_nonzero(x)
+pos_frac = lambda x: np.count_nonzero(x)/len(x)
+confint = lambda x: proportion_confint(count=N_pos(x),
+                                       nobs=len(x),
+                                       method = "wilson")
+confint_lwr = lambda x: confint(x)[0]
+confint_upr = lambda x: confint(x)[1]
+
+pos_rate_df = (data.groupby([a_name])
+    .agg(N = (id_name, "count"),
+        N_pos = (y_name, N_pos),
+        pos_frac = (y_name, pos_frac), 
+        conf_lwr = (y_name, confint_lwr),
+        conf_upr = (y_name, confint_upr))
+    .reset_index()
+    .assign(x_ticks = [0.25, 0.3])
 )
+
+fig = plt.figure(figsize = (4,4))
+gs = GridSpec(nrows = 1, ncols = 1)
+ax = fig.add_subplot(gs[0,0])
+sns.barplot(y="pos_frac",
+            x = "sex",
+            ax = ax,
+            data = pos_rate_df,
+            alpha = 0.95)
+ax.set_ylim((0,1))
+ax.set_ylabel('Positive Fraction', fontsize = 12)
+ax.set_xlabel(a_name, fontsize = 12)
+sns.despine(ax = ax, top = True, right = True)
+ax.tick_params(left=False, labelsize=12)
+for bar, col in zip(ax.patches, desc.sens_grps_cols.values()):
+    bar.set_color(desaturate(col))
+    bar.set_x(bar.get_x())
+error_bars(ax, data = pos_rate_df)
+ax.legend()
 
 # %%
