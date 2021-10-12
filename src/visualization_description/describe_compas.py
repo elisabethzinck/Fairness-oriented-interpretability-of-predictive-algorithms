@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np 
 import os
 
-from src.visualization_description.descriptive_functions import DescribeData
+from src.evaluation_tool.descriptive_tool import DescribeData
 
 # reading data 
 df = pd.read_csv("data/processed/compas/compas-scores-two-years-pred.csv")

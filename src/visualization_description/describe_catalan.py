@@ -5,7 +5,7 @@ import seaborn as sns
 import numpy as np 
 
 from src.evaluation_tool.utils import custom_palette, abs_percentage_tick
-from src.visualization_description.descriptive_functions import DescribeData
+from src.evaluation_tool.descriptive_tool import DescribeData
 
 file_path = 'data\\processed\\catalan-juvenile-recidivism\\catalan-juvenile-recidivism-subset.csv'
 raw_data = pd.read_csv(file_path, index_col=0)

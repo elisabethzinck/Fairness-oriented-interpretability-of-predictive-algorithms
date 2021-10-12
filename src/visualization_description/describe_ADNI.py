@@ -4,7 +4,7 @@ import numpy as np
 
 import plotly.graph_objects as go
 
-from src.models.data_modules.ADNI_data_module import ADNIDataModule
+from src.models.data_modules import ADNIDataModule
 
 #%%
 dm = ADNIDataModule(dataset = 1)

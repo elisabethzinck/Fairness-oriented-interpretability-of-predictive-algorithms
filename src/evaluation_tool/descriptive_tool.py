@@ -1,5 +1,3 @@
-# Descriptive stuff 
-
 #%%
 import pandas as pd
 import numpy as np
@@ -52,7 +50,7 @@ class DescribeData:
             )
 
         self.grp_data = self.group_data()
-        self.agg_data = self.agg_table_2()
+        self.agg_data = self.agg_table()
 
     def group_data(self):
         if hasattr(self, 'rel_rates'):
@@ -157,7 +155,7 @@ class DescribeData:
         plt.title('t-SNE of Data')
 
 
-    def agg_table_2(self):
+    def agg_table(self):
         """Positive Rates and confidence intervals of data 
         aggregated on the sensitive variable"""
         # helper lambda functions
