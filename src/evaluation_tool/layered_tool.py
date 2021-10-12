@@ -353,7 +353,7 @@ class FairKit:
         """Plot the rate ratio for each sensitive groups
         
         Args:
-            w_fp (float in (0,1)): False positive error weight
+            w_fp (float): False positive error weight
         
         """
         if w_fp is None:
@@ -420,6 +420,38 @@ class FairKit:
 
     def l2_interactive_plot(self):
        return interact(self.l2_plot, w_fp=FloatSlider(min=0,max=1,atep=0.1,value=0.8))
+
+    def plot_w_fp_influence(self, relative = True):
+        """Visualize how w_fp influences the weighted misclassification ratio
+        
+        Args:
+            relative (bool): Plot weighted misclassification ratio? If False, weighted misclassification rate is plotted
+        """
+        plot_df = (pd.concat(
+                [self.get_relative_WMR(w_fp = w_fp).assign(w_fp = w_fp) 
+                for w_fp in np.linspace(0, 1, num = 100)])
+            .reset_index()
+            .rename(columns = {
+                'rate_val': 'weighted_misclassification_rate',
+                'relative_rate': 'weighted_misclassification_ratio'}))
+
+        fig = plt.figure()
+        ax = fig.add_subplot(1, 1, 1)
+        if relative:
+            y = 'weighted_misclassification_ratio'
+        else:
+            y = 'weighted_misclassification_rate'
+        sns.lineplot(
+            x = 'w_fp', y = y, hue = 'grp', 
+            data = plot_df, 
+            ax = ax, 
+            palette = fair_anym.sens_grps_cols)
+        sns.despine(ax = ax, top = True, right = True)
+        ax.set_xlabel('$w_{fp}$')
+        ax.set_ylabel(label_case(y))
+        ax.legend(frameon = False)
+        if relative:
+            ax.yaxis.set_major_formatter(mtick.FuncFormatter(abs_percentage_tick))
    
 
 #%% Main
@@ -442,32 +474,11 @@ if __name__ == "__main__":
     t1, t2, t3 = fair_anym.layer_2()
 
     # l3 check
+    fair_anym.plot_w_fp_influence()
     #fair_anym.plot_confusion_matrix()
 
     
 #%% Looking into w_fp plot
-res = []
-for w_fp in np.linspace(0, 1, num = 100):
-    tmp = fair_anym.get_relative_WMR(w_fp = w_fp).assign(w_fp = w_fp)
-    res.append(tmp)
-plot_df = pd.concat(res).reset_index()
-#%%
-fig = plt.figure(figsize=(8, 4))
-for i, y in enumerate(['rate_val', 'relative_rate']):
-    ax = fig.add_subplot(1, 2, i+1)
-    sns.lineplot(
-        x = 'w_fp', y = y, hue = 'grp', 
-        data = plot_df, 
-        ax = ax, 
-        palette = fair_anym.sens_grps_cols)
-    sns.despine(ax = ax, top = True, right = True)
-    ax.legend(frameon = False)
-    if y == 'rate_val':
-        ax.set_ylabel('Weighted misclassification rate')
-    else:
-        ax.set_ylabel('Weighted misclassification ratio')
-        ax.yaxis.set_major_formatter(mtick.FuncFormatter(abs_percentage_tick))
-        # To do: 
-fig.subplots_adjust(wspace = 0.5)
+
 
 # %%

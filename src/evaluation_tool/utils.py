@@ -195,6 +195,10 @@ def value_counts_df(df, col_name):
 
     return count_df
 
+def label_case(snake_case):
+    "Replace underscore with spaces and capitalize first letter of string"
+    return snake_case.replace("_", ' ').capitalize()
+
 ################################################
 #             lambda functions
 ################################################
