@@ -165,7 +165,7 @@ class DescribeData:
         
         # Finishing up 
         legend_elements = [Line2D([0], [0], color=(58/255, 58/255, 58/255),
-            lw=2, label='95% Confidence\nInterval')]
+            lw=2, label='95% CI')]
         ax.legend(handles=legend_elements, frameon = True, loc = "best")
         sns.despine(ax = ax, top = True, right = True)
         ax.tick_params(left=True, labelsize=12)
@@ -259,5 +259,3 @@ if __name__ == "__main__":
     #figure_path = 'figures/descriptive_plots/'
     #plt.savefig(figure_path+'tsne_sex.pdf', bbox_inches='tight')
    
-
-# %%
