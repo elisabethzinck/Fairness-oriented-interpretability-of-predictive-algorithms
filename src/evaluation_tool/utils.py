@@ -175,6 +175,26 @@ def desaturate(color, prop = 0.75):
         new_color = colorsys.hls_to_rgb(h, l, s)
         return new_color
 
+#%%
+def value_counts_df(df, col_name):
+    """pd.value_counts() for dataframes
+    
+    Args:
+        df (pd.DataFrame): Dataframe containing column to use value_counts on
+        col_names (str): Name of column to count values for. Must be present in df. 
+
+    Returns:
+        Dataframe with column names `col_name` and `n`.
+    
+    """
+    if col_name not in df.columns:
+        raise ValueError(f'Supplied col_name {col_name} is not present in dataframe.')
+
+    count_df = df[col_name].value_counts().to_frame().reset_index()
+    count_df.columns = [col_name, 'n']
+
+    return count_df
+
 ################################################
 #             lambda functions
 ################################################
@@ -186,7 +206,8 @@ confint = lambda x: proportion_confint(count=N_pos(x),
 confint_lwr = lambda x: confint(x)[0]
 confint_upr = lambda x: confint(x)[1]
 
-#%%
+
+
 if __name__ == '__main__':
     n_colors = 3
     cp = custom_palette(n_colors = n_colors)
