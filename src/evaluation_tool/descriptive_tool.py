@@ -213,6 +213,7 @@ class DescribeData:
             x= X_tSNE_best[:,0], 
             y = X_tSNE_best[:,1],
             hue = plotdf[self.a_name], 
+            palette = self.sens_grps_cols,
             style= plotdf[self.y_name])
         plt.legend(
             bbox_to_anchor = (1,1), 
