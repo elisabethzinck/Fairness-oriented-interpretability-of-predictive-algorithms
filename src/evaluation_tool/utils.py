@@ -2,7 +2,7 @@ import numpy as np
 import seaborn as sns
 import matplotlib as plt
 import colorsys
-
+from matplotlib import transforms
 from statsmodels.stats.proportion import proportion_confint
 
 ##############################################
@@ -198,6 +198,29 @@ def value_counts_df(df, col_name):
 def label_case(snake_case):
     "Replace underscore with spaces and capitalize first letter of string"
     return snake_case.replace("_", ' ').capitalize()
+
+def format_text_layer_1(ax, x, y, text_list, color_list, font_sizes, font_weights):
+    """Plots a list of words with specific colors, sizes and font 
+    weights on a provided axis 
+    Function inspired by: https://matplotlib.org/2.0.2/examples/text_labels_and_annotations/rainbow_text.html
+    Args:
+        ax(matplotlib axis): axis to plot text on 
+        x(float): x-coordinate of text start
+        y(float): y-coordinate of text start
+        text_list(list of strings): List with words to plot 
+        color_list(list): List of colors for each word in text_list
+        font_sizes(list): List of font sizes for each word in text_list
+        font_sizes(list): List of font weigths for each word in text_list
+    """
+    t = ax.transData
+    canvas = ax.figure.canvas
+    
+    for s, c, f, w in zip(text_list, color_list, font_sizes, font_weights):
+        text = ax.text(x, y, s + " ", color=c, 
+                       fontsize = f, weight = w, transform=t)
+        text.draw(canvas.get_renderer())
+        ex = text.get_window_extent()
+        t = transforms.offset_copy(text._transform, x=ex.width, units='dots')
 
 ################################################
 #             lambda functions

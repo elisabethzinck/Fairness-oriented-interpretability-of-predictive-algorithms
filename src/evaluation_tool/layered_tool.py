@@ -22,7 +22,7 @@ from sklearn.metrics import confusion_matrix, roc_curve
 # dir functions
 from src.evaluation_tool.utils import (
     cm_matrix_to_dict, custom_palette, abs_percentage_tick, flatten_list, cm_dict_to_matrix, add_colors_with_stripes, get_alpha_weights,
-    value_counts_df)
+    value_counts_df, desaturate, label_case, format_text_layer_1)
 
 #%%
 
@@ -104,7 +104,8 @@ class FairKit:
         l1_data = l1_data[['grp', 'n', 'weighted_misclassification_ratio']]
 
         if plot:
-            print('Whoops, we still need to implement l1 plot')
+            self.plot_layer_1(l1_data=l1_data, ax = None)
+            #print('Whoops, we still need to implement l1 plot')
 
         if output_table:
             return l1_data
@@ -453,7 +454,53 @@ class FairKit:
         if relative:
             ax.yaxis.set_major_formatter(mtick.FuncFormatter(abs_percentage_tick))
    
+    def plot_layer_1(self, l1_data, ax = None):
+        """ Visualize the maximum gap in WMR by text
+        
+        Args:
+            l1_data (data frame): data frame with data returned in layer_1
+        """
+        if ax is None:
+            fig = plt.figure(figsize=(6,2))
+            ax = fig.add_subplot(1, 1, 1)
 
+        p_grey = desaturate((58/255, 58/255, 58/255))
+        max_idx = l1_data.weighted_misclassification_ratio.idxmax() 
+        max_grp = l1_data.grp[max_idx]
+        max_val = l1_data.weighted_misclassification_ratio[max_idx]
+        max_color = desaturate(self.sens_grps_cols[max_grp])
+
+        # Creating text lines
+        line_1 = (f"The WMR of sensitive group").split()
+        line_2 = (f"is {max_val:.0f}% larger than the minimum WMR").split()
+
+        # customizing lines with group
+        line_1 = line_1 + [f"'{max_grp.capitalize()}'"]
+        n_words_1 = len(line_1)
+        color_list_1 = [p_grey]*n_words_1
+        font_sizes_1 = [20]*n_words_1
+        font_weights_1 = ['normal']*n_words_1
+        color_list_1[-1] = max_color # coloring group
+        font_sizes_1[-1] = 30 # making group bigger
+        font_weights_1[-1] = 'bold' 
+
+        # Costumizing lines with max_val 
+        n_words_2 = len(line_2)
+        color_list_2 = [p_grey]*n_words_2
+        font_sizes_2 = [20]*n_words_2
+        font_weights_2 = ['normal']*n_words_2
+        font_weights_2[1:2] = ['bold', 'bold'] 
+        font_sizes_2[1:2] = [30, 30]
+
+        # Plotting text on axis
+        ax.set_xlim(0,1.1)
+        ax.set_ylim(0.68,0.9)
+        ax.set_axis_off()
+        sns.despine(top = True, bottom = True, left = True, right= True)
+        format_text_layer_1(ax, 0.02, 0.8, line_1, color_list_1,
+                            font_sizes_1, font_weights_1)
+        format_text_layer_1(ax, 0.02, 0.7, line_2, color_list_2,
+                            font_sizes_2, font_weights_2)
 #%% Main
 if __name__ == "__main__":
     file_path = 'data\\processed\\anonymous_data.csv'
@@ -471,10 +518,10 @@ if __name__ == "__main__":
     l1 = fair_anym.layer_1()
 
     # l2 check
-    t1, t2, t3 = fair_anym.layer_2()
+    #t1, t2, t3 = fair_anym.layer_2()
 
     # l3 check
-    fair_anym.plot_w_fp_influence()
+    #fair_anym.plot_w_fp_influence()
     #fair_anym.plot_confusion_matrix()
 
     

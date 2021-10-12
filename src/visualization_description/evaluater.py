@@ -13,9 +13,9 @@ if __name__ == '__main__':
     update_report_figures = False # Write new figures to report repository?
 
     run_anym = False
-    run_german = True
+    run_german = False
     run_taiwanese = False
-    run_compas = False
+    run_compas = True
     run_catalan = False
     run_ADNI = False
 
@@ -39,7 +39,7 @@ if __name__ == '__main__':
             w_fp = anym_w_fp)
         fair_anym.plot_confusion_matrix()
         plt.savefig(figure_path+'anym_confusion.png')
-        fair_anym.l2_plot()
+        fair_anym.layer_2(plot = True, output_table=False)
         plt.savefig(figure_path+'anym_l2.png')
         if update_report_figures:
             plt.savefig(fig_path_report+'L2_example.pdf', bbox_inches='tight')
@@ -64,7 +64,7 @@ if __name__ == '__main__':
             model_type='Logistic Regression')
         fair_german_log_reg.plot_confusion_matrix()
         plt.savefig(figure_path+'german_log_reg_confusion.png')
-        fair_german_log_reg.l2_plot()
+        fair_german_log_reg.layer_2(plot = True, output_table=False)
         plt.savefig(figure_path+'german_log_reg_l2.png')
         
 
@@ -93,7 +93,7 @@ if __name__ == '__main__':
             model_type='Neural network')
         fair_german_nn.plot_confusion_matrix()
         plt.savefig(figure_path+'german_nn_confusion.png')
-        fair_german_nn.l2_plot()
+        fair_german_nn.layer_2(plot = True, output_table=False)
         plt.savefig(figure_path+'german_nn_l2.png')
 
 
@@ -113,8 +113,9 @@ if __name__ == '__main__':
             model_type='COMPAS Decile Scores')
         fair_compas_age.plot_confusion_matrix()
         plt.savefig(figure_path+'compas_confusion_age.png')
-        fair_compas_age.l2_plot()
+        fair_compas_age.layer_2(plot = True, output_table=False)
         plt.savefig(figure_path+'compas_l2_age.png')
+        fair_compas_age.layer_1(output_table=False)
 
         # filtering out hispanics to recreate the Propublica result 
         not_include_hispanics = False
@@ -130,7 +131,7 @@ if __name__ == '__main__':
             model_type='COMPAS Decile Scores')
         fair_compas_race.plot_confusion_matrix()
         plt.savefig(figure_path+'compas_confusion_race.png')
-        fair_compas_race.l2_plot()
+        fair_compas_race.layer_2(plot = True, output_table=False)
         plt.savefig(figure_path+'compas_l2_race.png')
     
 
@@ -140,20 +141,6 @@ if __name__ == '__main__':
     if run_catalan or run_all:
         catalan_file_path = 'data/predictions/catalan-juvenile-recidivism/catalan_recid_nn_pred.csv'
         catalan = pd.read_csv(catalan_file_path)
-
-    # Sensitive: Nationality Type 
-        fair_catalan_V2 = FairKit(
-            y = catalan.V115_RECID2015_recid, 
-            y_hat = catalan.nn_pred, 
-            a = catalan.V2_nationality_type, 
-            r = catalan.nn_prob,
-            w_fp = catalan_w_fp,
-            model_type='Catalan NN')
-
-        fair_catalan_V2.plot_confusion_matrix()
-        plt.savefig(figure_path+'catalan_confusion_V2_nationality_type.png')
-        fair_catalan_V2.l2_plot()
-        plt.savefig(figure_path+'catalan_l2_V2_nationality_type.png')
 
     # Sensitive: Area of Origin
         fair_catalan_V4 = FairKit(
@@ -166,7 +153,7 @@ if __name__ == '__main__':
 
         fair_catalan_V4.plot_confusion_matrix()
         plt.savefig(figure_path+'catalan_confusion_V4_area_origin.png')
-        fair_catalan_V4.l2_plot()
+        fair_catalan_V4.layer_2(plot = True, output_table=False)
         plt.savefig(figure_path+'catalan_l2_V4_area_origin.png')
 
 
@@ -188,7 +175,7 @@ if __name__ == '__main__':
 
         fair_taiwanese.plot_confusion_matrix()
         plt.savefig(figure_path+'taiwanese_confusion_sex.png')
-        fair_taiwanese.l2_plot()
+        fair_taiwanese.layer_2(plot = True, output_table=False)
         plt.savefig(figure_path+'taiwanese_l2_sex.png')
 
     if run_ADNI or run_all:
@@ -204,7 +191,7 @@ if __name__ == '__main__':
                 model_type=f'ADNI{adni_no} NN')
             fair_adni.plot_confusion_matrix()
             plt.savefig(figure_path+f'adni{adni_no}_confusion.png')
-            fair_adni.l2_plot()
+            fair_adni.layer_2(plot = True, output_table=False)
             plt.savefig(figure_path+f'adni{adni_no}_l2.png')
             
             
