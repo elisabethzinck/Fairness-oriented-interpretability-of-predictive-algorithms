@@ -21,7 +21,8 @@ from sklearn.metrics import confusion_matrix, roc_curve
 
 # dir functions
 from src.evaluation_tool.utils import (
-    cm_matrix_to_dict, custom_palette, abs_percentage_tick, flatten_list, cm_dict_to_matrix, add_colors_with_stripes, get_alpha_weights)
+    cm_matrix_to_dict, custom_palette, abs_percentage_tick, flatten_list, cm_dict_to_matrix, add_colors_with_stripes, get_alpha_weights,
+    value_counts_df)
 
 #%%
 
@@ -89,10 +90,28 @@ class FairKit:
     ###############################################################
     
     def layer_1(self, plot  = True, output_table = True, w_fp = None):
+        """To do: Documentation"""
         if w_fp is None:
             w_fp = self.w_fp
+
+        wmr = self.get_WMR_rates(w_fp = w_fp)
+        relative_wmr = self.get_relative_rates(wmr)
+        obs_counts = (value_counts_df(self.classifier, 'a')
+            .rename(columns = {'a': 'grp'}))
+        l1_data = (pd.merge(relative_wmr, obs_counts)
+            .rename(columns = {
+                'relative_rate': 'weighted_misclassification_ratio'}))
+        l1_data = l1_data[['grp', 'n', 'weighted_misclassification_ratio']]
+
+        if plot:
+            print('Whoops, we still need to implement l1 plot')
+
+        if output_table:
+            return l1_data
+
         
     def layer_2(self, plot = True, output_table = True, w_fp = None):
+        """To do: Documentation"""
         if w_fp is None:
             w_fp = self.w_fp
     
@@ -112,12 +131,13 @@ class FairKit:
         if output_table:
             rates = pd.concat(
                 [self.rates, self.get_WMR_rates(w_fp = w_fp)]
-                ).reset_index()
+                ).reset_index(drop = True)
             relative_rates = self.get_relative_rates(rates = rates)
             barometer = self.get_fairness_barometer(w_fp = w_fp)
             return rates, relative_rates, barometer
         
     def layer_3(self, type, plot = True, output_table = True, w_fp = None):
+        """To do: Documentation"""
         if w_fp is None:
             w_fp = self.w_fp
 
@@ -194,7 +214,8 @@ class FairKit:
             .apply(get_minimum_rate)
             .assign(
                 relative_rate = lambda x: 
-                    (x.rate_val-x.min_rate)/x.min_rate*100))
+                    (x.rate_val-x.min_rate)/x.min_rate*100)
+            .drop(columns = ['min_rate']))
 
         return rel_rates
     
@@ -255,6 +276,7 @@ class FairKit:
             .agg({
                 'relative_rate': 'mean',
                 'grp': lambda x: list(pd.unique(x))})
+            .rename(columns = {'grp': 'discriminated_grp'})
             .sort_values('relative_rate', ascending = False))
         return fairness_barometer
 
@@ -394,7 +416,7 @@ class FairKit:
         add_colors_with_stripes(
             ax = ax, 
             color_dict = self.sens_grps_cols, 
-            color_variable = plot_df.grp)
+            color_variable = plot_df.discriminated_grp)
 
     def l2_interactive_plot(self):
        return interact(self.l2_plot, w_fp=FloatSlider(min=0,max=1,atep=0.1,value=0.8))
@@ -412,10 +434,40 @@ if __name__ == "__main__":
         a = df.grp, 
         r = df.phat,
         w_fp = 0.8)
-    #fair_anym.l2_fairness_criteria_subplot()
+
+    # l1 check
+    l1 = fair_anym.layer_1()
+
+    # l2 check
+    t1, t2, t3 = fair_anym.layer_2()
+
+    # l3 check
     #fair_anym.plot_confusion_matrix()
 
-    t1, t2, t3 = fair_anym.layer_2()
+    
+#%% Looking into w_fp plot
+res = []
+for w_fp in np.linspace(0, 1, num = 100):
+    tmp = fair_anym.get_relative_WMR(w_fp = w_fp).assign(w_fp = w_fp)
+    res.append(tmp)
+plot_df = pd.concat(res).reset_index()
 #%%
+fig = plt.figure(figsize=(8, 4))
+for i, y in enumerate(['rate_val', 'relative_rate']):
+    ax = fig.add_subplot(1, 2, i+1)
+    sns.lineplot(
+        x = 'w_fp', y = y, hue = 'grp', 
+        data = plot_df, 
+        ax = ax, 
+        palette = fair_anym.sens_grps_cols)
+    sns.despine(ax = ax, top = True, right = True)
+    ax.legend(frameon = False)
+    if y == 'rate_val':
+        ax.set_ylabel('Weighted misclassification rate')
+    else:
+        ax.set_ylabel('Weighted misclassification ratio')
+        ax.yaxis.set_major_formatter(mtick.FuncFormatter(abs_percentage_tick))
+        # To do: 
+fig.subplots_adjust(wspace = 0.5)
 
 # %%
