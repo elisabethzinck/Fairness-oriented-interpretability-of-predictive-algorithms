@@ -5,16 +5,15 @@ import math
 
 # Widgets
 from ipywidgets import interactive, fixed, interact, FloatSlider
-import ipywidgets as widgets
 from IPython.display import display
 
 # Plots 
-from matplotlib import gridspec
 import matplotlib.pyplot as plt
+from matplotlib import gridspec
 import matplotlib.ticker as mtick
 from matplotlib.gridspec import GridSpec
+
 import seaborn as sns
-import plotly.graph_objects as go
 from seaborn.palettes import color_palette
 
 # sklearn 
@@ -84,11 +83,50 @@ class FairKit:
         self.sens_grps_cols = dict(
             zip(self.sens_grps, custom_palette(n_colors = self.n_sens_grps))
             )
+    
+    ###############################################################
+    #                  LAYER METHODS
+    ###############################################################
+    
+    def layer_1(self, plot  = True, output_table = True, w_fp = None):
+        if w_fp is None:
+            w_fp = self.w_fp
+        
+    def layer_2(self, plot = True, output_table = True, w_fp = None):
+        if w_fp is None:
+            w_fp = self.w_fp
+    
+        if plot:
+            gs = GridSpec(nrows = 10, ncols = 3)
+            f = plt.figure(figsize=(20,6))
+            ax0 = f.add_subplot(gs[:, 0])
+            ax2 = f.add_subplot(gs[5:,1:2])
+            ax1 = f.add_subplot(gs[0:4,1:2], sharex = ax2)
 
+            self.plot_rates(ax = ax0, w_fp = w_fp)
+            self.plot_relative_rates(ax = ax1, w_fp = w_fp)
+            self.plot_fairness_barometer(ax = ax2, w_fp = w_fp)
+
+            f.subplots_adjust(wspace = 0.5, hspace = 0.7)
+
+        if output_table:
+            rates = pd.concat(
+                [self.rates, self.get_WMR_rates(w_fp = w_fp)]
+                ).reset_index()
+            relative_rates = self.get_relative_rates(rates = rates)
+            barometer = self.get_fairness_barometer(w_fp = w_fp)
+            return rates, relative_rates, barometer
+        
+    def layer_3(self, type, plot = True, output_table = True, w_fp = None):
+        if w_fp is None:
+            w_fp = self.w_fp
+
+        # To do: Make this :)
 
     ###############################################################
     #                  CALCULATION METHODS
     ###############################################################
+    
     def get_confusion_matrix(self):
         """Calculate the confusion matrix for sensitive groups"""
         cm = {}
@@ -99,7 +137,6 @@ class FairKit:
                 y_pred = df_group.y_hat)
             cm[grp] = cm_matrix_to_dict(cm_sklearn)
         return cm
-
 
     def get_rates(self, w_fp = None):
         """Calculate rates by sensitive group"""
@@ -121,7 +158,7 @@ class FairKit:
                 'PP/n': (TP+FP)/(TP+FP+TN+FN)
                 }
 
-        # Convert rate dict to data frame
+        # Convert rate dict to data frame 
         rates = pd.DataFrame(
             [(grp, rate, val) 
             for grp,grp_dict in rates.items() 
@@ -221,7 +258,6 @@ class FairKit:
             .sort_values('relative_rate', ascending = False))
         return fairness_barometer
 
-
     ###############################################################
     #                  VISUALIZATION METHODS
     ###############################################################
@@ -258,8 +294,7 @@ class FairKit:
             plt.xlabel(None)
             plt.title(f'{str.capitalize(grp)} (N = {n_obs})')
 
-
-    def l2_rate_subplot(self, ax = None, w_fp = None):
+    def plot_rates(self, ax = None, w_fp = None):
         """Plot FPR, FNR, FDR, FOR for each group"""
         rate_names = ['FPR', 'FNR', 'FDR', 'FOR']
         if w_fp is None:
@@ -292,7 +327,7 @@ class FairKit:
 
         return ax
 
-    def l2_ratio_subplot(self, ax = None, w_fp = None):
+    def plot_relative_rates(self, ax = None, w_fp = None):
         """Plot the rate ratio for each sensitive groups
         
         Args:
@@ -339,8 +374,8 @@ class FairKit:
         ax.xaxis.set_major_formatter(mtick.FuncFormatter(abs_percentage_tick))
         sns.despine(ax = ax, left = True, top = True, right = True)
         ax.tick_params(left=False, labelsize=12)
-
-    def l2_fairness_criteria_subplot(self, w_fp = None, ax = None):
+        
+    def plot_fairness_barometer(self, w_fp = None, ax = None):
         plot_df = self.get_fairness_barometer(w_fp = w_fp)
         if ax is None:
             fig = plt.figure(figsize=(6,3))
@@ -360,25 +395,6 @@ class FairKit:
             ax = ax, 
             color_dict = self.sens_grps_cols, 
             color_variable = plot_df.grp)
-    
-
-    def l2_plot(self, w_fp = None):
-        
-        # Define grid
-        gs = GridSpec(nrows = 10, ncols = 3)
-        f = plt.figure(figsize=(20,6))
-        ax0 = f.add_subplot(gs[:, 0])
-        ax2 = f.add_subplot(gs[5:,1:2])
-        ax1 = f.add_subplot(gs[0:4,1:2], sharex = ax2)
-        
-        
-        # Insert plots
-        self.l2_rate_subplot(ax = ax0, w_fp = w_fp)
-        self.l2_ratio_subplot(ax = ax1, w_fp = w_fp)
-        self.l2_fairness_criteria_subplot(ax = ax2, w_fp = w_fp)
-
-        # Adjustments
-        f.subplots_adjust(wspace = 0.5, hspace = 0.7)
 
     def l2_interactive_plot(self):
        return interact(self.l2_plot, w_fp=FloatSlider(min=0,max=1,atep=0.1,value=0.8))
@@ -396,9 +412,10 @@ if __name__ == "__main__":
         a = df.grp, 
         r = df.phat,
         w_fp = 0.8)
-    fair_anym.l2_plot()
     #fair_anym.l2_fairness_criteria_subplot()
     #fair_anym.plot_confusion_matrix()
+
+    t1, t2, t3 = fair_anym.layer_2()
 #%%
 
 # %%
