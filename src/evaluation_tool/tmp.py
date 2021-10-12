@@ -64,6 +64,8 @@ fair_german_log_reg = FairKit(
 
 
 #%%
+p_grey = (58/255, 58/255, 58/255)
+
 df = fair_german_log_reg.layer_1(output_table=True)
 max_idx = df.weighted_misclassification_ratio.idxmax() 
 max_grp = df.grp[max_idx]
@@ -72,39 +74,45 @@ max_color = desaturate(fair_german_log_reg.sens_grps_cols[max_grp])
 
 line_1 = (f"The weighted misclassification rate of").split()
 line_2 = (f"{max_grp.capitalize()} is {max_WMR:.0f}% larger").split()
-line_3 = (f"than the smallest weigthed misclassification rate").split()
+line_3 = (f"than the smallest weigthed").split()
+line_4 = (f"misclassification rate").split()
 
 
 # Formatting line 2 
-n_words_2 = len(line_2)
-color_list = ['k']*n_words_2 #(58/255, 58/255, 58/255)
-font_sizes = [20]*n_words_2
+n_words = len(line_2)
+color_list = [p_grey]*n_words #
+font_sizes = [30]*n_words
+font_weights = ['bold']*n_words
 
-num_idx = 0
-grp_idx = 2
+num_idx = 2
+grp_idx = 0
 
 color_list[grp_idx] = max_color
-font_sizes[grp_idx] = 30
-font_sizes[num_idx] = 30
+font_sizes[1] = 20 # downsizing 'is'
+font_weights[1] = 'normal'
 
 #%%
 fig = plt.figure(figsize = (6,2))
 gs = GridSpec(nrows = 1, ncols = 1)
 ax = fig.add_subplot(gs[0,0])
+ax.set_xlim(0,1.1)
+ax.set_ylim(0.1,0.9)
+ax.set_axis_off()
 
-x = 0
-y = 0
+format_text(ax, 0.02, 0.8, line_1, [p_grey]*len(line_1), [20]*len(line_1), ['normal']*len(line_1))
+format_text(ax, 0.02, 0.52, line_2, color_list, font_sizes, font_weights)
+format_text(ax, 0.02, 0.32, line_3, [p_grey]*len(line_3), [20]*len(line_3), ['normal']*len(line_3))
+format_text(ax, 0.02, 0.12, line_4, [p_grey]*len(line_4), [20]*len(line_4), ['normal']*len(line_4))
 
-if ax is None:
-    ax = plt.gca()
+sns.despine(top = True, bottom = True, left = True, right= True)
 
-
-def format_text(ax, x, y, text_list, color_list, font_sizes):
+def format_text(ax, x, y, text_list, color_list, font_sizes, font_weights):
     t = ax.transData
     canvas = ax.figure.canvas
     # horizontal version
-    for s, c, f in zip(text_list, color_list, font_sizes):
-        text = ax.text(x, y, s + " ", color=c, fontsize = f, transform=t)
+    for s, c, f, w in zip(text_list, color_list, font_sizes, font_weights):
+        text = ax.text(x, y, s + " ", color=c, 
+                       fontsize = f, weight = w, transform=t)
         text.draw(canvas.get_renderer())
         ex = text.get_window_extent()
         t = transforms.offset_copy(text._transform, x=ex.width, units='dots')
