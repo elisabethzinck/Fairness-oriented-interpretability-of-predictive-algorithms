@@ -3,6 +3,11 @@ import seaborn as sns
 import matplotlib as plt
 import colorsys
 
+from statsmodels.stats.proportion import proportion_confint
+
+##############################################
+#                Functions 
+##############################################
 def flatten_list(t):
     """Flattens a list of list"""
     flat_list = [item for sublist in t for item in sublist]
@@ -125,34 +130,43 @@ def get_alpha_weights(w_fp):
         alpha_weights = {'FPR': c+w_fp, 'FNR': 1, 'FDR':c+w_fp, 'FOR':1, 'WMR': 1}
     return alpha_weights
 
-def error_bars(ax, data):
+def error_bar(ax, plot_df, bar_mid, orientation = "v"):
     """Draws error bars on ax with barplot.
     
     Args: 
         ax(matplotlib.axes): ax with barplot 
-        data(pandas data frame): must include columns "conf_lwr" and "conf_upr"
+        plot_df(pandas data frame): must include columns "conf_lwr" and "conf_upr"
+        bar_mid(float): mid point of bar to put error bar on 
+        orientation: 'v' or 'h' for vertical or horizontal 
     """
-    
-    assert "conf_lwr" in data.columns, 'column "conf_lwr" must be in data' 
-    assert "conf_upr" in data.columns, 'column "conf_upr" must be in data'
+    # input check
+    assert orientation in ["v", "h"], "Choose orientation 'v' or 'h'"
+    assert "conf_lwr" in plot_df.columns, 'column "conf_lwr" must be in data' 
+    assert "conf_upr" in plot_df.columns, 'column "conf_upr" must be in data'
 
-    n_patches = len(ax.patches)
-    x_coords = [p.get_x() + 0.5*p.get_width() for p in ax.patches]
-    ax.vlines(x=x_coords, 
-            ymin=data.conf_lwr,
-            ymax=data.conf_upr,
-            colors = (58/255, 58/255, 58/255),
-            linewidth = 2, label = '95% Confidence Interval')
-    ax.hlines(y=data.conf_lwr, 
-            xmin=[x_coords[i]-0.15 for i in range(n_patches)],
-            xmax=[x_coords[i]+0.15 for i in range(n_patches)],
-            colors = (58/255, 58/255, 58/255),
-            linewidth = 2)
-    ax.hlines(y=data.conf_upr, 
-            xmin=[x_coords[i]-0.15 for i in range(n_patches)],
-            xmax=[x_coords[i]+0.15 for i in range(n_patches)],
-            colors = (58/255, 58/255, 58/255),
-            linewidth = 2)
+    if orientation == 'v':
+        ax.vlines(x=bar_mid, 
+                ymin=plot_df.conf_lwr,
+                ymax=plot_df.conf_upr,
+                colors = (58/255, 58/255, 58/255),
+                linewidth = 2)
+        ax.hlines(y=[plot_df.conf_lwr, plot_df.conf_upr], 
+                xmin=bar_mid-0.15,
+                xmax=bar_mid+0.15,
+                colors = (58/255, 58/255, 58/255),
+                linewidth = 2)
+                
+    elif orientation == 'h':
+        ax.hlines(y=bar_mid, 
+                xmin=plot_df.conf_lwr,
+                xmax=plot_df.conf_upr,
+                colors = (58/255, 58/255, 58/255),
+                linewidth = 2)
+        ax.vlines(x=[plot_df.conf_lwr, plot_df.conf_upr], 
+                ymin=bar_mid-0.15,
+                ymax=bar_mid+0.15,
+                colors = (58/255, 58/255, 58/255),
+                linewidth = 2)
 
 def desaturate(color, prop = 0.75):
         """Desaturate color just like in default seaborn plot"""
@@ -161,6 +175,18 @@ def desaturate(color, prop = 0.75):
         new_color = colorsys.hls_to_rgb(h, l, s)
         return new_color
 
+################################################
+#             lambda functions
+################################################
+N_pos = lambda x: np.count_nonzero(x)
+pos_perc = lambda x: (np.count_nonzero(x)/len(x))
+confint = lambda x: proportion_confint(count=N_pos(x),
+                                nobs=len(x),
+                                method = "wilson")
+confint_lwr = lambda x: confint(x)[0]
+confint_upr = lambda x: confint(x)[1]
+
+#%%
 if __name__ == '__main__':
     n_colors = 3
     cp = custom_palette(n_colors = n_colors)

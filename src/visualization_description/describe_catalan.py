@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np 
 
-from src.evaluation_tool.utils import custom_palette, abs_percentage_tick
+from src.evaluation_tool.utils import custom_palette
 from src.evaluation_tool.descriptive_tool import DescribeData
 
 file_path = 'data\\processed\\catalan-juvenile-recidivism\\catalan-juvenile-recidivism-subset.csv'
@@ -20,7 +20,7 @@ desc = DescribeData(a_name = "V4_area_origin",
                     data = raw_data)
 
 desc.agg_table_to_tex(target_tex_name='Recidivists')
-desc.plot_positive_rate(title = 'Percentage of Recidivists')
+desc.plot_positive_rate(title = 'Percentage of Recidivists', orientation='h')
 
 
 
