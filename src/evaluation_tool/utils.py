@@ -222,11 +222,26 @@ def format_text_layer_1(ax, x, y, text_list, color_list, font_sizes, font_weight
         ex = text.get_window_extent()
         t = transforms.offset_copy(text._transform, x=ex.width, units='dots')
 
+def extract_cm_values(grp, df):
+    """Extracts TP, TN, FP and TN from long format confusion matrix
+    
+    Args: 
+        grp(str): sensitive group name 
+        df(Dataframe): long format confusion matrix as returned 
+                        by get_confusion_matrix() in layered_tool
+    """
+    cm_data = df.query(f"a=='{grp}' & type_obs in ['TP', 'FN', 'FP', 'TN']")
+    TP, FN, FP, TN = cm_data.number_obs.to_list()
+
+    return TP, FN, FP, TN
+
 ################################################
 #             lambda functions
 ################################################
 N_pos = lambda x: np.count_nonzero(x)
+N_neg = lambda x: len(x)-np.count_nonzero(x)
 pos_frac = lambda x: (np.count_nonzero(x)/len(x))
+neg_frac = lambda x: (len(x)-np.count_nonzero(x))/len(x)
 confint = lambda x: proportion_confint(count=N_pos(x),
                                 nobs=len(x),
                                 method = "wilson")

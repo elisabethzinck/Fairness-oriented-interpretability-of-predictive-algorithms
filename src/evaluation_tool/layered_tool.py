@@ -25,7 +25,8 @@ from src.evaluation_tool.utils import (
     cm_matrix_to_dict, custom_palette, abs_percentage_tick, flatten_list, 
     cm_dict_to_matrix, add_colors_with_stripes, get_alpha_weights,
     value_counts_df, desaturate, label_case, format_text_layer_1,
-    N_pos, pos_frac, confint_lwr, confint_upr, error_bar)
+    N_pos, N_neg, neg_frac, pos_frac, confint_lwr, confint_upr, error_bar,
+    flip_dataframe)
 
 #%%
 
@@ -203,6 +204,34 @@ class FairKit:
                 y_true = df_group.y, 
                 y_pred = df_group.y_hat)
             cm[grp] = cm_matrix_to_dict(cm_sklearn)
+        
+        # Making into a data frame of long format 
+        data = pd.DataFrame({'a':self.a, 'y': self.y, 'y_hat':self.y_hat})
+        agg_df = (data.groupby('a')
+            .agg(P = ("y", N_pos), 
+                    N = ("y", N_neg),
+                    PP = ("y_hat", N_pos),
+                    PN = ("y_hat", N_neg),
+            )    
+            .reset_index()     
+        )
+        cm_df=(flip_dataframe(pd.DataFrame(cm).reset_index())
+            .rename(columns={'index':'a'})
+            .set_index('a')
+            .join(agg_df.set_index('a'))
+            .reset_index()
+            .melt(id_vars = 'a',value_name='number_obs', var_name='type_obs')
+        )  
+        df = pd.DataFrame(columns=['a', 'type_obs', 'number_obs', 'fraction_obs'])
+        for grp in self.sens_grps:
+            n_grp = self.a.value_counts()[grp]
+            tmp_df = (cm_df.query(f"a=='{grp}'")
+                .assign(fraction_obs = lambda x: x.number_obs/n_grp)
+            )
+            df = df.append(tmp_df)
+
+        df.reset_index(inplace=True, drop=True)
+
         return cm
 
     def get_rates(self, w_fp = None):
@@ -681,18 +710,53 @@ if __name__ == "__main__":
         w_fp = 0.8)
 
     # l1 check
-    l1 = fair_anym.layer_1()
+    #l1 = fair_anym.layer_1()
 
     # l2 check
-    l2_rates, l2_relative_rates, l2_barometer = fair_anym.layer_2()
+    #l2_rates, l2_relative_rates, l2_barometer = fair_anym.layer_2()
 
     # l3 check
     #fair_anym.layer_3(method = 'w_fp_influence')
     #fair_anym.layer_3(method = 'confusion_matrix')
-    fair_anym.layer_3(method = 'roc_curves')
-    kwargs = {'orientation':'h'}
+    #fair_anym.layer_3(method = 'roc_curves')
+    #kwargs = {'orientation':'h'}
     #fair_anym.layer_3(method = 'independence_check', **kwargs)
 
+    cm=fair_anym.get_confusion_matrix()
+    fair_anym.plot_confusion_matrix()
+
+    df = pd.DataFrame({'a':fair_anym.a, 'y': fair_anym.y, 'y_hat':fair_anym.y_hat})
+
+    agg_df = (df.groupby('a')
+        .agg(P = ("y", N_pos), 
+             N = ("y", N_neg),
+             PP = ("y_hat", N_pos),
+             PN = ("y_hat", N_neg),
+        )    
+        .reset_index()     
+    )
+    cm_df=(flip_dataframe(pd.DataFrame(cm).reset_index())
+        .rename(columns={'index':'a'})
+        .set_index('a')
+        .join(agg_df.set_index('a'))
+        .reset_index()
+        .melt(id_vars = 'a',value_name='number_obs', var_name='type_obs')
+    )  
+    df = pd.DataFrame(columns=['a', 'type_obs', 'number_obs', 'fraction_obs'])
+    for grp in fair_anym.sens_grps:
+        n_grp = fair_anym.a.value_counts()[grp]
+        tmp_df = (cm_df.query(f"a=='{grp}'")
+            .assign(fraction_obs = lambda x: x.number_obs/n_grp)
+        )
+        df = df.append(tmp_df)
+    
+    df.reset_index(inplace=True, drop=True)
+
+
+#%%
+    for grp in fair_anym.sens_grps:
+        cm[grp]['n'] = fair_anym.a.value_counts()[grp]
+        cm[grp]['N'] = fair_anym.a.value_counts()[grp]
     
 
 # %%
