@@ -226,7 +226,7 @@ def format_text_layer_1(ax, x, y, text_list, color_list, font_sizes, font_weight
 #             lambda functions
 ################################################
 N_pos = lambda x: np.count_nonzero(x)
-pos_perc = lambda x: (np.count_nonzero(x)/len(x))
+pos_frac = lambda x: (np.count_nonzero(x)/len(x))
 confint = lambda x: proportion_confint(count=N_pos(x),
                                 nobs=len(x),
                                 method = "wilson")

@@ -19,7 +19,7 @@ desc = DescribeData(a_name = "V4_area_origin",
                     id_name = 'id', 
                     data = raw_data)
 
-desc.agg_table_to_tex(target_tex_name='Recidivists')
+desc.descriptive_table_to_tex(target_tex_name='Recidivists')
 desc.plot_positive_rate(title = 'Percentage of Recidivists', orientation='h')
 
 

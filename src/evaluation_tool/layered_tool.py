@@ -154,7 +154,7 @@ class FairKit:
             'roc_curves', 
             'calibration', 
             'confusion_matrix',
-            'predicted_positives']
+            'independence_check']
 
         if not isinstance(method, str):
             raise ValueError(f'`method` must be of type string. You supplied {type(method)}')
@@ -181,7 +181,7 @@ class FairKit:
             # To do: Get data out in a sensible way
             self.plot_confusion_matrix()
         
-        if method == 'predicted_positives':
+        if method == 'independence_check':
             if plot: 
                 self.plot_predicted_positives(**kwargs)
             if output_table:
@@ -527,6 +527,7 @@ class FairKit:
         ax.axhline(y = 20, color = 'grey', linewidth = 0.5)
         sns.despine(ax = ax, top = True, right = True)
         ax.set_xlabel('$w_{fp}$')
+        ax.set_xlim((0,1))
         ax.set_ylabel(label_case(y))
         ax.legend(frameon = False)
         if relative:
@@ -580,30 +581,35 @@ class FairKit:
         format_text_layer_1(ax, 0.02, 0.74, line_2, color_list_2,
                             font_sizes_2, font_weights_2)
 
-    def plot_roc_curves(self):
+    def plot_roc_curves(self, ax = None):
         # To do: Documentation
         roc = self.get_roc_curves()
         roc_half = roc[(0.50 < roc.threshold)]
         chosen_threshold = roc_half.loc[
             roc_half.groupby('sens_grp').threshold.idxmin()]
-        fig = plt.figure()
-        ax = fig.add_subplot(1, 1, 1)
+        
+        if ax is None: 
+            fig = plt.figure(figsize=(10,8))
+            ax = fig.add_subplot(1, 1, 1)
         sns.lineplot(
             x = 'fpr', y = 'tpr', hue = 'sens_grp', 
             data = roc, ax = ax,
-            estimator = None, 
-            palette = self.sens_grps_cols)
+            estimator = None, alpha = 0.8,
+            palette = self.sens_grps_cols,
+            zorder = 1)
         sns.scatterplot(
             x = 'fpr', y = 'tpr', 
             data = chosen_threshold, ax = ax,
-            marker = 'x', s = 100, color = 'black')
+            hue = 'sens_grp', s = 100,
+            palette = self.sens_grps_cols,
+            zorder = 2)
         ax.plot([0,1], [0,1], color = 'grey', linewidth = 0.5)
         ax.set_xlabel('False positive rate')
         ax.set_ylabel('True positive rate')
         sns.despine(ax = ax, top = True, right = True)
         ax.legend(frameon = False, loc = 'lower right')
 
-    def plot_predicted_positives(self, ax=None, orientation = 'v', title = "Percent Predicted Positives"):
+    def plot_predicted_positives(self, ax=None, orientation = 'h', title = "Percent Predicted Positives"):
         """ Bar plot of the percentage of predicted positives per
         sensitive group including a Wilson 95% CI 
         """
@@ -685,7 +691,7 @@ if __name__ == "__main__":
     #fair_anym.layer_3(method = 'confusion_matrix')
     fair_anym.layer_3(method = 'roc_curves')
     kwargs = {'orientation':'h'}
-    #fair_anym.layer_3(method = 'predicted_positives', **kwargs)
+    #fair_anym.layer_3(method = 'independence_check', **kwargs)
 
     
 

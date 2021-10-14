@@ -14,11 +14,11 @@ if __name__ == '__main__':
 
     run_anym = False
     run_german = False
-    run_taiwanese = False
-    run_compas = False
-    run_catalan = False
-    run_ADNI = True
-    adni_no = 1
+    run_taiwanese = True
+    run_compas = True
+    run_catalan = True
+    run_ADNI = False
+    adni_no = 2
 
     credit_w_fp = 0.9
     compas_w_fp = 0.9
