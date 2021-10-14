@@ -58,7 +58,7 @@ class FairKit:
             y (binary array): Targets for model of length n
             y_hat (binary array): Predictions of length n
             a (string array): Sensitive groups of length n. 
-            r (float array): Scores of length n
+            r (float array): Scores of length n. The threshold is assumed to be 0.5. 
             w_fp (int or float): False positive error rate
             model_type (str): Name of the model or dataset used.
         
@@ -71,7 +71,7 @@ class FairKit:
         self.model_type = model_type
         self.w_fp = w_fp
 
-        self.classifier = pd.DataFrame({'y': y, 'a': a, 'y_hat': y_hat})
+        self.classifier = pd.DataFrame({'y': y, 'a': a, 'y_hat': y_hat, 'r': r})
         self.sens_grps = np.sort(self.a.unique())
         self.n_sens_grps = len(self.sens_grps)
         
@@ -109,8 +109,7 @@ class FairKit:
 
         if output_table:
             return l1_data
-
-        
+    
     def layer_2(self, plot = True, output_table = True, w_fp = None):
         """To do: Documentation"""
         if w_fp is None:
@@ -137,10 +136,44 @@ class FairKit:
             barometer = self.get_fairness_barometer(w_fp = w_fp)
             return rates, relative_rates, barometer
         
-    def layer_3(self, type, plot = True, output_table = True, w_fp = None):
+    def layer_3(self, method, plot = True, output_table = True, w_fp = None):
         """To do: Documentation"""
+
+        # To do: Split up in getting data and getting plot
         if w_fp is None:
             w_fp = self.w_fp
+
+        method_options = [
+            'w_fp_influence', 
+            'roc_curves', 
+            'calibration', 
+            'confusion_matrix']
+
+        if not isinstance(method, str):
+            raise ValueError(f'`method` must be of type string. You supplied {type(method)}')
+        
+        if method not in method_options:
+            raise ValueError(f'`method` must be one of the following: {method_options}. You supplied `method` = {method}')
+
+        if method == 'w_fp_influence':
+            # To do: Get data out?
+            self.plot_w_fp_influence()
+
+        if method == 'roc_curves':
+            # To do: Fix that get_roc_curves is called twice
+            roc = self.get_roc_curves()
+            if plot:
+                self.plot_roc_curves()
+            if output_table:
+                return roc
+
+        if method == 'calibration':
+            pass
+
+        if method == 'confusion_matrix':
+            # To do: Get data out in a sensible way
+            self.plot_confusion_matrix()
+        
 
         # To do: Make this :)
 
@@ -280,6 +313,22 @@ class FairKit:
             .rename(columns = {'grp': 'discriminated_grp'})
             .sort_values('relative_rate', ascending = False))
         return fairness_barometer
+
+    def get_roc_curves(self):
+        # To do: Documentation
+        roc_list = []
+        for grp in self.sens_grps:
+            data_grp = self.classifier[self.classifier.a == grp]
+            fpr, tpr, thresholds = roc_curve(
+                y_true = data_grp.y, 
+                y_score = data_grp.r)
+            roc_list.append(pd.DataFrame({
+                'fpr': fpr, 
+                'tpr': tpr, 
+                'threshold': thresholds,
+                'sens_grp': grp}))
+        roc = pd.concat(roc_list).reset_index(drop = True)  
+        return roc  
 
     ###############################################################
     #                  VISUALIZATION METHODS
@@ -447,6 +496,7 @@ class FairKit:
             data = plot_df, 
             ax = ax, 
             palette = fair_anym.sens_grps_cols)
+        ax.axhline(y = 20, color = 'grey', linewidth = 0.5)
         sns.despine(ax = ax, top = True, right = True)
         ax.set_xlabel('$w_{fp}$')
         ax.set_ylabel(label_case(y))
@@ -501,6 +551,28 @@ class FairKit:
                             font_sizes_1, font_weights_1)
         format_text_layer_1(ax, 0.02, 0.7, line_2, color_list_2,
                             font_sizes_2, font_weights_2)
+
+    def plot_roc_curves(self):
+        # To do: Documentation
+        roc = self.get_roc_curves()
+
+        fig = plt.figure()
+        ax = fig.add_subplot(1, 1, 1)
+        sns.lineplot(
+            x = 'fpr', y = 'tpr', hue = 'sens_grp', 
+            data = roc, ax = ax,
+            estimator = None, 
+            palette = fair_anym.sens_grps_cols)
+        sns.scatterplot(
+            x = 'fpr', y = 'tpr', 
+            data = chosen_threshold, ax = ax,
+            marker = 'x', s = 100, color = 'black')
+        ax.plot([0,1], [0,1], color = 'grey', linewidth = 0.5)
+        ax.set_xlabel('False positive rate')
+        ax.set_ylabel('True positive rate')
+        sns.despine(ax = ax, top = True, right = True)
+        ax.legend(frameon = False, loc = 'lower right')
+
 #%% Main
 if __name__ == "__main__":
     file_path = 'data\\processed\\anonymous_data.csv'
@@ -518,14 +590,11 @@ if __name__ == "__main__":
     l1 = fair_anym.layer_1()
 
     # l2 check
-    #t1, t2, t3 = fair_anym.layer_2()
+    l2_rates, l2_relative_rates, l2_barometer = fair_anym.layer_2()
 
     # l3 check
-    #fair_anym.plot_w_fp_influence()
-    #fair_anym.plot_confusion_matrix()
-
-    
-#%% Looking into w_fp plot
-
+    fair_anym.layer_3(method = 'w_fp_influence')
+    fair_anym.layer_3(method = 'confusion_matrix')
+    fair_anym.layer_3(method = 'roc_curves')
 
 # %%
