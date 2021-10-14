@@ -14,7 +14,7 @@ from sklearn.manifold import TSNE
 
 from src.data.general_preprocess_functions import one_hot_encode_mixed_data
 from src.evaluation_tool.utils import (custom_palette, error_bar, N_pos,
-pos_perc, confint_lwr, confint_upr, error_bar, abs_percentage_tick)
+pos_frac, confint_lwr, confint_upr, error_bar, abs_percentage_tick)
 #%% 
 class DescribeData:
     def __init__(self, y_name, a_name, id_name = None, data = None):
@@ -48,7 +48,7 @@ class DescribeData:
             .groupby(["a"])
             .agg(N = ("y", "count"),
                 N_positive = ("y", N_pos),
-                positive_frac = ("y", pos_perc), 
+                positive_frac = ("y", pos_frac), 
                 conf_lwr = ("y", confint_lwr),
                 conf_upr = ("y", confint_upr))
             .reset_index()
@@ -74,7 +74,7 @@ class DescribeData:
             "a": 'Total', 
             "N": len(self.data.y),
             "N_positive": N_pos(self.data.y),
-            "positive_frac": pos_perc(self.data.y),
+            "positive_frac": pos_frac(self.data.y),
             "conf_lwr": confint_lwr(self.data.y),
             "conf_upr": confint_upr(self.data.y)
             }, index = [self.n_sens_grps])

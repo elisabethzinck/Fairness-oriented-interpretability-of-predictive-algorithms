@@ -12,6 +12,7 @@ import matplotlib.pyplot as plt
 from matplotlib import gridspec
 import matplotlib.ticker as mtick
 from matplotlib.gridspec import GridSpec
+from matplotlib.lines import Line2D
 
 import seaborn as sns
 from seaborn.palettes import color_palette
@@ -21,8 +22,10 @@ from sklearn.metrics import confusion_matrix, roc_curve
 
 # dir functions
 from src.evaluation_tool.utils import (
-    cm_matrix_to_dict, custom_palette, abs_percentage_tick, flatten_list, cm_dict_to_matrix, add_colors_with_stripes, get_alpha_weights,
-    value_counts_df, desaturate, label_case, format_text_layer_1)
+    cm_matrix_to_dict, custom_palette, abs_percentage_tick, flatten_list, 
+    cm_dict_to_matrix, add_colors_with_stripes, get_alpha_weights,
+    value_counts_df, desaturate, label_case, format_text_layer_1,
+    N_pos, pos_perc, confint_lwr, confint_upr, error_bar)
 
 #%%
 
@@ -136,7 +139,7 @@ class FairKit:
             barometer = self.get_fairness_barometer(w_fp = w_fp)
             return rates, relative_rates, barometer
         
-    def layer_3(self, method, plot = True, output_table = True, w_fp = None):
+    def layer_3(self, method, plot = True, output_table = True, w_fp = None, **kwargs):
         """To do: Documentation"""
 
         # To do: Split up in getting data and getting plot
@@ -147,7 +150,8 @@ class FairKit:
             'w_fp_influence', 
             'roc_curves', 
             'calibration', 
-            'confusion_matrix']
+            'confusion_matrix',
+            'predicted_positives']
 
         if not isinstance(method, str):
             raise ValueError(f'`method` must be of type string. You supplied {type(method)}')
@@ -174,6 +178,12 @@ class FairKit:
             # To do: Get data out in a sensible way
             self.plot_confusion_matrix()
         
+        if method == 'predicted_positives':
+            if plot: 
+                self.plot_predicted_positives(**kwargs)
+            if output_table:
+                return self.get_predicted_positives()
+            
 
         # To do: Make this :)
 
@@ -329,6 +339,22 @@ class FairKit:
                 'sens_grp': grp}))
         roc = pd.concat(roc_list).reset_index(drop = True)  
         return roc  
+
+    def get_predicted_positives(self):
+        """Predicted Positive rates and Confidence Intervals per 
+        sensitive group"""
+        df = pd.DataFrame({"a": self.a, "y_hat": self.y_hat})
+        df_PP = (df
+            .groupby(["a"])
+            .agg(N = ("y_hat", "count"),
+                N_PP = ("y_hat", N_pos),
+                PP_frac = ("y_hat", pos_perc), 
+                conf_lwr = ("y_hat", confint_lwr),
+                conf_upr = ("y_hat", confint_upr))
+            .reset_index()
+            .sort_values(by = 'N', ascending = False)
+        )
+        return df_PP
 
     ###############################################################
     #                  VISUALIZATION METHODS
@@ -495,7 +521,7 @@ class FairKit:
             x = 'w_fp', y = y, hue = 'grp', 
             data = plot_df, 
             ax = ax, 
-            palette = fair_anym.sens_grps_cols)
+            palette = self.sens_grps_cols)
         ax.axhline(y = 20, color = 'grey', linewidth = 0.5)
         sns.despine(ax = ax, top = True, right = True)
         ax.set_xlabel('$w_{fp}$')
@@ -562,7 +588,7 @@ class FairKit:
             x = 'fpr', y = 'tpr', hue = 'sens_grp', 
             data = roc, ax = ax,
             estimator = None, 
-            palette = fair_anym.sens_grps_cols)
+            palette = self.sens_grps_cols)
         sns.scatterplot(
             x = 'fpr', y = 'tpr', 
             data = chosen_threshold, ax = ax,
@@ -572,6 +598,64 @@ class FairKit:
         ax.set_ylabel('True positive rate')
         sns.despine(ax = ax, top = True, right = True)
         ax.legend(frameon = False, loc = 'lower right')
+
+    def plot_predicted_positives(self, ax=None, orientation = 'v', title = "Percent Predicted Positives"):
+        """ Bar plot of the percentage of predicted positives per
+        sensitive group including a Wilson 95% CI 
+        """
+        assert orientation in ["v", "h"], "Choose orientation 'v' or 'h'"
+
+        if ax is None:
+            fig = plt.figure(figsize = (4,4))
+            ax = fig.add_subplot(1,1,1)
+
+        df_PP = self.get_predicted_positives()
+
+        # Convert into percentage 
+        plot_data = (df_PP
+            .assign(positive_perc = lambda x: x.PP_frac*100,
+                    conf_lwr = lambda x: x.conf_lwr*100,
+                    conf_upr = lambda x: x.conf_upr*100)
+        )
+
+        for grp in self.sens_grps:
+            plot_df = plot_data.query(f'a == "{grp}"')
+            assert plot_df.shape[0] == 1
+            bar_mid = plot_df.index[0]
+            if orientation == 'v':
+                sns.barplot(y="positive_perc",
+                        x = "a",
+                        ax = ax,
+                        data = plot_df,
+                        color = self.sens_grps_cols[grp], 
+                        order = self.sens_grps,
+                        alpha = 0.95)
+                ax.set_ylim((0,100))
+                ax.set_xticklabels([grp.capitalize() for grp in self.sens_grps])
+                ax.yaxis.set_major_formatter(mtick.FuncFormatter(abs_percentage_tick))
+            else:
+                sns.barplot(x="positive_perc",
+                        y = "a",
+                        ax = ax,
+                        data = plot_df,
+                        color = self.sens_grps_cols[grp], 
+                        order = self.sens_grps, 
+                        alpha = 0.95)
+                ax.set_xlim((0,100))
+                ax.set_yticklabels([grp.capitalize() for grp in self.sens_grps])
+                ax.xaxis.set_major_formatter(mtick.FuncFormatter(abs_percentage_tick))
+            error_bar(ax, plot_df, bar_mid, orientation=orientation)
+            ax.set_ylabel('', fontsize = 12)
+            ax.set_xlabel('', fontsize = 12)
+        
+        # Finishing up 
+        legend_elements = [Line2D([0], [0], color=(58/255, 58/255, 58/255),
+            lw=2, label='95% CI')]
+        ax.legend(handles=legend_elements, frameon = True, loc = "best")
+        sns.despine(ax = ax, top = True, right = True)
+        ax.tick_params(left=True, labelsize=12)
+        ax.set_title(title)
+
 
 #%% Main
 if __name__ == "__main__":
@@ -595,6 +679,10 @@ if __name__ == "__main__":
     # l3 check
     fair_anym.layer_3(method = 'w_fp_influence')
     fair_anym.layer_3(method = 'confusion_matrix')
-    fair_anym.layer_3(method = 'roc_curves')
+    #fair_anym.layer_3(method = 'roc_curves')
+    kwargs = {'orientation':'h'}
+    fair_anym.layer_3(method = 'predicted_positives', **kwargs)
+
+    
 
 # %%
