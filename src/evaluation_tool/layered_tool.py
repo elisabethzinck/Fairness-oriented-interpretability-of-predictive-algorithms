@@ -175,7 +175,11 @@ class FairKit:
                 return roc
 
         if method == 'calibration':
-            pass
+            if plot:
+                self.plot_calibration(**kwargs)
+            if output_table:
+                calibration = self.get_calibration(**kwargs)
+                return calibration
 
         if method == 'confusion_matrix':
             # To do: Get data out in a sensible way
@@ -186,9 +190,7 @@ class FairKit:
                 self.plot_predicted_positives(**kwargs)
             if output_table:
                 return self.get_predicted_positives()
-            
 
-        # To do: Make this :)
 
     ###############################################################
     #                  CALCULATION METHODS
@@ -357,6 +359,33 @@ class FairKit:
             .reset_index()
         )
         return df_PP
+
+    def get_calibration(self, n_bins = 5):
+        """ Calculate calibration by group
+
+        Args:
+            n_bins (int): Number of bins used in calculation
+
+        Returns:
+            pd.DataFrame with calculations. To do: Should columns be described? 
+        """
+        bins = np.linspace(0, 1, num = n_bins+1)
+        calibration_df = (
+            self.classifier
+            .assign(
+                bin = lambda x: pd.cut(x.r, bins = bins),
+                bin_center = lambda x: [x.bin[i].mid for i in range(x.shape[0])])
+            .groupby(['a', 'bin_center'])
+            .agg(
+                y_bin_mean = ('y', lambda x: np.mean(x)),
+                y_bin_se = ('y', lambda x: np.std(x)/np.sqrt(len(x))),
+                bin_size = ('y', lambda x: len(x)))
+            .assign(
+                y_bin_lwr = lambda x: x['y_bin_mean']-x['y_bin_se'],
+                y_bin_upr = lambda x: x['y_bin_mean']+x['y_bin_se'])
+            .reset_index()
+            )
+        return calibration_df
 
     ###############################################################
     #                  VISUALIZATION METHODS
@@ -602,7 +631,7 @@ class FairKit:
             data = chosen_threshold, ax = ax,
             hue = 'sens_grp', s = 100,
             palette = self.sens_grps_cols,
-            zorder = 2)
+            zorder = 2, legend = False)
         ax.plot([0,1], [0,1], color = 'grey', linewidth = 0.5)
         ax.set_xlabel('False positive rate')
         ax.set_ylabel('True positive rate')
@@ -666,7 +695,45 @@ class FairKit:
         ax.tick_params(left=True, labelsize=12)
         ax.set_title(title)
 
+    def plot_calibration(self, n_bins = 5, ax = None):
+        """Plot calibration by sensitive groups
+        
+        Args:
+            n_bins (int): Number of bins
+            ax (matplotlib.axes): Axes object to plot on. Optional. 
+        """
+        # To do: Documentation
+        muted_colors = {k:desaturate(col) for (k,col) in self.sens_grps_cols.items()}
+        calibration_df = (
+            self.get_calibration(n_bins = n_bins)
+            .assign(color = lambda x: x.a.map(muted_colors))
+            .sort_values(['bin_center', 'a'])
+            .reset_index())
+        jitter = list(np.linspace(-0.004, 0.004, self.n_sens_grps))*n_bins
+        calibration_df['bin_center_jitter'] = calibration_df['bin_center'] + jitter
 
+        if ax is None: 
+            fig = plt.figure()
+            ax = fig.add_subplot(1, 1, 1)
+        sns.lineplot(
+            x = 'bin_center', y = 'y_bin_mean', hue = 'a', 
+            data = calibration_df, ax = ax,
+            palette = self.sens_grps_cols)
+        sns.scatterplot(
+            x = 'bin_center_jitter', y = 'y_bin_mean', hue = 'a', 
+            data = calibration_df, ax = ax,
+            palette = self.sens_grps_cols, legend = False)
+        ax.vlines(
+            x = calibration_df.bin_center_jitter,
+            ymin = calibration_df.y_bin_lwr, 
+            ymax = calibration_df.y_bin_upr, 
+            colors = calibration_df.color, linewidth = 0.5)
+        ax.plot([0,1], [0,1], color = 'grey', linewidth = 0.5)
+        ax.set_xlabel('Predicted probability')
+        ax.set_ylabel('True probability $\pm$ SE')
+        ax.set_xlim((0,1))
+        sns.despine(ax = ax, top = True, right = True)
+        ax.legend(frameon = False, loc = 'upper left') 
 #%% Main
 if __name__ == "__main__":
     file_path = 'data\\processed\\anonymous_data.csv'
@@ -689,10 +756,9 @@ if __name__ == "__main__":
     # l3 check
     #fair_anym.layer_3(method = 'w_fp_influence')
     #fair_anym.layer_3(method = 'confusion_matrix')
-    fair_anym.layer_3(method = 'roc_curves')
-    kwargs = {'orientation':'h'}
+    #fair_anym.layer_3(method = 'roc_curves')
+    calibration = fair_anym.layer_3(method = 'calibration', **{'n_bins': 5})
+    #kwargs = {'orientation':'h'}
     #fair_anym.layer_3(method = 'independence_check', **kwargs)
+# %% Calibration plot 
 
-    
-
-# %%
