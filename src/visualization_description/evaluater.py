@@ -15,9 +15,10 @@ if __name__ == '__main__':
     run_anym = False
     run_german = False
     run_taiwanese = False
-    run_compas = True
+    run_compas = False
     run_catalan = False
-    run_ADNI = False
+    run_ADNI = True
+    adni_no = 1
 
     credit_w_fp = 0.9
     compas_w_fp = 0.9
@@ -43,7 +44,7 @@ if __name__ == '__main__':
         plt.savefig(figure_path+'anym_l2.png')
         if update_report_figures:
             plt.savefig(fig_path_report+'L2_example.pdf', bbox_inches='tight')
-
+        fair_anym.layer_1(output_table=False)
 
 
 
@@ -66,6 +67,7 @@ if __name__ == '__main__':
         plt.savefig(figure_path+'german_log_reg_confusion.png')
         fair_german_log_reg.layer_2(plot = True, output_table=False)
         plt.savefig(figure_path+'german_log_reg_l2.png')
+        fair_german_log_reg.layer_1(output_table=False)
         
 
     #######################################
@@ -95,6 +97,8 @@ if __name__ == '__main__':
         plt.savefig(figure_path+'german_nn_confusion.png')
         fair_german_nn.layer_2(plot = True, output_table=False)
         plt.savefig(figure_path+'german_nn_l2.png')
+        fair_german_nn.layer_1(output_table=False)
+        
 
 
     #######################################
@@ -133,6 +137,7 @@ if __name__ == '__main__':
         plt.savefig(figure_path+'compas_confusion_race.png')
         fair_compas_race.layer_2(plot = True, output_table=False)
         plt.savefig(figure_path+'compas_l2_race.png')
+        fair_compas_race.layer_1(output_table=False)
     
 
     #######################################
@@ -143,7 +148,7 @@ if __name__ == '__main__':
         catalan = pd.read_csv(catalan_file_path)
 
     # Sensitive: Area of Origin
-        fair_catalan_V4 = FairKit(
+        fair_catalan = FairKit(
             y = catalan.V115_RECID2015_recid, 
             y_hat = catalan.nn_pred, 
             a = catalan.V4_area_origin, 
@@ -151,10 +156,11 @@ if __name__ == '__main__':
             w_fp = catalan_w_fp,
             model_type='Catalan NN')
 
-        fair_catalan_V4.plot_confusion_matrix()
+        fair_catalan.plot_confusion_matrix()
         plt.savefig(figure_path+'catalan_confusion_V4_area_origin.png')
-        fair_catalan_V4.layer_2(plot = True, output_table=False)
+        fair_catalan.layer_2(plot = True, output_table=False)
         plt.savefig(figure_path+'catalan_l2_V4_area_origin.png')
+        fair_catalan.layer_1(output_table=False)
 
 
     #######################################
@@ -177,6 +183,7 @@ if __name__ == '__main__':
         plt.savefig(figure_path+'taiwanese_confusion_sex.png')
         fair_taiwanese.layer_2(plot = True, output_table=False)
         plt.savefig(figure_path+'taiwanese_l2_sex.png')
+        fair_taiwanese.layer_1(output_table=False)
 
     if run_ADNI or run_all:
         for adni_no in [1,2]:
@@ -193,6 +200,7 @@ if __name__ == '__main__':
             plt.savefig(figure_path+f'adni{adni_no}_confusion.png')
             fair_adni.layer_2(plot = True, output_table=False)
             plt.savefig(figure_path+f'adni{adni_no}_l2.png')
+            fair_adni.layer_1(output_table=False)
             
             
 

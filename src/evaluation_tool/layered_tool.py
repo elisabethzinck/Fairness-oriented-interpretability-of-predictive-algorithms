@@ -537,7 +537,7 @@ class FairKit:
             l1_data (data frame): data frame with data returned in layer_1
         """
         if ax is None:
-            fig = plt.figure(figsize=(6,2))
+            fig = plt.figure(figsize=(6,1.3))
             ax = fig.add_subplot(1, 1, 1)
 
         p_grey = desaturate((58/255, 58/255, 58/255))
@@ -570,12 +570,12 @@ class FairKit:
 
         # Plotting text on axis
         ax.set_xlim(0,1.1)
-        ax.set_ylim(0.68,0.9)
+        ax.set_ylim(0.72,0.85)
         ax.set_axis_off()
         sns.despine(top = True, bottom = True, left = True, right= True)
         format_text_layer_1(ax, 0.02, 0.8, line_1, color_list_1,
                             font_sizes_1, font_weights_1)
-        format_text_layer_1(ax, 0.02, 0.7, line_2, color_list_2,
+        format_text_layer_1(ax, 0.02, 0.74, line_2, color_list_2,
                             font_sizes_2, font_weights_2)
 
     def plot_roc_curves(self):
@@ -674,14 +674,14 @@ if __name__ == "__main__":
     l1 = fair_anym.layer_1()
 
     # l2 check
-    l2_rates, l2_relative_rates, l2_barometer = fair_anym.layer_2()
+    #l2_rates, l2_relative_rates, l2_barometer = fair_anym.layer_2()
 
     # l3 check
-    fair_anym.layer_3(method = 'w_fp_influence')
-    fair_anym.layer_3(method = 'confusion_matrix')
+    #fair_anym.layer_3(method = 'w_fp_influence')
+    #fair_anym.layer_3(method = 'confusion_matrix')
     #fair_anym.layer_3(method = 'roc_curves')
     kwargs = {'orientation':'h'}
-    fair_anym.layer_3(method = 'predicted_positives', **kwargs)
+    #fair_anym.layer_3(method = 'predicted_positives', **kwargs)
 
     
 
