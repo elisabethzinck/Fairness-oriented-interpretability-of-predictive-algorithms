@@ -25,7 +25,7 @@ from src.evaluation_tool.utils import (
     cm_matrix_to_dict, custom_palette, abs_percentage_tick, flatten_list, 
     cm_dict_to_matrix, add_colors_with_stripes, get_alpha_weights,
     value_counts_df, desaturate, label_case, format_text_layer_1,
-    N_pos, pos_perc, confint_lwr, confint_upr, error_bar)
+    N_pos, pos_frac, confint_lwr, confint_upr, error_bar)
 
 #%%
 
@@ -348,11 +348,10 @@ class FairKit:
             .groupby(["a"])
             .agg(N = ("y_hat", "count"),
                 N_PP = ("y_hat", N_pos),
-                PP_frac = ("y_hat", pos_perc), 
+                PP_frac = ("y_hat", pos_frac), 
                 conf_lwr = ("y_hat", confint_lwr),
                 conf_upr = ("y_hat", confint_upr))
             .reset_index()
-            .sort_values(by = 'N', ascending = False)
         )
         return df_PP
 
