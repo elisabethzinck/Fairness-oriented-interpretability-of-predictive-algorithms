@@ -132,12 +132,15 @@ class FairKit:
             f.subplots_adjust(wspace = 0.5, hspace = 0.7)
 
         if output_table:
-            rates = pd.concat(
+            rates = (pd.concat(
                 [self.rates, self.get_WMR_rates(w_fp = w_fp)]
-                ).reset_index(drop = True)
+                )
+                .query("rate in ['FPR', 'FNR', 'FDR', 'FOR', 'WMR']")
+                .sort_values(['rate', 'grp'])
+                .reset_index(drop = True))
             relative_rates = self.get_relative_rates(rates = rates)
             barometer = self.get_fairness_barometer(w_fp = w_fp)
-            return rates, relative_rates, barometer
+            return rates.query("rate != 'WMR'"), relative_rates, barometer
         
     def layer_3(self, method, plot = True, output_table = True, w_fp = None, **kwargs):
         """To do: Documentation"""
@@ -580,7 +583,9 @@ class FairKit:
     def plot_roc_curves(self):
         # To do: Documentation
         roc = self.get_roc_curves()
-
+        roc_half = roc[(0.50 < roc.threshold)]
+        chosen_threshold = roc_half.loc[
+            roc_half.groupby('sens_grp').threshold.idxmin()]
         fig = plt.figure()
         ax = fig.add_subplot(1, 1, 1)
         sns.lineplot(
@@ -673,12 +678,12 @@ if __name__ == "__main__":
     l1 = fair_anym.layer_1()
 
     # l2 check
-    #l2_rates, l2_relative_rates, l2_barometer = fair_anym.layer_2()
+    l2_rates, l2_relative_rates, l2_barometer = fair_anym.layer_2()
 
     # l3 check
     #fair_anym.layer_3(method = 'w_fp_influence')
     #fair_anym.layer_3(method = 'confusion_matrix')
-    #fair_anym.layer_3(method = 'roc_curves')
+    fair_anym.layer_3(method = 'roc_curves')
     kwargs = {'orientation':'h'}
     #fair_anym.layer_3(method = 'predicted_positives', **kwargs)
 
