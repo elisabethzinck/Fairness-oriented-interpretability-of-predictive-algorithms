@@ -22,19 +22,20 @@ from sklearn.metrics import confusion_matrix, roc_curve
 
 # dir functions
 from src.evaluation_tool.utils import (
-    cm_matrix_to_dict, custom_palette, abs_percentage_tick, flatten_list, 
+    cm_matrix_to_dict, custom_palette, abs_percentage_tick, extract_cm_values, flatten_list, 
     cm_dict_to_matrix, add_colors_with_stripes, get_alpha_weights,
     value_counts_df, desaturate, label_case, format_text_layer_1,
-    N_pos, N_neg, neg_frac, pos_frac, confint_lwr, confint_upr, error_bar,
-    flip_dataframe)
+    N_pos, N_neg, pos_frac, confint_lwr, confint_upr, error_bar,
+    flip_dataframe, extract_cm_values, cm_vals_to_matrix)
 
 #%%
 
-def calculate_WMR(cm, w_fp):
+def calculate_WMR(cm, grp, w_fp):
     """Calculate weighted misclassification rate
     
     Args:
-        cm (dict): Confusion matrix dictionary containing keys 'FP' and 'FN'
+        cm (dataframe): long format confusion matrix as returned 
+                        by get_confusion_matrix() in layered_tool
         w_fp (int or float): False positive error weight 
     """
 
@@ -50,8 +51,9 @@ def calculate_WMR(cm, w_fp):
     else:
         c = 1/w_fp
 
-    n = sum(cm.values())
-    wmr = c*(w_fp*cm['FP'] + (1-w_fp)*cm['FN'])/n
+    TP, FN, FP, TN = extract_cm_values(cm, grp)
+    n = sum([TP, TN, FN, FP])
+    wmr = c*(w_fp*FP + (1-w_fp)*FN)/n
     return wmr
 
 class FairKit:
@@ -232,7 +234,7 @@ class FairKit:
 
         df.reset_index(inplace=True, drop=True)
 
-        return cm
+        return df
 
     def get_rates(self, w_fp = None):
         """Calculate rates by sensitive group"""
@@ -240,7 +242,7 @@ class FairKit:
             w_fp = self.w_fp
         rates = {}   
         for grp in self.sens_grps:
-            TP, FN, FP, TN = self.cm[grp].values()
+            TP, FN, FP, TN = extract_cm_values(self.cm, grp)
             rates[grp] = {
                 'TPR': TP/(TP + FN), 
                 'FNR': FN/(TP + FN), 
@@ -301,7 +303,7 @@ class FairKit:
         WMR = pd.DataFrame({
             'grp': self.sens_grps,
             'rate': 'WMR'})
-        WMR['rate_val'] = [calculate_WMR(self.cm[grp], w_fp) for grp in WMR.grp]
+        WMR['rate_val'] = [calculate_WMR(self.cm, grp, w_fp) for grp in WMR.grp]
         return WMR
 
     def get_relative_WMR(self, w_fp = None):
@@ -399,8 +401,9 @@ class FairKit:
 
         # One plot for each sensitive group
         for i, grp in enumerate(self.sens_grps):
-            n_obs = sum(self.cm[grp].values())
-            grp_cm = cm_dict_to_matrix(self.cm[grp])
+            TP, FN, FP, TN = extract_cm_values(self.cm, grp)
+            n_obs = sum([TP, FN, FP, TN])
+            grp_cm = cm_vals_to_matrix(TP, FN, FP, TN)
     
             plt.subplot(1,n_grps,i+1)
             ax = sns.heatmap(
@@ -722,41 +725,7 @@ if __name__ == "__main__":
     #kwargs = {'orientation':'h'}
     #fair_anym.layer_3(method = 'independence_check', **kwargs)
 
-    cm=fair_anym.get_confusion_matrix()
-    fair_anym.plot_confusion_matrix()
-
-    df = pd.DataFrame({'a':fair_anym.a, 'y': fair_anym.y, 'y_hat':fair_anym.y_hat})
-
-    agg_df = (df.groupby('a')
-        .agg(P = ("y", N_pos), 
-             N = ("y", N_neg),
-             PP = ("y_hat", N_pos),
-             PN = ("y_hat", N_neg),
-        )    
-        .reset_index()     
-    )
-    cm_df=(flip_dataframe(pd.DataFrame(cm).reset_index())
-        .rename(columns={'index':'a'})
-        .set_index('a')
-        .join(agg_df.set_index('a'))
-        .reset_index()
-        .melt(id_vars = 'a',value_name='number_obs', var_name='type_obs')
-    )  
-    df = pd.DataFrame(columns=['a', 'type_obs', 'number_obs', 'fraction_obs'])
-    for grp in fair_anym.sens_grps:
-        n_grp = fair_anym.a.value_counts()[grp]
-        tmp_df = (cm_df.query(f"a=='{grp}'")
-            .assign(fraction_obs = lambda x: x.number_obs/n_grp)
-        )
-        df = df.append(tmp_df)
-    
-    df.reset_index(inplace=True, drop=True)
-
-
-#%%
-    for grp in fair_anym.sens_grps:
-        cm[grp]['n'] = fair_anym.a.value_counts()[grp]
-        cm[grp]['N'] = fair_anym.a.value_counts()[grp]
-    
+    #cm=fair_anym.get_confusion_matrix()
+    #fair_anym.plot_confusion_matrix()
 
 # %%

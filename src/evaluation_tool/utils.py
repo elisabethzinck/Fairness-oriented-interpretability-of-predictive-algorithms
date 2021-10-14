@@ -13,6 +13,27 @@ def flatten_list(t):
     flat_list = [item for sublist in t for item in sublist]
     return flat_list
 
+def cm_vals_to_matrix(TP, FN, FP, TN):
+    """Converts values of TP, FN, FP and TN into a confusion matrix
+    
+    Args:
+        TP (int): True Positives
+        FN (int): False Negatives
+        FP (int): False Positives 
+        TN (int): True Negatives
+
+    Returns: 
+        Numpy array of shape (2,2) 
+    """
+    cm_matrix = np.array(
+        [
+            [TP, FN], 
+            [FP, TN]
+        ]
+    )
+    return cm_matrix
+
+
 def cm_dict_to_matrix(cm_dict):
     """Convert a confusion dict to confusion matrix
     
@@ -222,13 +243,13 @@ def format_text_layer_1(ax, x, y, text_list, color_list, font_sizes, font_weight
         ex = text.get_window_extent()
         t = transforms.offset_copy(text._transform, x=ex.width, units='dots')
 
-def extract_cm_values(grp, df):
+def extract_cm_values(df, grp):
     """Extracts TP, TN, FP and TN from long format confusion matrix
     
     Args: 
-        grp(str): sensitive group name 
         df(Dataframe): long format confusion matrix as returned 
                         by get_confusion_matrix() in layered_tool
+        grp(str): sensitive group name 
     """
     cm_data = df.query(f"a=='{grp}' & type_obs in ['TP', 'FN', 'FP', 'TN']")
     TP, FN, FP, TN = cm_data.number_obs.to_list()
