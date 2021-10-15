@@ -175,7 +175,6 @@ def desaturate(color, prop = 0.75):
         new_color = colorsys.hls_to_rgb(h, l, s)
         return new_color
 
-#%%
 def value_counts_df(df, col_name):
     """pd.value_counts() for dataframes
     
@@ -222,16 +221,33 @@ def format_text_layer_1(ax, x, y, text_list, color_list, font_sizes, font_weight
         ex = text.get_window_extent()
         t = transforms.offset_copy(text._transform, x=ex.width, units='dots')
 
+def wilson_confint(n_successes, n, side):
+    """Calculate Wilson proportion CI
+    
+    Args: 
+        n_successes (int): Count
+        n (int): Number of observations
+        side ({'lwr', 'upr'}): Return lower or upper side of interval
+    """
+    conf = proportion_confint(
+        count = n_successes,
+        nobs = n,
+        method = "wilson")
+    
+    if side == 'lwr':
+        return conf[0]
+    elif side == 'upr':
+        return conf[1]
+    else:
+        raise ValueError(f"`side` must be in ['lwr', 'upr']. You supplied `side` = {side}")
+        return None
 ################################################
 #             lambda functions
 ################################################
 N_pos = lambda x: np.count_nonzero(x)
-pos_frac = lambda x: (np.count_nonzero(x)/len(x))
-confint = lambda x: proportion_confint(count=N_pos(x),
-                                nobs=len(x),
-                                method = "wilson")
-confint_lwr = lambda x: confint(x)[0]
-confint_upr = lambda x: confint(x)[1]
+N_neg = lambda x: len(x)-np.count_nonzero(x)
+frac_pos = lambda x: (np.count_nonzero(x)/len(x))
+frac_neg = lambda x: (len(x)-np.count_nonzero(x))/len(x)
 
 
 

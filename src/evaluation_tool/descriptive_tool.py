@@ -13,8 +13,9 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.manifold import TSNE
 
 from src.data.general_preprocess_functions import one_hot_encode_mixed_data
-from src.evaluation_tool.utils import (custom_palette, error_bar, N_pos,
-pos_frac, confint_lwr, confint_upr, error_bar, abs_percentage_tick)
+from src.evaluation_tool.utils import (
+    custom_palette, error_bar, 
+    N_pos, frac_pos, wilson_confint, error_bar, abs_percentage_tick)
 #%% 
 class DescribeData:
     def __init__(self, y_name, a_name, id_name = None, data = None):
@@ -45,13 +46,14 @@ class DescribeData:
         """Positive rates and confidence intervals of data 
         aggregated by the sensitive variable"""
         df_agg = (self.data
-            .groupby(["a"])
-            .agg(N = ("y", "count"),
+            .groupby(["a"], as_index = False)
+            .agg(
+                N = ("y", "count"),
                 N_positive = ("y", N_pos),
-                positive_frac = ("y", pos_frac), 
-                conf_lwr = ("y", confint_lwr),
-                conf_upr = ("y", confint_upr))
-            .reset_index()
+                positive_frac = ("y", frac_pos))
+            .assign(
+                conf_lwr = lambda x: wilson_confint(x.N_positive, x.N, 'lwr'),
+                conf_upr = lambda x: wilson_confint(x.N_positive, x.N, 'upr'))
             .sort_values(by = 'N', ascending = False)
         )
         return df_agg
@@ -70,14 +72,16 @@ class DescribeData:
             )
         
         # appending total row: 
-        row_total = pd.DataFrame({
-            "a": 'Total', 
-            "N": len(self.data.y),
-            "N_positive": N_pos(self.data.y),
-            "positive_frac": pos_frac(self.data.y),
-            "conf_lwr": confint_lwr(self.data.y),
-            "conf_upr": confint_upr(self.data.y)
-            }, index = [self.n_sens_grps])
+        row_total = (
+            pd.DataFrame({
+                "a": 'Total', 
+                "N": len(self.data.y),
+                "N_positive": N_pos(self.data.y),
+                "positive_frac": frac_pos(self.data.y)}, 
+                index = [self.n_sens_grps])
+            .assign(
+                conf_lwr = lambda x: wilson_confint(x.N_positive, x.N, 'lwr'),
+                conf_upr = lambda x: wilson_confint(x.N_positive, x.N, 'upr')))
         df_agg =self.descriptive_table.append(row_total, ignore_index=True)
 
         # Latex formatting
@@ -239,7 +243,7 @@ if __name__ == "__main__":
                         id_name = 'person_id',
                         data = data)
 
-    desc.plot_tSNE(n_tries = 3)
+    #desc.plot_tSNE(n_tries = 3)
     descriptive_table = desc.get_descriptive_table()
     desc.descriptive_table_to_tex(target_tex_name='Defaulted')
     ax = desc.plot_positive_rate(orientation = 'v', title ='Fraction of Bad Credit Scores')
