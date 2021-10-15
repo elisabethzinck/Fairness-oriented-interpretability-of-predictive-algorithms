@@ -495,7 +495,7 @@ class FairKit:
                 label.set_ha('center')
             # Titles and font size 
             fonts = {'size':13, 'weight':'normal'}
-            ax.tick_params(axis='both',labelsize = 12)
+            ax.tick_params(axis='both',labelsize = 11)
             plt.ylabel(None)
             plt.xlabel(None)
             plt.title(f'{str.capitalize(grp)} (N = {n_obs})', **fonts)
@@ -665,7 +665,7 @@ class FairKit:
         line_2 = (f"is {max_val:.0f}% larger than the minimum WMR").split()
 
         # customizing lines with group
-        line_1 = line_1 + [f"'{max_grp.capitalize()}'"]
+        line_1 = line_1 + [f"'{max_grp.title()}'"]
         n_words_1 = len(line_1)
         color_list_1 = [p_grey]*n_words_1
         font_sizes_1 = [20]*n_words_1
@@ -695,12 +695,15 @@ class FairKit:
     def plot_roc_curves(self, ax = None):
         # To do: Documentation
         roc = self.get_roc_curves()
+
+        # To do: Possible to choose other thresholds than 0.5?
         roc_half = roc[(0.50 < roc.threshold)]
         chosen_threshold = roc_half.loc[
             roc_half.groupby('sens_grp').threshold.idxmin()]
         
+        # To do: Label for do showing threshold cutoff
         if ax is None: 
-            fig = plt.figure(figsize=(10,8))
+            fig = plt.figure()
             ax = fig.add_subplot(1, 1, 1)
         sns.lineplot(
             x = 'fpr', y = 'tpr', hue = 'sens_grp', 
@@ -757,7 +760,7 @@ class FairKit:
                         order = self.sens_grps,
                         alpha = 0.95)
                 ax.set_ylim((0,100))
-                ax.set_xticklabels([grp.capitalize() for grp in self.sens_grps])
+                ax.set_xticklabels([grp.title() for grp in self.sens_grps])
                 ax.yaxis.set_major_formatter(mtick.FuncFormatter(abs_percentage_tick))
                 ax.set_ylabel(perc_label)
                 ax.set_xlabel(None)
@@ -770,7 +773,7 @@ class FairKit:
                         order = self.sens_grps, 
                         alpha = 0.95)
                 ax.set_xlim((0,100))
-                ax.set_yticklabels([grp.capitalize() for grp in self.sens_grps])
+                ax.set_yticklabels([grp.title() for grp in self.sens_grps])
                 ax.xaxis.set_major_formatter(mtick.FuncFormatter(abs_percentage_tick))
                 ax.set_xlabel(perc_label)
                 ax.set_ylabel(None)
