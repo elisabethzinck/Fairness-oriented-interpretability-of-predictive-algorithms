@@ -397,13 +397,10 @@ class FairKit:
         n_grps = len(self.sens_grps)
 
         # make gridspec for groups
-        nrows = math.ceil(n_grps/3)
-        ncols = 3
+        ncols = min(n_grps, 3)
+        nrows = math.ceil(n_grps/ncols)
         gs = GridSpec(nrows = nrows, ncols = ncols)
-        f = plt.figure(figsize = (4.2*ncols,4.2*nrows))
-        
-        if self.model_type != None:
-            plt.suptitle(self.model_type)
+        f = plt.figure(figsize = (4*ncols,4*nrows))
 
         # One plot for each sensitive group
         for i, grp in enumerate(self.sens_grps):
@@ -424,19 +421,17 @@ class FairKit:
             col_idx = i%3
             ax = f.add_subplot(gs[row_idx, col_idx])
 
-            plt.subplot(1,n_grps,i+1)
             sns.heatmap(
                 grp_cm/n_obs*100, 
                 annot = True, 
                 cmap = cmap, 
                 vmin = 0, vmax = 100,
                 cbar = False,
-                xticklabels=[f'Predicted\nPositive ({PP:.0f}%)',
-                             f' Predicted\nNegative ({PN:.0f}%)'],
-                yticklabels=[f'Actual Positive\n({P:.0f}%)\n',
-                             f'Actual Negative\n({N:.0f}%)\n'], 
-                annot_kws={'size':15}, 
-                ax = ax)
+                xticklabels=[f'Predicted\nPositive ({PP:.0f}%) ',
+                             f' Predicted\n Negative ({PN:.0f}%)'],
+                yticklabels=[f'  Actual Positive\n({P:.0f}%)\n',
+                             f'Actual Negative  \n({N:.0f}%)\n'], 
+                annot_kws={'size':15})
 
             # Adjust figure labels
             names = ['TP', 'FN', 'FP', 'TN']
@@ -445,17 +440,20 @@ class FairKit:
                 new_text = f"{name}: {old_text}%"
                 a.set_text(new_text)
             # Centering tick labels
-            for label in ax.get_xticklabels():
-                label.set_ha('center')
+            #for label in ax.get_xticklabels():
+            #    label.set_ha('center')
             for label in ax.get_yticklabels():
                 label.set_ha('center')
             # Titles and font size 
-            fonts = {'size':12}
+            fonts = {'size':13, 'weight':'normal'}
             ax.tick_params(axis='both',labelsize = 12)
             plt.ylabel(None)
             plt.xlabel(None)
             plt.title(f'{str.capitalize(grp)} (N = {n_obs})', **fonts)
-            f.subplots_adjust(wspace = 0.3, hspace = 0.3)
+            f.subplots_adjust(wspace = 0.4, hspace = 0.4)
+            if self.model_type != None:
+                f.suptitle(self.model_type, fontsize = 14,
+                    horizontalalignment='center')
             
 
     def plot_rates(self, ax = None, w_fp = None):
@@ -742,7 +740,8 @@ if __name__ == "__main__":
         y_hat = df.yhat, 
         a = df.grp, 
         r = df.phat,
-        w_fp = 0.8)
+        w_fp = 0.8,
+        model_type="Test")
 
     # l1 check
     #l1 = fair_anym.layer_1()
