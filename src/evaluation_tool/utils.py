@@ -33,7 +33,6 @@ def cm_vals_to_matrix(TP, FN, FP, TN):
     )
     return cm_matrix
 
-
 def cm_dict_to_matrix(cm_dict):
     """Convert a confusion dict to confusion matrix
     
@@ -262,6 +261,19 @@ def wilson_confint(n_successes, n, side):
     else:
         raise ValueError(f"`side` must be in ['lwr', 'upr']. You supplied `side` = {side}")
         return None
+
+def extract_cm_values(df, grp):
+    """Extracts TP, TN, FP and TN from long format confusion matrix
+    
+    Args: 
+        df(Dataframe): long format confusion matrix as returned 
+                        by get_confusion_matrix() in layered_tool
+        grp(str): sensitive group name 
+    """
+    cm_data = df.query(f"a=='{grp}' & type_obs in ['TP', 'FN', 'FP', 'TN']")
+    TP, FN, FP, TN = cm_data.number_obs.to_list()
+
+    return TP, FN, FP, TN
 ################################################
 #             lambda functions
 ################################################
