@@ -394,8 +394,14 @@ class FairKit:
     ###############################################################
 
     def plot_confusion_matrix(self):
-        plt.figure(figsize = (15,5))
         n_grps = len(self.sens_grps)
+
+        # make gridspec for groups
+        nrows = math.ceil(n_grps/3)
+        ncols = 3
+        gs = GridSpec(nrows = nrows, ncols = ncols)
+        f = plt.figure(figsize = (4.2*ncols,4.2*nrows))
+        
         if self.model_type != None:
             plt.suptitle(self.model_type)
 
@@ -404,17 +410,33 @@ class FairKit:
             TP, FN, FP, TN = extract_cm_values(self.cm, grp)
             n_obs = sum([TP, FN, FP, TN])
             grp_cm = cm_vals_to_matrix(TP, FN, FP, TN)
-    
+
+            N, P, PN, PP = (self.cm
+            .query(f'a == "{grp}" & type_obs in ["PP", "PN", "P", "N"]')
+            .sort_values(by = 'type_obs')
+            .fraction_obs*100
+            )
+
+            cmap = sns.light_palette('#007EA7', as_cmap=True)
+
+            # Specifying axis for heatmap
+            row_idx = math.floor(i/3)
+            col_idx = i%3
+            ax = f.add_subplot(gs[row_idx, col_idx])
+
             plt.subplot(1,n_grps,i+1)
-            ax = sns.heatmap(
+            sns.heatmap(
                 grp_cm/n_obs*100, 
                 annot = True, 
-                cmap = 'Blues', 
+                cmap = cmap, 
                 vmin = 0, vmax = 100,
                 cbar = False,
-                xticklabels=['Predicted positive', 'Predicted negative'],
-                yticklabels=['Actual positive', 'Actual negative'], 
-                annot_kws={'size':15})
+                xticklabels=[f'Predicted\nPositive ({PP:.0f}%)',
+                             f' Predicted\nNegative ({PN:.0f}%)'],
+                yticklabels=[f'Actual Positive\n({P:.0f}%)\n',
+                             f'Actual Negative\n({N:.0f}%)\n'], 
+                annot_kws={'size':15}, 
+                ax = ax)
 
             # Adjust figure labels
             names = ['TP', 'FN', 'FP', 'TN']
@@ -422,9 +444,19 @@ class FairKit:
                 old_text = a.get_text()
                 new_text = f"{name}: {old_text}%"
                 a.set_text(new_text)
+            # Centering tick labels
+            for label in ax.get_xticklabels():
+                label.set_ha('center')
+            for label in ax.get_yticklabels():
+                label.set_ha('center')
+            # Titles and font size 
+            fonts = {'size':12}
+            ax.tick_params(axis='both',labelsize = 12)
             plt.ylabel(None)
             plt.xlabel(None)
-            plt.title(f'{str.capitalize(grp)} (N = {n_obs})')
+            plt.title(f'{str.capitalize(grp)} (N = {n_obs})', **fonts)
+            f.subplots_adjust(wspace = 0.3, hspace = 0.3)
+            
 
     def plot_rates(self, ax = None, w_fp = None):
         """Plot FPR, FNR, FDR, FOR for each group"""
@@ -726,6 +758,7 @@ if __name__ == "__main__":
     #fair_anym.layer_3(method = 'independence_check', **kwargs)
 
     #cm=fair_anym.get_confusion_matrix()
-    #fair_anym.plot_confusion_matrix()
+    fair_anym.plot_confusion_matrix()
 
 # %%
+
