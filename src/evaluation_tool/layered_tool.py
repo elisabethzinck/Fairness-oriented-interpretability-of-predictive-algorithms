@@ -25,8 +25,9 @@ from src.evaluation_tool.utils import (
     cm_matrix_to_dict, custom_palette, abs_percentage_tick, extract_cm_values, flatten_list, 
     cm_dict_to_matrix, add_colors_with_stripes, get_alpha_weights,
     value_counts_df, desaturate, label_case, format_text_layer_1,
-    N_pos, N_neg, pos_frac, confint_lwr, confint_upr, error_bar,
-    flip_dataframe, extract_cm_values, cm_vals_to_matrix)
+    N_pos, N_neg, frac_pos, frac_neg, wilson_confint, 
+    error_bar, flip_dataframe, extract_cm_values, cm_vals_to_matrix
+    )
 
 #%%
 
@@ -145,12 +146,10 @@ class FairKit:
             barometer = self.get_fairness_barometer(w_fp = w_fp)
             return rates.query("rate != 'WMR'"), relative_rates, barometer
         
-    def layer_3(self, method, plot = True, output_table = True, w_fp = None, **kwargs):
+    def layer_3(self, method, plot = True, output_table = True, **kwargs):
         """To do: Documentation"""
 
         # To do: Split up in getting data and getting plot
-        if w_fp is None:
-            w_fp = self.w_fp
 
         method_options = [
             'w_fp_influence', 
@@ -178,7 +177,11 @@ class FairKit:
                 return roc
 
         if method == 'calibration':
-            pass
+            if plot:
+                self.plot_calibration(**kwargs)
+            if output_table:
+                calibration = self.get_calibration(**kwargs)
+                return calibration
 
         if method == 'confusion_matrix':
             # To do: Get data out in a sensible way
@@ -186,12 +189,11 @@ class FairKit:
         
         if method == 'independence_check':
             if plot: 
-                self.plot_predicted_positives(**kwargs)
+                self.plot_independence_check(**kwargs)
             if output_table:
-                return self.get_predicted_positives()
-            
+                w_fp = kwargs.get('w_fp')
+                return self.get_independence_check(w_fp = w_fp)
 
-        # To do: Make this :)
 
     ###############################################################
     #                  CALCULATION METHODS
@@ -374,20 +376,67 @@ class FairKit:
         roc = pd.concat(roc_list).reset_index(drop = True)  
         return roc  
 
-    def get_predicted_positives(self):
+    def get_independence_check(self, w_fp = None):
         """Predicted Positive rates and Confidence Intervals per 
         sensitive group"""
-        df = pd.DataFrame({"a": self.a, "y_hat": self.y_hat})
-        df_PP = (df
-            .groupby(["a"])
-            .agg(N = ("y_hat", "count"),
-                N_PP = ("y_hat", N_pos),
-                PP_frac = ("y_hat", pos_frac), 
-                conf_lwr = ("y_hat", confint_lwr),
-                conf_upr = ("y_hat", confint_upr))
+        if w_fp is None:
+            w_fp = self.w_fp
+        
+        if w_fp >= 0.5:
+            df = (self.classifier
+                .groupby("a", as_index = False)
+                .agg(
+                    N = ("y_hat", "count"),
+                    N_predicted_label = ("y_hat", N_pos),
+                    frac_predicted_label = ("y_hat", frac_pos))
+                .assign(
+                    conf_lwr = lambda x: wilson_confint(
+                        x.N_predicted_label, x.N, 'lwr'),
+                    conf_upr = lambda x: wilson_confint(
+                        x.N_predicted_label, x.N, 'upr'),
+                    label = 'positive'))
+        else:
+            df = (self.classifier
+                .groupby("a", as_index = False)
+                .agg(
+                    N = ("y_hat", "count"),
+                    N_predicted_label = ("y_hat", N_neg),
+                    frac_predicted_label = ("y_hat", frac_neg))
+                .assign(
+                    conf_lwr = lambda x: wilson_confint(
+                        x.N_predicted_label, x.N, 'lwr'),
+                    conf_upr = lambda x: wilson_confint(
+                        x.N_predicted_label, x.N, 'upr'),
+                    label = 'negative'))
+
+        return df
+
+    def get_calibration(self, n_bins = 5):
+        """ Calculate calibration by group
+
+        Args:
+            n_bins (int): Number of bins used in calculation
+
+        Returns:
+            pd.DataFrame with calculations. To do: Should columns be described? 
+        """
+        bins = np.linspace(0, 1, num = n_bins+1)
+        calibration_df = (
+            self.classifier
+            .assign(
+                bin = lambda x: pd.cut(x.r, bins = bins),
+                bin_center = lambda x: [x.bin[i].mid for i in range(x.shape[0])])
+            .groupby(['a', 'bin_center'])
+            .agg(
+                y_bin_mean = ('y', lambda x: np.mean(x)),
+                y_bin_se = ('y', lambda x: np.std(x)/np.sqrt(len(x))),
+                bin_size = ('y', lambda x: len(x)))
+            .assign(
+                y_bin_lwr = lambda x: x['y_bin_mean']-x['y_bin_se'],
+                y_bin_upr = lambda x: x['y_bin_mean']+x['y_bin_se'])
             .reset_index()
-        )
-        return df_PP
+            )
+        return calibration_df
 
     ###############################################################
     #                  VISUALIZATION METHODS
@@ -634,14 +683,14 @@ class FairKit:
             data = chosen_threshold, ax = ax,
             hue = 'sens_grp', s = 100,
             palette = self.sens_grps_cols,
-            zorder = 2)
+            zorder = 2, legend = False)
         ax.plot([0,1], [0,1], color = 'grey', linewidth = 0.5)
         ax.set_xlabel('False positive rate')
         ax.set_ylabel('True positive rate')
         sns.despine(ax = ax, top = True, right = True)
         ax.legend(frameon = False, loc = 'lower right')
 
-    def plot_predicted_positives(self, ax=None, orientation = 'h', title = "Percent Predicted Positives"):
+    def plot_independence_check(self, ax=None, orientation = 'h', w_fp = None):
         """ Bar plot of the percentage of predicted positives per
         sensitive group including a Wilson 95% CI 
         """
@@ -651,21 +700,26 @@ class FairKit:
             fig = plt.figure(figsize = (4,4))
             ax = fig.add_subplot(1,1,1)
 
-        df_PP = self.get_predicted_positives()
+        if w_fp is None:
+            w_fp = self.w_fp
+
+        df = self.get_independence_check(w_fp = w_fp)
 
         # Convert into percentage 
-        plot_data = (df_PP
-            .assign(positive_perc = lambda x: x.PP_frac*100,
+        plot_data = (df
+            .assign(perc = lambda x: x.frac_predicted_label*100,
                     conf_lwr = lambda x: x.conf_lwr*100,
                     conf_upr = lambda x: x.conf_upr*100)
         )
+        
+        perc_label = f'Predicted {df.label[0]} (%)'
 
         for grp in self.sens_grps:
             plot_df = plot_data.query(f'a == "{grp}"')
             assert plot_df.shape[0] == 1
             bar_mid = plot_df.index[0]
             if orientation == 'v':
-                sns.barplot(y="positive_perc",
+                sns.barplot(y="perc",
                         x = "a",
                         ax = ax,
                         data = plot_df,
@@ -675,8 +729,10 @@ class FairKit:
                 ax.set_ylim((0,100))
                 ax.set_xticklabels([grp.capitalize() for grp in self.sens_grps])
                 ax.yaxis.set_major_formatter(mtick.FuncFormatter(abs_percentage_tick))
+                ax.set_ylabel(perc_label)
+                ax.set_xlabel(None)
             else:
-                sns.barplot(x="positive_perc",
+                sns.barplot(x="perc",
                         y = "a",
                         ax = ax,
                         data = plot_df,
@@ -686,9 +742,9 @@ class FairKit:
                 ax.set_xlim((0,100))
                 ax.set_yticklabels([grp.capitalize() for grp in self.sens_grps])
                 ax.xaxis.set_major_formatter(mtick.FuncFormatter(abs_percentage_tick))
+                ax.set_xlabel(perc_label)
+                ax.set_ylabel(None)
             error_bar(ax, plot_df, bar_mid, orientation=orientation)
-            ax.set_ylabel('', fontsize = 12)
-            ax.set_xlabel('', fontsize = 12)
         
         # Finishing up 
         legend_elements = [Line2D([0], [0], color=(58/255, 58/255, 58/255),
@@ -696,9 +752,46 @@ class FairKit:
         ax.legend(handles=legend_elements, frameon = True, loc = "best")
         sns.despine(ax = ax, top = True, right = True)
         ax.tick_params(left=True, labelsize=12)
-        ax.set_title(title)
 
+    def plot_calibration(self, n_bins = 5, ax = None):
+        """Plot calibration by sensitive groups
+        
+        Args:
+            n_bins (int): Number of bins
+            ax (matplotlib.axes): Axes object to plot on. Optional. 
+        """
+        # To do: Documentation
+        muted_colors = {k:desaturate(col) for (k,col) in self.sens_grps_cols.items()}
+        calibration_df = (
+            self.get_calibration(n_bins = n_bins)
+            .assign(color = lambda x: x.a.map(muted_colors))
+            .sort_values(['bin_center', 'a'])
+            .reset_index())
+        jitter = list(np.linspace(-0.004, 0.004, self.n_sens_grps))*n_bins
+        calibration_df['bin_center_jitter'] = calibration_df['bin_center'] + jitter
 
+        if ax is None: 
+            fig = plt.figure()
+            ax = fig.add_subplot(1, 1, 1)
+        sns.lineplot(
+            x = 'bin_center', y = 'y_bin_mean', hue = 'a', 
+            data = calibration_df, ax = ax,
+            palette = self.sens_grps_cols)
+        sns.scatterplot(
+            x = 'bin_center_jitter', y = 'y_bin_mean', hue = 'a', 
+            data = calibration_df, ax = ax,
+            palette = self.sens_grps_cols, legend = False)
+        ax.vlines(
+            x = calibration_df.bin_center_jitter,
+            ymin = calibration_df.y_bin_lwr, 
+            ymax = calibration_df.y_bin_upr, 
+            colors = calibration_df.color, linewidth = 0.5)
+        ax.plot([0,1], [0,1], color = 'grey', linewidth = 0.5)
+        ax.set_xlabel('Predicted probability')
+        ax.set_ylabel('True probability $\pm$ SE')
+        ax.set_xlim((0,1))
+        sns.despine(ax = ax, top = True, right = True)
+        ax.legend(frameon = False, loc = 'upper left') 
 #%% Main
 if __name__ == "__main__":
     file_path = 'data\\processed\\anonymous_data.csv'
@@ -719,13 +812,9 @@ if __name__ == "__main__":
     #l2_rates, l2_relative_rates, l2_barometer = fair_anym.layer_2()
 
     # l3 check
-    #fair_anym.layer_3(method = 'w_fp_influence')
-    #fair_anym.layer_3(method = 'confusion_matrix')
-    #fair_anym.layer_3(method = 'roc_curves')
-    #kwargs = {'orientation':'h'}
-    #fair_anym.layer_3(method = 'independence_check', **kwargs)
+    fair_anym.layer_3(method = 'w_fp_influence')
+    fair_anym.layer_3(method = 'confusion_matrix')
+    fair_anym.layer_3(method = 'roc_curves')
+    calibration = fair_anym.layer_3(method = 'calibration', **{'n_bins': 5})
+    independence = fair_anym.layer_3('independence_check', **{'orientation':'h'}) 
 
-    #cm=fair_anym.get_confusion_matrix()
-    #fair_anym.plot_confusion_matrix()
-
-# %%
