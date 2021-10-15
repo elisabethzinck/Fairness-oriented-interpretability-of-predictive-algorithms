@@ -15,7 +15,7 @@ if __name__ == '__main__':
     run_anym = False
     run_german = False
     run_taiwanese = True
-    run_compas = True
+    run_compas = False
     run_catalan = True
     run_ADNI = False
     adni_no = 2

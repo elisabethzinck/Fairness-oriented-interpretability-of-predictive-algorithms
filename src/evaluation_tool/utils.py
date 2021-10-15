@@ -78,12 +78,17 @@ def flip_dataframe(df, new_colname = 'index'):
     return df
 
 def custom_palette(n_colors = 1, specific_col_idx = None):
-    """returns a custom palette of n_colors from 
-       https://coolors.co/f94d50-f3722c-f8961e-f9844a-f9c74f-a1c680-3a9278-7ab8b6-577590-206683
+    """Returns a custom palette of n_colors (max 10 colors)
+    
+        The color palette have been created using this link: 
+        https://coolors.co/f94d50-f3722c-f8961e-f9844a-f9c74f-a1c680-3a9278-7ab8b6-577590-206683
         
         Args:
             n_color: The number of desired colors max 10. Defaults to 1.
             specific_col_idx: list of desired color indexes. Defaults to None.
+            
+        Returns: 
+            A custom seaborn palette of n_colors length 
     """
     colors =  ["f94d50","f3722c","f8961e","f9844a","f9c74f","a1c680","3a9278","7ab8b6","577590","206683"]
 
