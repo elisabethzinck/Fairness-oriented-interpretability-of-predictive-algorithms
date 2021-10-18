@@ -58,27 +58,33 @@ def calculate_WMR(cm, grp, w_fp):
     return wmr
 
 class FairKit:
-    def __init__(self, y, y_hat, a, r, w_fp, model_type = None):
+    def __init__(self, data, y_name, y_hat_name, a_name, r_name, w_fp, model_name = None):
         """Saves and calculates all necessary attributes for FairKit object
         
         Args:
-            y (binary array): Targets for model of length n
-            y_hat (binary array): Predictions of length n
-            a (string array): Sensitive groups of length n. 
-            r (float array): Scores of length n. The threshold is assumed to be 0.5. 
+            data (DataFrame): DataFrame containing data used for evaluation
+            y_name (str): Name of target variable
+            y_hat_name (str): Name of binary output variable
+            r_name (str): Name of variable containing scores (must be within [0,1])
+            a_name (str): Name of sensitive variable 
             w_fp (int or float): False positive error rate
-            model_type (str): Name of the model or dataset used.
-        
+            model_name (str): Name of the model or dataset used. Is used for plot titles. 
         """
+        # To do: Input checks
         
-        self.y = y
-        self.y_hat = y_hat
-        self.a = a
-        self.r = r
-        self.model_type = model_type
+        self.y = data[y_name]
+        self.y_hat = data[y_hat_name]
+        self.a = data[a_name]
+        self.r = data[r_name]
+
+        self.model_name = model_name
         self.w_fp = w_fp
 
-        self.classifier = pd.DataFrame({'y': y, 'a': a, 'y_hat': y_hat, 'r': r})
+        self.classifier = pd.DataFrame({
+            'y': self.y, 
+            'a': self.a, 
+            'y_hat': self.y_hat, 
+            'r': self.r})
         self.sens_grps = np.sort(self.a.unique())
         self.n_sens_grps = len(self.sens_grps)
         
@@ -500,8 +506,8 @@ class FairKit:
             plt.xlabel(None)
             plt.title(f'{str.capitalize(grp)} (N = {n_obs})', **fonts)
             f.subplots_adjust(wspace = 0.4, hspace = 0.4)
-            if self.model_type != None:
-                f.suptitle(self.model_type, fontsize = 14,
+            if self.model_name != None:
+                f.suptitle(self.model_name, fontsize = 14,
                     horizontalalignment='center')
             
 
@@ -832,12 +838,13 @@ if __name__ == "__main__":
     df.head()
 
     fair_anym = FairKit(
-        y = df.y, 
-        y_hat = df.yhat, 
-        a = df.grp, 
-        r = df.phat,
+        data = df,
+        y_name = 'y',
+        y_hat_name = 'yhat', 
+        a_name = 'grp', 
+        r_name = 'phat',
         w_fp = 0.8,
-        model_type="Test")
+        model_name="Test")
 
     # l1 check
     #l1 = fair_anym.layer_1()
