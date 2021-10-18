@@ -71,7 +71,7 @@ class FairKit:
             model_name (str): Name of the model or dataset used. Is used for plot titles. 
         """
         # To do: Input checks
-        
+        self.data = data
         self.y = data[y_name]
         self.y_hat = data[y_hat_name]
         self.a = data[a_name]
@@ -87,6 +87,7 @@ class FairKit:
             'r': self.r})
         self.sens_grps = np.sort(self.a.unique())
         self.n_sens_grps = len(self.sens_grps)
+        self.n = data.shape[0]
         
 
         self.cm = self.get_confusion_matrix()
