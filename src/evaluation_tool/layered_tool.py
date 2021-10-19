@@ -98,6 +98,11 @@ class FairKit:
         self.sens_grps_cols = dict(
             zip(self.sens_grps, custom_palette(n_colors = self.n_sens_grps))
             )
+
+        self._tick_size = 12
+        self._label_size = 13
+        self._title_size = 13
+        self._legend_size = 12
     
     ###############################################################
     #                  LAYER METHODS
@@ -495,21 +500,19 @@ class FairKit:
                 old_text = a.get_text()
                 new_text = f"{name}: {old_text}%"
                 a.set_text(new_text)
-            # Centering tick labels
-            #for label in ax.get_xticklabels():
-            #    label.set_ha('center')
+            # Centering tick labels on y axis
             for label in ax.get_yticklabels():
                 label.set_ha('center')
             # Titles and font size 
-            fonts = {'size':13, 'weight':'normal'}
             ax.tick_params(axis='both',labelsize = 11)
             plt.ylabel(None)
             plt.xlabel(None)
-            plt.title(f'{str.capitalize(grp)} (N = {n_obs})', **fonts)
+            plt.title(f'{str.capitalize(grp)} (N = {n_obs})', size=self._title_size)
             f.subplots_adjust(wspace = 0.4, hspace = 0.4)
             if self.model_name != None:
-                f.suptitle(self.model_name, fontsize = 14,
-                    horizontalalignment='center')
+                f.suptitle(f"Confusion Matrices: {self.model_name}",
+                    fontsize = self._title_size, horizontalalignment='center',
+                    y = 1.05)
             
 
     def plot_rates(self, ax = None, w_fp = None):
@@ -644,12 +647,15 @@ class FairKit:
             palette = self.sens_grps_cols)
         ax.axhline(y = 20, color = 'grey', linewidth = 0.5)
         sns.despine(ax = ax, top = True, right = True)
-        ax.set_xlabel('$w_{fp}$')
+        ax.set_xlabel('$w_{fp}$', fontsize=self._label_size)
         ax.set_xlim((0,1))
-        ax.set_ylabel(label_case(y))
-        ax.legend(frameon = False)
+        ax.set_ylabel(label_case(y), fontsize=self._label_size)
+        ax.set_title("False Positive Weight Influence", size=self._title_size)
+        ax.legend(frameon = False, prop={'size':self._legend_size})
+        ax.tick_params(labelsize=self._tick_size)
         if relative:
             ax.yaxis.set_major_formatter(mtick.FuncFormatter(abs_percentage_tick))
+
    
     def plot_layer_1(self, l1_data, ax = None):
         """ Visualize the maximum gap in WMR by text
@@ -725,10 +731,13 @@ class FairKit:
             palette = self.sens_grps_cols,
             zorder = 2, legend = False)
         ax.plot([0,1], [0,1], color = 'grey', linewidth = 0.5)
-        ax.set_xlabel('False positive rate')
-        ax.set_ylabel('True positive rate')
+        ax.set_xlabel('False positive rate', size=self._label_size)
+        ax.set_ylabel('True positive rate', size=self._label_size)
+        ax.set_title('ROC Curves (Analysis of Separation)', size=self._title_size)
         sns.despine(ax = ax, top = True, right = True)
-        ax.legend(frameon = False, loc = 'lower right')
+        ax.legend(frameon = False, loc = 'lower right', 
+            prop={'size':self._legend_size})
+        ax.tick_params(labelsize=self._tick_size)
 
     def plot_independence_check(self, ax=None, orientation = 'h', w_fp = None):
         """ Bar plot of the percentage of predicted positives per
@@ -737,7 +746,7 @@ class FairKit:
         assert orientation in ["v", "h"], "Choose orientation 'v' or 'h'"
 
         if ax is None:
-            fig = plt.figure(figsize = (4,4))
+            fig = plt.figure(figsize = (4.5, 4.5))
             ax = fig.add_subplot(1,1,1)
 
         if w_fp is None:
@@ -769,7 +778,7 @@ class FairKit:
                 ax.set_ylim((0,100))
                 ax.set_xticklabels([grp.title() for grp in self.sens_grps])
                 ax.yaxis.set_major_formatter(mtick.FuncFormatter(abs_percentage_tick))
-                ax.set_ylabel(perc_label)
+                ax.set_ylabel(perc_label, fontsize=self._label_size)
                 ax.set_xlabel(None)
             else:
                 sns.barplot(x="perc",
@@ -782,16 +791,18 @@ class FairKit:
                 ax.set_xlim((0,100))
                 ax.set_yticklabels([grp.title() for grp in self.sens_grps])
                 ax.xaxis.set_major_formatter(mtick.FuncFormatter(abs_percentage_tick))
-                ax.set_xlabel(perc_label)
+                ax.set_xlabel(perc_label, fontsize=self._label_size)
                 ax.set_ylabel(None)
             error_bar(ax, plot_df, bar_mid, orientation=orientation)
         
         # Finishing up 
         legend_elements = [Line2D([0], [0], color=(58/255, 58/255, 58/255),
             lw=2, label='95% CI')]
-        ax.legend(handles=legend_elements, frameon = True, loc = "best")
+        ax.legend(handles=legend_elements, frameon = True,
+            loc = "upper right", prop={'size':self._legend_size})
         sns.despine(ax = ax, top = True, right = True)
-        ax.tick_params(left=True, labelsize=12)
+        ax.tick_params(left=True, labelsize=self._tick_size)
+        ax.set_title('Independence Check', size=self._title_size)
 
     def plot_calibration(self, n_bins = 5, ax = None):
         """Plot calibration by sensitive groups
@@ -827,11 +838,15 @@ class FairKit:
             ymax = calibration_df.y_bin_upr, 
             colors = calibration_df.color, linewidth = 0.5)
         ax.plot([0,1], [0,1], color = 'grey', linewidth = 0.5)
-        ax.set_xlabel('Predicted probability')
-        ax.set_ylabel('True probability $\pm$ SE')
+        ax.set_xlabel('Predicted probability', fontsize=self._label_size)
+        ax.set_ylabel('True probability $\pm$ SE', fontsize=self._label_size)
         ax.set_xlim((0,1))
+        ax.set_title('Calibration (Analysis of Sufficiency)', size=self._title_size)
         sns.despine(ax = ax, top = True, right = True)
-        ax.legend(frameon = False, loc = 'upper left') 
+        ax.legend(frameon = False,
+            loc = 'upper left',
+            prop={"size":self._legend_size}) 
+        ax.tick_params(labelsize=self._tick_size)
 #%% Main
 if __name__ == "__main__":
     file_path = 'data\\processed\\anonymous_data.csv'
