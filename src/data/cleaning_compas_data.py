@@ -24,9 +24,9 @@ if __name__ == "__main__":
         processed_file_path =  f'{folder}compas-scores-two-years-w-b-screening-30.csv'
         processed_file_path_preds = f'{folder}compas-scores-two-years-pred-w-b-screening-30.csv'
 
-    #subsetting 'African-American', 'Caucasian' and 'Hispanic'
+    #subsetting 'African-American' and 'Caucasian'
     (compas.query
-        ("race=='African-American' or race=='Caucasian' or race=='Hispanic'",
+        ("race=='African-American' or race=='Caucasian'",
         inplace=True)
     )
 
@@ -38,16 +38,11 @@ if __name__ == "__main__":
     compas.to_csv(processed_file_path, index = False)
 
     # Data frame with predictions 
-    pred = compas[['id', 'sex', 'age', 'age_cat', 'race', 
-                   'decile_score','score_text', 
-                   'v_decile_score', 'v_score_text',
-                   'two_year_recid']]
+    predictions = compas[['id', 'sex', 'age', 'age_cat', 'race', 
+                   'decile_score','score_text', 'two_year_recid']]
     
-    pred = pred.assign(
-        pred_high = (pred.score_text == 'High'), 
-        v_pred_high = (pred.v_score_text == 'High'),
-        pred_medium_high = (pred.score_text != 'Low'),
-        v_pred_medium_high = (pred.v_score_text != 'Low'))
-    print(pred.columns)
+    predictions = predictions.assign(
+        pred = (predictions.score_text != 'Low'))
+    print(predictions.columns)
 
-    pred.to_csv(processed_file_path_preds, index=False)   
+    predictions.to_csv(processed_file_path_preds, index=False)   
