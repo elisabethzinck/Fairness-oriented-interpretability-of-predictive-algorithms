@@ -9,7 +9,7 @@ from src.evaluation_tool.layered_tool import FairKit
 figure_path = 'figures/evaluation_plots/'
 fig_path_report = '../Thesis-report/00_figures/'
 
-update_report_figures = False # Write new figures to report repository?
+update_report_figures = True # Write new figures to report repository?
 
 anym_w_fp = 0.2
 
@@ -27,7 +27,7 @@ FairKitDict['anym'] = FairKit(
     a_name = 'grp', 
     r_name = 'phat',
     w_fp = anym_w_fp,
-    model_name = 'Anonymous Data')
+    model_name = 'Example Data')
 
 # %% Saving plots for report 
 

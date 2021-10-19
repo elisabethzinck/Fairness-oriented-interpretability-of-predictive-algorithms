@@ -746,7 +746,7 @@ class FairKit:
         assert orientation in ["v", "h"], "Choose orientation 'v' or 'h'"
 
         if ax is None:
-            fig = plt.figure(figsize = (4.5, 4.5))
+            fig = plt.figure()
             ax = fig.add_subplot(1,1,1)
 
         if w_fp is None:
@@ -796,10 +796,6 @@ class FairKit:
             error_bar(ax, plot_df, bar_mid, orientation=orientation)
         
         # Finishing up 
-        legend_elements = [Line2D([0], [0], color=(58/255, 58/255, 58/255),
-            lw=2, label='95% CI')]
-        ax.legend(handles=legend_elements, frameon = True,
-            loc = "upper right", prop={'size':self._legend_size})
         sns.despine(ax = ax, top = True, right = True)
         ax.tick_params(left=True, labelsize=self._tick_size)
         ax.set_title('Independence Check', size=self._title_size)
