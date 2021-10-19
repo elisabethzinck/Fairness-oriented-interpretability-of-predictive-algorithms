@@ -1,208 +1,213 @@
-#%%
+#%% Imports
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 
 from src.evaluation_tool.layered_tool import FairKit
-#%%
-if __name__ == '__main__':
-    figure_path = 'figures/evaluation_plots/'
-    fig_path_report = '../Thesis-report/00_figures/'
-    
-    run_all = False
-    update_report_figures = False # Write new figures to report repository?
+from src.evaluation_tool.utils import static_split
 
-    run_anym = False
-    run_german = False
-    run_taiwanese = True
-    run_compas = False
-    run_catalan = True
-    run_ADNI = False
-    adni_no = 2
+#%% Initialize parameters
+figure_path = 'figures/evaluation_plots/'
+fig_path_report = '../Thesis-report/00_figures/'
 
+update_figures  = True
+update_report_figures = False # Write new figures to report repository?
+
+#############################################
+#%% Load data and initialize FairKit
+##############################################
+def get_FairKitDict():
+    "Initialize all FairKits and save them in dict"
+    FairKitDict = {}
     credit_w_fp = 0.9
     compas_w_fp = 0.9
     catalan_w_fp = 0.9
     anym_w_fp = 0.2
     adni_w_fp = 0.1
 
-    #######################################
-    # Anonymous data (from german)
-    #######################################
-    if run_anym or run_all:
-        file_path = 'data\\processed\\anonymous_data.csv'
-        anym = pd.read_csv(file_path)
-        fair_anym = FairKit(
-            y = anym.y, 
-            y_hat = anym.yhat, 
-            a = anym.grp, 
-            r = anym.phat,
-            w_fp = anym_w_fp)
-        fair_anym.plot_confusion_matrix()
-        plt.savefig(figure_path+'anym_confusion.png')
-        fair_anym.layer_2(plot = True, output_table=False)
-        plt.savefig(figure_path+'anym_l2.png')
-        if update_report_figures:
-            plt.savefig(fig_path_report+'L2_example.pdf', bbox_inches='tight')
-        fair_anym.layer_1(output_table=False)
+    # Anym
+    anym = pd.read_csv('data/processed/anonymous_data.csv')
+    FairKitDict['anym'] = FairKit(
+        data = anym,
+        y_name = 'y', 
+        y_hat_name = 'yhat', 
+        a_name = 'grp', 
+        r_name = 'phat',
+        w_fp = anym_w_fp,
+        model_name = 'Anonymous Data')
+
+    # German logistic regression
+    german_log_reg = pd.read_csv('data/predictions/german_credit_log_reg.csv')
+    FairKitDict['german_logreg'] = FairKit(
+        data = german_log_reg,
+        y_name = 'credit_score', 
+        y_hat_name = 'log_reg_pred', 
+        a_name = 'sex', 
+        r_name = 'log_reg_prob',
+        w_fp = credit_w_fp,
+        model_name = 'German Credit: Logistic regression')
+
+    # German Neural network
+    german_nn = pd.read_csv('data/predictions/german_credit_nn_pred.csv')
+    FairKitDict['german_nn'] = FairKit(
+        data = german_nn,
+        y_name = 'credit_score', 
+        y_hat_name = 'nn_pred', 
+        a_name = 'sex', 
+        r_name = 'nn_prob',
+        w_fp = credit_w_fp,
+        model_name = 'German Credit: Neural network')
+
+    # Compas
+    compas = (pd.read_csv('data/processed/compas/compas-scores-two-years-pred.csv').assign(scores = lambda x: x.decile_score/10))
+    FairKitDict['compas'] = FairKit(
+        data = compas,
+        y_name = 'two_year_recid', 
+        y_hat_name = 'pred', 
+        a_name = 'race', 
+        r_name = 'scores',
+        w_fp = compas_w_fp,
+        model_name = 'COMPAS: Decile scores')
+
+    # Catalan Neural network
+    catalan_nn = pd.read_csv('data/predictions/catalan-juvenile-recidivism/catalan_recid_nn_pred.csv')
+    FairKitDict['catalan_nn'] = FairKit(
+        data = catalan_nn,
+        y_name = 'V115_RECID2015_recid', 
+        y_hat_name = 'nn_pred', 
+        a_name = 'V4_area_origin', 
+        r_name = 'nn_prob',
+        w_fp = catalan_w_fp,
+        model_name = 'Catalan: Neural network')
+
+    catalan_logreg = pd.read_csv('data/predictions/catalan_log_reg.csv')
+    FairKitDict['catalan_logreg'] = FairKit(
+        data = catalan_logreg,
+        y_name = 'V115_RECID2015_recid', 
+        y_hat_name = 'log_reg_pred', 
+        a_name = 'V4_area_origin', 
+        r_name = 'log_reg_prob',
+        w_fp = catalan_w_fp,
+        model_name = 'Catalan: Logistic regression')
+
+    # Taiwanese nn
+    taiwanese_nn = pd.read_csv('data/predictions/taiwanese_nn_pred.csv')
+    FairKitDict['taiwanese_nn'] = FairKit(
+        data = taiwanese_nn,
+        y_name = 'default_next_month', 
+        y_hat_name = 'nn_pred', 
+        a_name = 'sex', 
+        r_name = 'nn_prob',
+        w_fp = credit_w_fp,
+        model_name = 'Taiwanese: Neural network')
+
+    # Taiwanese logreg
+    taiwanese_logreg = pd.read_csv('data/predictions/taiwanese_log_reg.csv')
+    FairKitDict['taiwanese_logreg'] = FairKit(
+        data = taiwanese_logreg,
+        y_name = 'default_next_month', 
+        y_hat_name = 'log_reg_pred', 
+        a_name = 'sex', 
+        r_name = 'log_reg_prob',
+        w_fp = credit_w_fp,
+        model_name = 'Taiwanese: Logistic regression')
 
 
-
-    #######################################
-    # German credit logistic regression
-    #######################################
-
-    if run_german or run_all:
-        file_path = 'data\\predictions\\german_credit_log_reg.csv'
-        german_log_reg = pd.read_csv(file_path)
-
-        fair_german_log_reg = FairKit(
-            y = german_log_reg.credit_score, 
-            y_hat = german_log_reg.log_reg_pred, 
-            a = german_log_reg.sex, 
-            r = german_log_reg.log_reg_prob,
-            w_fp = credit_w_fp,
-            model_type='Logistic Regression')
-        fair_german_log_reg.plot_confusion_matrix()
-        plt.savefig(figure_path+'german_log_reg_confusion.png')
-        fair_german_log_reg.layer_2(plot = True, output_table=False)
-        plt.savefig(figure_path+'german_log_reg_l2.png')
-        fair_german_log_reg.layer_1(output_table=False)
+    for adni_no in [1,2]:
+        adni = pd.read_csv(f'data/ADNI/predictions/ADNI_{adni_no}_nn_pred.csv')
+        FairKitDict[f'adni{adni_no}_nn'] = FairKit(
+            data = adni,
+            y_name = 'y', 
+            y_hat_name = 'nn_pred', 
+            a_name = 'sex', 
+            r_name = 'nn_prob',
+            w_fp = adni_w_fp,
+            model_name = f'ADNI{adni_no}: Neural network')
         
+        adni = pd.read_csv(f'data/ADNI/predictions/ADNI{adni_no}_log_reg.csv')
+        FairKitDict[f'adni{adni_no}_logreg'] = FairKit(
+            data = adni,
+            y_name = 'y', 
+            y_hat_name = 'log_reg_pred', 
+            a_name = 'sex', 
+            r_name = 'log_reg_prob',
+            w_fp = adni_w_fp,
+            model_name = f'ADNI{adni_no}: Logistic regression')
 
-    #######################################
-    # German credit neural network
-    #######################################
-    if run_german or run_all:
-        remove_singles = False
-        file_path = 'data\\predictions\\german_credit_nn_pred.csv'
-        german_nn = pd.read_csv(file_path)
+    return FairKitDict
+            
+def get_l1_overview_table(print_latex = True):
+    "Generate layer 1 overview table"
+    l1_list = []
+    for mod_name, kit in FairKitDict.items():
+        l1 = kit.layer_1(plot = False)
+        l1max = l1.loc[l1.weighted_misclassification_ratio == max(l1.weighted_misclassification_ratio)]
         
-        # Remove single males
-        if remove_singles:
-            german_orig = pd.read_csv(
-                'data\\processed\\german_credit_full.csv', 
-                usecols=['person_id', 'personal_status'])
-            german_nn = (pd.merge(german_orig, german_nn)
-                .query('personal_status != "single"'))
-
-        fair_german_nn = FairKit(
-            y = german_nn.credit_score, 
-            y_hat = german_nn.nn_pred, 
-            a = german_nn.sex, 
-            r = german_nn.nn_prob,
-            w_fp = credit_w_fp,
-            model_type='Neural network')
-        fair_german_nn.plot_confusion_matrix()
-        plt.savefig(figure_path+'german_nn_confusion.png')
-        fair_german_nn.layer_2(plot = True, output_table=False)
-        plt.savefig(figure_path+'german_nn_l2.png')
-        fair_german_nn.layer_1(output_table=False)
-        
-
-
-    #######################################
-    # Compas decile score
-    #######################################
-    if run_compas or run_all:
-        compas_file_path = 'data\\processed\\compas\\compas-scores-two-years-pred.csv'
-        compas = pd.read_csv(compas_file_path)
-
-        fair_compas_age = FairKit(
-            y = compas.two_year_recid, 
-            y_hat = compas.pred_medium_high, 
-            a = compas.age_cat, 
-            r = compas.decile_score,
-            w_fp = compas_w_fp,
-            model_type='COMPAS Decile Scores')
-        fair_compas_age.plot_confusion_matrix()
-        plt.savefig(figure_path+'compas_confusion_age.png')
-        fair_compas_age.layer_2(plot = True, output_table=False)
-        plt.savefig(figure_path+'compas_l2_age.png')
-        fair_compas_age.layer_1(output_table=False)
-
-        # filtering out hispanics to recreate the Propublica result 
-        not_include_hispanics = False
-        if not_include_hispanics: 
-            compas = compas[compas.race.isin(['African-American','Caucasian'])]
-
-        fair_compas_race = FairKit(
-            y = compas.two_year_recid, 
-            y_hat = compas.pred_medium_high, 
-            a = compas.race, 
-            r = compas.decile_score,
-            w_fp = compas_w_fp,
-            model_type='COMPAS Decile Scores')
-        fair_compas_race.plot_confusion_matrix()
-        plt.savefig(figure_path+'compas_confusion_race.png')
-        fair_compas_race.layer_2(plot = True, output_table=False)
-        plt.savefig(figure_path+'compas_l2_race.png')
-        fair_compas_race.layer_1(output_table=False)
+        acc = np.mean(kit.y == kit.y_hat)*100
+        dataset_name, model_name = static_split(kit.model_name, ': ', 2)
+        tab = pd.DataFrame({
+            'Dataset': dataset_name,
+            'Model': model_name,
+            'N': kit.n,
+            'Max WMR': round(l1max.weighted_misclassification_ratio.iat[0], 1),
+            'Discriminated Group': l1max.grp.iat[0],
+            'Accuracy': round(acc, 1)
+        }, index = [0])
+        l1_list.append(tab)
+    l1tab = pd.concat(l1_list).query("Dataset != 'Anonymous Data'")
+    if print_latex:
+        print(l1tab.to_latex(index = False))
     
+    return l1tab
 
-    #######################################
-    # Catalan Juvenile Recidivism NN
-    #######################################
-    if run_catalan or run_all:
-        catalan_file_path = 'data/predictions/catalan-juvenile-recidivism/catalan_recid_nn_pred.csv'
-        catalan = pd.read_csv(catalan_file_path)
+def print_FairKitDict(FairKitDict):
+    "Print all keys and model names in FairKitDict"
+    for i, (mod_name, kit) in enumerate(FairKitDict.items()):
+        print(f'{i} {mod_name}: {kit.model_name}') 
 
-    # Sensitive: Area of Origin
-        fair_catalan = FairKit(
-            y = catalan.V115_RECID2015_recid, 
-            y_hat = catalan.nn_pred, 
-            a = catalan.V4_area_origin, 
-            r = catalan.nn_prob,
-            w_fp = catalan_w_fp,
-            model_type='Catalan NN')
+def make_all_plots(kit, save_plots = False, plot_path = None, ext = '.png'):
+    """ Makes all plots for FairKit instance kit
 
-        fair_catalan.plot_confusion_matrix()
-        plt.savefig(figure_path+'catalan_confusion_V4_area_origin.png')
-        fair_catalan.layer_2(plot = True, output_table=False)
-        plt.savefig(figure_path+'catalan_l2_V4_area_origin.png')
-        fair_catalan.layer_1(output_table=False)
+    Args:
+        kit (FairKit): Object to plot figures from
+        save_plots (bool): If true, plots are saved to `plot_path` and are not showed inline.
+        plot_path (str): path to save plots in. Must be supplied if `save_plots` = True
+        ext (str): Extension to use. Must begin with '.' (e.g. '.png')
+    """
+    if save_plots and plot_path is None:
+        raise ValueError('You must supply a `plot_path` when `save_plots` = True')
 
+    kit.layer_1(output_table = False)
+    if save_plots: 
+        plt.savefig(plot_path+'l1'+ext, bbox_inches='tight', facecolor = 'w')
+        plt.close()
 
-    #######################################
-    # Taiwanese NN
-    #######################################
-    if run_taiwanese or run_all:
-        taiwanese_file_path = 'data/predictions/taiwanese_nn_pred.csv'
-        taiwanese = pd.read_csv(taiwanese_file_path)
+    kit.layer_2(output_table = False)
+    if save_plots: 
+        plt.savefig(plot_path+'l2'+ext, bbox_inches='tight', facecolor = 'w')
+        plt.close()
 
-    # Sensitive: Nationality Type 
-        fair_taiwanese = FairKit(
-            y = taiwanese.default_next_month, 
-            y_hat = taiwanese.nn_pred, 
-            a = taiwanese.sex, 
-            r = taiwanese.nn_prob,
-            w_fp = credit_w_fp,
-            model_type='Taiwanese NN')
+    method_options = [
+        'w_fp_influence', 'roc_curves', 'calibration', 
+        'confusion_matrix', 'independence_check']
+    for method in method_options:
+        kit.layer_3(method = method, output_table = False)
+        if save_plots: 
+            path = plot_path+'l3_'+method+ext
+            plt.savefig(path, bbox_inches='tight', facecolor = 'w')
+            plt.close()
+        
+#%%
+if __name__ == '__main__':
+    FairKitDict = get_FairKitDict() 
+    print_FairKitDict(FairKitDict)
 
-        fair_taiwanese.plot_confusion_matrix()
-        plt.savefig(figure_path+'taiwanese_confusion_sex.png')
-        fair_taiwanese.layer_2(plot = True, output_table=False)
-        plt.savefig(figure_path+'taiwanese_l2_sex.png')
-        fair_taiwanese.layer_1(output_table=False)
+    l1tab = get_l1_overview_table()
 
-    if run_ADNI or run_all:
-        for adni_no in [1,2]:
-            file_path = f'data/ADNI/predictions/ADNI_{adni_no}_nn_pred.csv'
-            adni = pd.read_csv(file_path)
-            fair_adni = FairKit(
-                y = adni.y, 
-                y_hat = adni.nn_pred, 
-                a = adni.sex, 
-                r = adni.nn_prob,
-                w_fp = adni_w_fp,
-                model_type=f'ADNI{adni_no} NN')
-            fair_adni.plot_confusion_matrix()
-            plt.savefig(figure_path+f'adni{adni_no}_confusion.png')
-            fair_adni.layer_2(plot = True, output_table=False)
-            plt.savefig(figure_path+f'adni{adni_no}_l2.png')
-            fair_adni.layer_1(output_table=False)
-            
-            
-
+    # Make all(!) plots
+    for i, (mod_name, kit) in enumerate(FairKitDict.items()):
+        print(i)
+        path = figure_path + mod_name + '_'
+        make_all_plots(kit, save_plots = update_figures, plot_path = path)
 
 # %%
