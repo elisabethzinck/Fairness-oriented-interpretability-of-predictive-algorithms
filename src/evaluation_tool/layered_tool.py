@@ -187,8 +187,15 @@ class FairKit:
             raise ValueError(f'`method` must be one of the following: {method_options}. You supplied `method` = {method}')
 
         if method == 'w_fp_influence':
-            # To do: Get data out?
-            self.plot_w_fp_influence()
+            plot_df = self.get_w_fp_influence()
+            if plot:
+                self.plot_w_fp_influence(
+                    plot_df = plot_df, 
+                    palette = self.sens_grps_cols)
+            if output_table:
+                return plot_df
+            else:
+                return None
 
         if method == 'roc_curves':
             # To do: Fix that get_roc_curves is called twice
@@ -206,8 +213,12 @@ class FairKit:
                 return calibration
 
         if method == 'confusion_matrix':
-            # To do: Get data out in a sensible way
             self.plot_confusion_matrix()
+            if output_table:
+                conf = self.get_confusion_matrix()
+                return conf
+            else:
+                return None
         
         if method == 'independence_check':
             if plot: 
@@ -460,6 +471,23 @@ class FairKit:
             )
         return calibration_df
 
+    def get_w_fp_influence(self):
+        """Investigate how w_fp influences the wmrr
+        
+        Args:
+            relative (bool): Plot weighted misclassification rate ratio? If False, weighted misclassification rate is plotted
+        """
+
+        df = (pd.concat(
+                [self.get_relative_WMR(w_fp = w_fp).assign(w_fp = w_fp) 
+                for w_fp in np.linspace(0, 1, num = 100)])
+            .reset_index()
+            .rename(columns = {
+                'rate_val': 'weighted_misclassification_rate',
+                'relative_rate': 'weighted_misclassification_ratio'}))
+        
+        return df
+        
     ###############################################################
     #                  VISUALIZATION METHODS
     ###############################################################
@@ -647,20 +675,7 @@ class FairKit:
     def l2_interactive_plot(self):
        return interact(self.l2_plot, w_fp=FloatSlider(min=0,max=1,atep=0.1,value=0.8))
 
-    def plot_w_fp_influence(self, relative = True):
-        """Visualize how w_fp influences the weighted misclassification ratio
-        
-        Args:
-            relative (bool): Plot weighted misclassification ratio? If False, weighted misclassification rate is plotted
-        """
-        plot_df = (pd.concat(
-                [self.get_relative_WMR(w_fp = w_fp).assign(w_fp = w_fp) 
-                for w_fp in np.linspace(0, 1, num = 100)])
-            .reset_index()
-            .rename(columns = {
-                'rate_val': 'weighted_misclassification_rate',
-                'relative_rate': 'weighted_misclassification_ratio'}))
-
+    def plot_w_fp_influence(self, plot_df, palette, relative = True):
         fig = plt.figure()
         ax = fig.add_subplot(1, 1, 1)
         if relative:
@@ -671,7 +686,7 @@ class FairKit:
             x = 'w_fp', y = y, hue = 'grp', 
             data = plot_df, 
             ax = ax, 
-            palette = self.sens_grps_cols)
+            palette = palette)
         ax.axhline(y = 20, color = 'grey', linewidth = 0.5)
         sns.despine(ax = ax, top = True, right = True)
         ax.set_xlabel('$w_{fp}$', fontsize=self._label_size)
@@ -894,20 +909,11 @@ if __name__ == "__main__":
     #fair_anym.plot_fairness_barometer()
 
     # l3 check
-    #fair_anym.layer_3(method = 'w_fp_influence')
-    #fair_anym.layer_3(method = 'confusion_matrix')
-    #fair_anym.layer_3(method = 'roc_curves')
-    #calibration = fair_anym.layer_3(method = 'calibration', **{'n_bins': 5})
-    #independence = fair_anym.layer_3('independence_check', **{'orientation':'h'}) 
-
-    #fair_anym.layer_3(method = 'w_fp_influence')
-    #fair_anym.layer_3(method = 'confusion_matrix')
-    #fair_anym.layer_3(method = 'roc_curves')
-    #kwargs = {'orientation':'h'}
-    #fair_anym.layer_3(method = 'independence_check', **kwargs)
-
-    #cm=fair_anym.get_confusion_matrix()
-    #fair_anym.plot_confusion_matrix()
+    w_fp_influence = fair_anym.layer_3(method = 'w_fp_influence')
+    conf_mat = fair_anym.layer_3(method = 'confusion_matrix')
+    roc = fair_anym.layer_3(method = 'roc_curves')
+    calibration = fair_anym.layer_3(method = 'calibration', **{'n_bins': 5})
+    independence = fair_anym.layer_3('independence_check', **{'orientation':'h'}) 
 
 
 # %%
