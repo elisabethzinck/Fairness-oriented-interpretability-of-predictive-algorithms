@@ -320,7 +320,7 @@ def get_fairness_barometer_legend_patches(plot_df, color_dict):
         else:
             raise IndexError('Cannot use > 2 colors for stripes in barplot')
         patches.append(patch_tmp)
-    patches.append(mpatches.Patch(color='#EBEBEB', label='Relative\nUnfairness < 20%'))
+    patches.append(mpatches.Patch(color='#EBEBEB', label='Relative\nUnfairness <20%'))
 
     return patches
 

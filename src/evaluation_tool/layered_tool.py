@@ -132,7 +132,7 @@ class FairKit:
         if output_table:
             return l1_data
     
-    def layer_2(self, plot = True, output_table = True, w_fp = None):
+    def layer_2(self, plot = True, output_table = True, w_fp = None, **kwargs):
         """To do: Documentation"""
         if w_fp is None:
             w_fp = self.w_fp
@@ -143,12 +143,19 @@ class FairKit:
             ax0 = f.add_subplot(gs[:, 0])
             ax2 = f.add_subplot(gs[5:,1:2])
             ax1 = f.add_subplot(gs[0:4,1:2], sharex = ax2)
-
+            
             self.plot_rates(ax = ax0, w_fp = w_fp)
             self.plot_relative_rates(ax = ax1, w_fp = w_fp)
             self.plot_fairness_barometer(ax = ax2, w_fp = w_fp)
 
             f.subplots_adjust(wspace = 0.5, hspace = 0.7)
+
+            if "suptitle" in  kwargs.keys():
+                if kwargs["suptitle"]:
+                    f.suptitle(f"{self.model_name}",
+                               x=0.35, y = 0.98, 
+                               fontweight = 'bold', 
+                               fontsize = self._title_size+1)
 
         if output_table:
             rates = (pd.concat(
@@ -616,6 +623,9 @@ class FairKit:
             ax = ax, zorder = 2, color = "#EBEBEB")
         ax.set_xlabel('')
         ax.set_ylabel('')
+        _, xmax = ax.get_xlim()
+        max_rr = plot_df.relative_rate.max()
+        ax.set_xlim(left=-0.05*xmax, right=max_rr + 0.25*max_rr)
         ax.set_title('Unfairness barometer', fontsize=14, loc = 'left')
         sns.despine(ax = ax, left = True, top = True, right = True)
         ax.tick_params(left=False, labelsize=12)
@@ -628,8 +638,9 @@ class FairKit:
         patches = get_fairness_barometer_legend_patches( 
             plot_df = plot_df,
             color_dict = fair_anym.sens_grps_cols)
-        leg = plt.legend(handles=patches, loc = 'lower right', 
-            bbox_to_anchor=(1.05,0), title = 'Discriminated Groups', 
+        leg = ax.legend(handles=patches, loc = 'lower right', 
+            title = 'Discriminated Groups', 
+            bbox_to_anchor=(1.05,0),
             frameon=True)
         leg._legend_box.align = "left"
         
@@ -873,15 +884,15 @@ if __name__ == "__main__":
         a_name = 'grp', 
         r_name = 'phat',
         w_fp = 0.8,
-        model_name="Test")
+        model_name="Example Data")
 
     # l1 check
     #l1 = fair_anym.layer_1()
 
     # l2 check
-    #l2_rates, l2_relative_rates, l2_barometer = fair_anym.layer_2()
+    l2_rates, l2_relative_rates, l2_barometer = fair_anym.layer_2(**{"suptitle":True})
 
-    fair_anym.plot_fairness_barometer()
+    #fair_anym.plot_fairness_barometer()
 
     # l3 check
     #fair_anym.layer_3(method = 'w_fp_influence')
