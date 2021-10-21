@@ -637,7 +637,7 @@ class FairKit:
         # Legend
         patches = get_fairness_barometer_legend_patches( 
             plot_df = plot_df,
-            color_dict = fair_anym.sens_grps_cols)
+            color_dict = self.sens_grps_cols)
         leg = ax.legend(handles=patches, loc = 'lower right', 
             title = 'Discriminated Groups', 
             bbox_to_anchor=(1.05,0),

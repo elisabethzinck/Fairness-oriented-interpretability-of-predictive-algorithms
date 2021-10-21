@@ -298,6 +298,7 @@ def get_fairness_barometer_legend_patches(plot_df, color_dict):
     Returns: 
         patches (list): List of matplotlib patches to put in legend handles 
     """ 
+    plot_df = plot_df.query("relative_rate > 20")
     discrims = np.unique(plot_df.discriminated_grp)
     muted_colors = {k:desaturate(col) for (k,col) in color_dict.items()}
     patches = []
