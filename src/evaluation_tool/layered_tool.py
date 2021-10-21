@@ -638,9 +638,9 @@ class FairKit:
         patches = get_BW_fairness_barometer_legend_patches( 
             plot_df = plot_df)
         leg = ax.legend(handles=patches, loc = 'lower right', 
-            title = 'Discriminated Groups', 
-            bbox_to_anchor=(1.05,0),
-            frameon=True)
+        title = '',  prop={'size':self._legend_size-3},
+        bbox_to_anchor=(1.05,0),
+        frameon=True)
         leg._legend_box.align = "left"
         
 

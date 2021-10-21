@@ -288,43 +288,6 @@ def static_split(string, pattern, n_elem):
     out = tmp + [None]*n_remaining
     return out
 
-def get_fairness_barometer_legend_patches(plot_df, color_dict):
-    """Create patches according to group color for legend in fairness barometer
-
-    Args: 
-        plot_df (dataframe): Data frame used to create fairness barometer plot
-        color_dict (dict): Dict of colors with keys as color group
-
-    Returns: 
-        patches (list): List of matplotlib patches to put in legend handles 
-    """ 
-    plot_df = plot_df.query("relative_rate > 20")
-    discrims = np.unique(plot_df.discriminated_grp)
-    muted_colors = {k:desaturate(col) for (k,col) in color_dict.items()}
-    patches = []
-    for d in discrims: 
-        if len(d) == 1:
-            col = muted_colors[d[0]]
-            patch_tmp = mpatches.Patch(color=col, 
-                                       label=f'{d[0]}')
-        elif len(d) == 2: 
-            col0 = muted_colors[d[0]]
-            col1 = muted_colors[d[1]]
-            patch_tmp = (mpatches.Patch(
-                 label=f'{d[0]} and {d[1]}', 
-                 facecolor = col0,
-                 edgecolor = col1, 
-                 hatch = '/', 
-                 fill = True,
-                 linewidth = 0,
-                ))
-        else:
-            raise IndexError('Cannot use > 2 colors for stripes in barplot')
-        patches.append(patch_tmp)
-    patches.append(mpatches.Patch(color='#EBEBEB', label='Relative\nUnfairness <20%'))
-
-    return patches
-
 def get_BW_fairness_barometer_legend_patches(plot_df):
     """Create patches in black and white for legend in fairness barometer
 
@@ -339,22 +302,25 @@ def get_BW_fairness_barometer_legend_patches(plot_df):
     n_cols = np.unique([len(discrims[i]) for i in range(len(discrims))])
     patches = []
     if 1 in n_cols:
-        col = '#6C757D' #jet black
-        patch_tmp = mpatches.Patch(color=col,
-                                    label=f'One Group')
-        patches.append(patch_tmp)
+        col = '#6C757D' 
+        patch_1 = mpatches.Patch(color=col,
+                                    label=f'One Discriminated Group')
+        # Change Label if only one discrim group
+        if 2 not in n_cols:
+            patch_1.set_label('Discriminated Group')
+        patches.append(patch_1)
     if 2 in n_cols:
-        col0 = '#6C757D' #jet black
-        col1 = '#ADB5BD' #off white 
-        patch_tmp = (mpatches.Patch(
-                 label=f'Two Groups', 
+        col0 = '#6C757D' 
+        col1 = '#ADB5BD' 
+        patch_2 = (mpatches.Patch(
+                 label=f'Two Discriminated Groups', 
                  facecolor = col0,
                  edgecolor = col1, 
                  hatch = '/', 
                  fill = True,
                  linewidth = 0
                 ))
-        patches.append(patch_tmp)
+        patches.append(patch_2)
 
     patches.append(mpatches.Patch(color='#EBEBEB', label='Unfairness <20%'))
 
