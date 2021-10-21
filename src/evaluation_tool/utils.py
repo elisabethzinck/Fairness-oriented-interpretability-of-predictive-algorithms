@@ -3,6 +3,7 @@ import seaborn as sns
 import matplotlib as plt
 import colorsys
 from matplotlib import transforms
+import matplotlib.patches as mpatches
 from statsmodels.stats.proportion import proportion_confint
 
 ##############################################
@@ -286,6 +287,43 @@ def static_split(string, pattern, n_elem):
     n_remaining = n_elem - len(tmp)
     out = tmp + [None]*n_remaining
     return out
+
+def get_fairness_barometer_legend_patches(plot_df, color_dict):
+    """Create patches for legend in fairness barometer
+
+    Args: 
+        plot_df (dataframe): Data frame used to create fairness barometer plot
+        color_dict (dict): Dict of colors with keys as color group
+
+    Returns: 
+        patches (list): List of matplotlib patches to put in legend handles 
+    """ 
+    discrims = np.unique(plot_df.discriminated_grp)
+    muted_colors = {k:desaturate(col) for (k,col) in color_dict.items()}
+    patches = []
+    for d in discrims: 
+        if len(d) == 1:
+            col = muted_colors[d[0]]
+            patch_tmp = mpatches.Patch(color=col, 
+                                       label=f'{d[0]}')
+        elif len(d) == 2: 
+            col0 = muted_colors[d[0]]
+            col1 = muted_colors[d[1]]
+            patch_tmp = (mpatches.Patch(
+                 label=f'{d[0]} and {d[1]}', 
+                 facecolor = col0,
+                 edgecolor = col1, 
+                 hatch = '/', 
+                 fill = True,
+                 linewidth = 0,
+                ))
+        else:
+            raise IndexError('Cannot use > 2 colors for stripes in barplot')
+        patches.append(patch_tmp)
+    patches.append(mpatches.Patch(color='#EBEBEB', label='Relative\nUnfairness < 20%'))
+
+    return patches
+
     
 ################################################
 #             lambda functions

@@ -24,11 +24,12 @@ from sklearn.metrics import confusion_matrix, roc_curve
 
 # dir functions
 from src.evaluation_tool.utils import (
-    add_grey_to_bars, cm_matrix_to_dict, custom_palette, abs_percentage_tick, extract_cm_values, flatten_list, 
-    cm_dict_to_matrix, add_colors_with_stripes, get_alpha_weights,
+    cm_matrix_to_dict, custom_palette, abs_percentage_tick, extract_cm_values,
+    flatten_list, cm_dict_to_matrix, add_colors_with_stripes, get_alpha_weights,
     value_counts_df, desaturate, label_case, format_text_layer_1,
     N_pos, N_neg, frac_pos, frac_neg, wilson_confint, 
-    error_bar, flip_dataframe, extract_cm_values, cm_vals_to_matrix
+    error_bar, flip_dataframe, extract_cm_values, cm_vals_to_matrix,
+    get_fairness_barometer_legend_patches
     )
 
 #%%
@@ -509,7 +510,7 @@ class FairKit:
             ax.tick_params(axis='both',labelsize = 11)
             plt.ylabel(None)
             plt.xlabel(None)
-            plt.title(f'{str.capitalize(grp)} (N = {n_obs})', size=self._title_size)
+            plt.title(f'{str.title(grp)} (N = {n_obs})', size=self._title_size)
             f.subplots_adjust(wspace = 0.4, hspace = 0.4)
             if self.model_name != None:
                 f.suptitle(f"Confusion Matrices: {self.model_name}",
@@ -600,14 +601,19 @@ class FairKit:
         
     def plot_fairness_barometer(self, w_fp = None, ax = None):
         plot_df = self.get_fairness_barometer(w_fp = w_fp)
+        plot_df['grey_bar'] = [rr if rr <= 20 else 20 for rr in plot_df['relative_rate']]
         if ax is None:
             fig = plt.figure(figsize=(6,3))
             ax = fig.add_subplot(1, 1, 1)
         sns.barplot(
             x = 'relative_rate', y = 'criterion', 
             data = plot_df,
-            ax = ax, zorder = 2)
-        ax.axvline(x = 20, color = 'grey', zorder = 1, linewidth = 0.5)
+            ax = ax, zorder = 1)
+        ax.axvline(x = 20, color = 'grey', zorder = 2, linewidth = 0.5)
+        sns.barplot(
+            x = 'grey_bar', y = 'criterion', 
+            data = plot_df,
+            ax = ax, zorder = 2, color = "#EBEBEB")
         ax.set_xlabel('')
         ax.set_ylabel('')
         ax.set_title('Unfairness barometer', fontsize=14, loc = 'left')
@@ -618,7 +624,15 @@ class FairKit:
             ax = ax, 
             color_dict = self.sens_grps_cols, 
             color_variable = plot_df.discriminated_grp)
-        #add_grey_to_bars(ax, cutoff=20)
+        # Legend
+        patches = get_fairness_barometer_legend_patches( 
+            plot_df = plot_df,
+            color_dict = fair_anym.sens_grps_cols)
+        leg = plt.legend(handles=patches, loc = 'lower right', 
+            bbox_to_anchor=(1.05,0), title = 'Discriminated Groups', 
+            frameon=True)
+        leg._legend_box.align = "left"
+        
 
     def l2_interactive_plot(self):
        return interact(self.l2_plot, w_fp=FloatSlider(min=0,max=1,atep=0.1,value=0.8))
@@ -867,7 +881,7 @@ if __name__ == "__main__":
     # l2 check
     #l2_rates, l2_relative_rates, l2_barometer = fair_anym.layer_2()
 
-    #fair_anym.plot_fairness_barometer()
+    fair_anym.plot_fairness_barometer()
 
     # l3 check
     #fair_anym.layer_3(method = 'w_fp_influence')
@@ -885,60 +899,5 @@ if __name__ == "__main__":
     #cm=fair_anym.get_confusion_matrix()
     #fair_anym.plot_confusion_matrix()
 
+
 # %%
-    ax = None
-    plot_df = fair_anym.get_fairness_barometer(w_fp = fair_anym.w_fp)
-    plot_df['grey_bar'] = [rr if rr <= 20 else 20 for rr in plot_df['relative_rate']]
-    if ax is None:
-        fig = plt.figure(figsize=(6,3))
-        ax = fig.add_subplot(1, 1, 1)
-    sns.barplot(
-        x = 'relative_rate', y = 'criterion', 
-        data = plot_df,
-        ax = ax, zorder = 1)
-    ax.axvline(x = 20, color = 'grey', zorder = 2, linewidth = 0.5)
-    # adding grey bars when x-axis < 20% 
-    sns.barplot(
-        x = 'grey_bar', y = 'criterion', 
-        data = plot_df,
-        ax = ax, zorder = 2, color = "#EBEBEB")
-    ax.set_xlabel('')
-    ax.set_ylabel('')
-    ax.set_title('Unfairness barometer', fontsize=14, loc = 'left')
-    sns.despine(ax = ax, left = True, top = True, right = True)
-    ax.tick_params(left=False, labelsize=12)
-    ax.xaxis.set_major_formatter(mtick.FuncFormatter(abs_percentage_tick))
-    add_colors_with_stripes(
-        ax = ax, 
-        color_dict = fair_anym.sens_grps_cols, 
-        color_variable = plot_df.discriminated_grp)
-
-    # legend
-    from src.evaluation_tool.utils import desaturate
-    discrims = np.unique(plot_df.discriminated_grp)
-    muted_colors = {k:desaturate(col) for (k,col) in fair_anym.sens_grps_cols.items()}
-    patches = []
-    for d in discrims: 
-        if len(d) == 1:
-            col = muted_colors[d[0]]
-            patch_tmp = mpatches.Patch(color=col, 
-                                       label=f'{d[0]}')
-        elif len(d) == 2: 
-            col0 = muted_colors[d[0]]
-            col1 = muted_colors[d[1]]
-            patch_tmp = (mpatches.Patch(
-                 label=f'{d[0]} and {d[1]}', 
-                 facecolor = col0,
-                 edgecolor = col1, 
-                 hatch = '/', 
-                 fill = True,
-                 linewidth = 0,
-                ))
-        patches.append(patch_tmp)
-    patches.append(mpatches.Patch(color='#EBEBEB', label='Relative\nUnfairness < 20%'))
-
-    leg = plt.legend(handles=patches, 
-        loc = 'lower right',
-        bbox_to_anchor=(1.05,0),
-        title = 'Discriminated Groups', frameon=True)
-    leg._legend_box.align = "left"
