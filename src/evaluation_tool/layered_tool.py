@@ -29,7 +29,7 @@ from src.evaluation_tool.utils import (
     value_counts_df, desaturate, label_case, format_text_layer_1,
     N_pos, N_neg, frac_pos, frac_neg, wilson_confint, 
     error_bar, flip_dataframe, extract_cm_values, cm_vals_to_matrix,
-    get_fairness_barometer_legend_patches, get_BW_fairness_barometer_legend_patches
+    get_BW_fairness_barometer_legend_patches
     )
 
 #%%
