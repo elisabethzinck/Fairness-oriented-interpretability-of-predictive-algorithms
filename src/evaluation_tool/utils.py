@@ -289,7 +289,7 @@ def static_split(string, pattern, n_elem):
     return out
 
 def get_fairness_barometer_legend_patches(plot_df, color_dict):
-    """Create patches for legend in fairness barometer
+    """Create patches according to group color for legend in fairness barometer
 
     Args: 
         plot_df (dataframe): Data frame used to create fairness barometer plot
@@ -325,6 +325,40 @@ def get_fairness_barometer_legend_patches(plot_df, color_dict):
 
     return patches
 
+def get_BW_fairness_barometer_legend_patches(plot_df):
+    """Create patches in black and white for legend in fairness barometer
+
+    Args: 
+        plot_df (dataframe): Data frame used to create fairness barometer plot
+
+    Returns: 
+        patches (list): List of matplotlib patches to put in legend handles 
+    """ 
+    plot_df = plot_df.query("relative_rate > 20")
+    discrims = np.unique(plot_df.discriminated_grp)
+    n_cols = np.unique([len(discrims[i]) for i in range(len(discrims))])
+    patches = []
+    if 1 in n_cols:
+        col = '#6C757D' #jet black
+        patch_tmp = mpatches.Patch(color=col,
+                                    label=f'One Group')
+        patches.append(patch_tmp)
+    if 2 in n_cols:
+        col0 = '#6C757D' #jet black
+        col1 = '#ADB5BD' #off white 
+        patch_tmp = (mpatches.Patch(
+                 label=f'Two Groups', 
+                 facecolor = col0,
+                 edgecolor = col1, 
+                 hatch = '/', 
+                 fill = True,
+                 linewidth = 0
+                ))
+        patches.append(patch_tmp)
+
+    patches.append(mpatches.Patch(color='#EBEBEB', label='Unfairness <20%'))
+
+    return patches
     
 ################################################
 #             lambda functions

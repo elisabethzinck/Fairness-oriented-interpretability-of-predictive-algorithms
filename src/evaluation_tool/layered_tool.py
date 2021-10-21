@@ -25,11 +25,11 @@ from sklearn.metrics import confusion_matrix, roc_curve
 # dir functions
 from src.evaluation_tool.utils import (
     cm_matrix_to_dict, custom_palette, abs_percentage_tick, extract_cm_values,
-    flatten_list, cm_dict_to_matrix, add_colors_with_stripes, get_alpha_weights,
+    flatten_list, cm_dict_to_matrix, add_colors_with_stripes, get_alpha_weights, 
     value_counts_df, desaturate, label_case, format_text_layer_1,
     N_pos, N_neg, frac_pos, frac_neg, wilson_confint, 
     error_bar, flip_dataframe, extract_cm_values, cm_vals_to_matrix,
-    get_fairness_barometer_legend_patches
+    get_fairness_barometer_legend_patches, get_BW_fairness_barometer_legend_patches
     )
 
 #%%
@@ -635,9 +635,8 @@ class FairKit:
             color_dict = self.sens_grps_cols, 
             color_variable = plot_df.discriminated_grp)
         # Legend
-        patches = get_fairness_barometer_legend_patches( 
-            plot_df = plot_df,
-            color_dict = self.sens_grps_cols)
+        patches = get_BW_fairness_barometer_legend_patches( 
+            plot_df = plot_df)
         leg = ax.legend(handles=patches, loc = 'lower right', 
             title = 'Discriminated Groups', 
             bbox_to_anchor=(1.05,0),
