@@ -127,7 +127,6 @@ class FairKit:
 
         if plot:
             self.plot_layer_1(l1_data=l1_data, ax = None)
-            #print('Whoops, we still need to implement l1 plot')
 
         if output_table:
             return l1_data
@@ -201,7 +200,8 @@ class FairKit:
             # To do: Fix that get_roc_curves is called twice
             roc = self.get_roc_curves()
             if plot:
-                self.plot_roc_curves()
+                threshold = kwargs.get('threshold')
+                self.plot_roc_curves(threshold = threshold)
             if output_table:
                 return roc
 
@@ -552,7 +552,6 @@ class FairKit:
                     fontsize = self._title_size, horizontalalignment='center',
                     y = 1.05)
             
-
     def plot_rates(self, ax = None, w_fp = None):
         """Plot FPR, FNR, FDR, FOR for each group"""
         rate_names = ['FPR', 'FNR', 'FDR', 'FOR']
@@ -665,13 +664,13 @@ class FairKit:
         # Legend
         patches = get_BW_fairness_barometer_legend_patches( 
             plot_df = plot_df)
-        leg = ax.legend(handles=patches, loc = 'lower right', 
-        title = '',  prop={'size':self._legend_size-3},
-        bbox_to_anchor=(1.05,0),
-        frameon=True)
+        leg = ax.legend(
+            handles=patches, loc = 'lower right', 
+            title = '',  prop={'size':self._legend_size-3},
+            bbox_to_anchor=(1.05,0),
+            frameon=True)
         leg._legend_box.align = "left"
         
-
     def l2_interactive_plot(self):
        return interact(self.l2_plot, w_fp=FloatSlider(min=0,max=1,atep=0.1,value=0.8))
 
@@ -697,7 +696,6 @@ class FairKit:
         ax.tick_params(labelsize=self._tick_size)
         if relative:
             ax.yaxis.set_major_formatter(mtick.FuncFormatter(abs_percentage_tick))
-
    
     def plot_layer_1(self, l1_data, ax = None):
         """ Visualize the maximum gap in WMR by text
@@ -747,16 +745,26 @@ class FairKit:
         format_text_layer_1(ax, 0.02, 0.74, line_2, color_list_2,
                             font_sizes_2, font_weights_2)
 
-    def plot_roc_curves(self, ax = None):
-        # To do: Documentation
+    def plot_roc_curves(self, ax = None, threshold = None):
+
         roc = self.get_roc_curves()
 
-        # To do: Possible to choose other thresholds than 0.5?
-        roc_half = roc[(0.50 < roc.threshold)]
-        chosen_threshold = roc_half.loc[
-            roc_half.groupby('sens_grp').threshold.idxmin()]
+        # Make thresholds into dict
+        if threshold is None: threshold = 0.5
+        if isinstance(threshold, int) or isinstance(threshold, float):
+            t_dict = {grp:threshold for grp in self.sens_grps}
+        elif isinstance(threshold, dict):
+            t_dict = threshold
         
-        # To do: Label for do showing threshold cutoff
+        # Select points corresponding to thresholds
+        threshold_points = []
+        for grp in self.sens_grps:
+            t = t_dict[grp]
+            tmp = roc[(t < roc.threshold) & (roc.sens_grp == grp)]
+            point = tmp.loc[tmp.groupby('sens_grp').threshold.idxmin()]
+            threshold_points.append(point)
+        threshold_points = pd.concat(threshold_points)
+
         if ax is None: 
             fig = plt.figure()
             ax = fig.add_subplot(1, 1, 1)
@@ -768,7 +776,7 @@ class FairKit:
             zorder = 1)
         sns.scatterplot(
             x = 'fpr', y = 'tpr', 
-            data = chosen_threshold, ax = ax,
+            data = threshold_points, ax = ax,
             hue = 'sens_grp', s = 100,
             palette = self.sens_grps_cols,
             zorder = 2, legend = False)
@@ -777,9 +785,22 @@ class FairKit:
         ax.set_ylabel('True positive rate', size=self._label_size)
         ax.set_title('ROC Curves (Analysis of Separation)', size=self._title_size)
         sns.despine(ax = ax, top = True, right = True)
-        ax.legend(frameon = False, loc = 'lower right', 
-            prop={'size':self._legend_size})
         ax.tick_params(labelsize=self._tick_size)
+
+        # Get legend
+        patches = []
+        for grp, col in self.sens_grps_cols.items():
+            patch = Line2D(
+                [], [], 
+                color = col, marker = 'o', markersize = 10,
+                markeredgecolor = 'white',
+                label = f'{grp} ($\\tau$ = {t_dict[grp]})')
+            patches.append(patch)
+        ax.legend(
+            handles = patches,
+            frameon = False, loc = 'lower right', 
+            prop={'size':self._legend_size},
+            markerfirst = False)
 
     def plot_independence_check(self, ax=None, orientation = 'h', w_fp = None):
         """ Bar plot of the percentage of predicted positives per
@@ -885,6 +906,7 @@ class FairKit:
             loc = 'upper left',
             prop={"size":self._legend_size}) 
         ax.tick_params(labelsize=self._tick_size)
+
 #%% Main
 if __name__ == "__main__":
     file_path = 'data\\processed\\anonymous_data.csv'
@@ -901,19 +923,20 @@ if __name__ == "__main__":
         model_name="Example Data")
 
     # l1 check
-    #l1 = fair_anym.layer_1()
+    l1 = fair_anym.layer_1()
 
     # l2 check
-    l2_rates, l2_relative_rates, l2_barometer = fair_anym.layer_2(**{"suptitle":True})
-
-    #fair_anym.plot_fairness_barometer()
+    l2_rates, l2_relative_rates, l2_barometer = fair_anym.layer_2(
+        **{"suptitle":True})
 
     # l3 check
     w_fp_influence = fair_anym.layer_3(method = 'w_fp_influence')
     conf_mat = fair_anym.layer_3(method = 'confusion_matrix')
-    roc = fair_anym.layer_3(method = 'roc_curves')
+    thresholds = {'A': 0.5, 'B': 0.6, 'C': 0.7}
+    roc = fair_anym.layer_3(method = 'roc_curves', **{'threshold': thresholds})
     calibration = fair_anym.layer_3(method = 'calibration', **{'n_bins': 5})
     independence = fair_anym.layer_3('independence_check', **{'orientation':'h'}) 
+
 
 
 # %%
