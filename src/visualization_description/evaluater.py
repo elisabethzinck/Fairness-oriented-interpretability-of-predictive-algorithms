@@ -177,25 +177,28 @@ def make_all_plots(kit, save_plots = False, plot_path = None, ext = '.png', **kw
     if save_plots and plot_path is None:
         raise ValueError('You must supply a `plot_path` when `save_plots` = True')
 
-    kit.layer_1(output_table = False)
-    if save_plots: 
-        plt.savefig(plot_path+'l1'+ext, bbox_inches='tight', facecolor = 'w')
-        plt.close()
-
-    kit.layer_2(output_table = False, **{"suptitle":True})
-    if save_plots: 
-        plt.savefig(plot_path+'l2'+ext, bbox_inches='tight', facecolor = 'w')
-        plt.close()
-
-    method_options = [
-        'w_fp_influence', 'roc_curves', 'calibration', 
-        'confusion_matrix', 'independence_check']
-    for method in method_options:
-        kit.layer_3(method = method, output_table = False)
+    if kwargs.get("run_layer_1") or kwargs.get("run_layer_1") is None:
+        kit.layer_1(output_table = False)
         if save_plots: 
-            path = plot_path+'l3_'+method+ext
-            plt.savefig(path, bbox_inches='tight', facecolor = 'w')
+            plt.savefig(plot_path+'l1'+ext, bbox_inches='tight', facecolor = 'w')
             plt.close()
+
+    if kwargs.get("run_layer_2") or kwargs.get("run_layer_2") is None:
+        kit.layer_2(output_table = False, **{"suptitle":True})
+        if save_plots: 
+            plt.savefig(plot_path+'l2'+ext, bbox_inches='tight', facecolor = 'w')
+            plt.close()
+
+    if kwargs.get("run_layer_3") or kwargs.get("run_layer_3") is None:
+        method_options = [
+            'w_fp_influence', 'roc_curves', 'calibration', 
+            'confusion_matrix', 'independence_check']
+        for method in method_options:
+            kit.layer_3(method = method, output_table = False)
+            if save_plots: 
+                path = plot_path+'l3_'+method+ext
+                plt.savefig(path, bbox_inches='tight', facecolor = 'w')
+                plt.close()
 
         
 #%%
