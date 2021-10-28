@@ -228,6 +228,8 @@ if __name__ == '__main__':
         # Make all L2 plots as pdf 
         for i, (mod_name, kit) in enumerate(FairKitDict.items()):
             print(i)
+            if mod_name == "anym":
+                continue
             path = fig_path_report + mod_name + '_'
             make_all_plots(kit, 
                 save_plots = update_report_figures,
