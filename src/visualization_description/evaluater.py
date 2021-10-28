@@ -174,22 +174,28 @@ def make_all_plots(kit, save_plots = False, plot_path = None, ext = '.png', **kw
         plot_path (str): path to save plots in. Must be supplied if `save_plots` = True
         ext (str): Extension to use. Must begin with '.' (e.g. '.png')
     """
+    # running all layers if nothing is specified in kwargs 
+    if all(key not in kwargs.keys() for key in ["run_layer_1", 'run_layer_2', 'run_layer_3']):
+        run_all = True 
+    else: 
+        run_all = False 
+
     if save_plots and plot_path is None:
         raise ValueError('You must supply a `plot_path` when `save_plots` = True')
 
-    if kwargs.get("run_layer_1") or kwargs.get("run_layer_1") is None:
+    if kwargs.get("run_layer_1") or run_all:
         kit.layer_1(output_table = False)
         if save_plots: 
             plt.savefig(plot_path+'l1'+ext, bbox_inches='tight', facecolor = 'w')
             plt.close()
 
-    if kwargs.get("run_layer_2") or kwargs.get("run_layer_2") is None:
+    if kwargs.get("run_layer_2") or run_all:
         kit.layer_2(output_table = False, **{"suptitle":True})
         if save_plots: 
             plt.savefig(plot_path+'l2'+ext, bbox_inches='tight', facecolor = 'w')
             plt.close()
 
-    if kwargs.get("run_layer_3") or kwargs.get("run_layer_3") is None:
+    if kwargs.get("run_layer_3") or run_all:
         method_options = [
             'w_fp_influence', 'roc_curves', 'calibration', 
             'confusion_matrix', 'independence_check']
@@ -212,6 +218,9 @@ if __name__ == '__main__':
     for i, (mod_name, kit) in enumerate(FairKitDict.items()):
         print(i)
         path = figure_path + mod_name + '_'
-        make_all_plots(kit, save_plots = update_figures, plot_path = path, **{"hej":True})
+        make_all_plots(kit, 
+            save_plots = update_figures,
+            plot_path = path,
+            **{"run_layer_2":True})
 
 # %%
