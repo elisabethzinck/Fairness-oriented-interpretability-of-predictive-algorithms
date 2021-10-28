@@ -165,7 +165,7 @@ def print_FairKitDict(FairKitDict):
     for i, (mod_name, kit) in enumerate(FairKitDict.items()):
         print(f'{i} {mod_name}: {kit.model_name}') 
 
-def make_all_plots(kit, save_plots = False, plot_path = None, ext = '.png'):
+def make_all_plots(kit, save_plots = False, plot_path = None, ext = '.png', **kwargs):
     """ Makes all plots for FairKit instance kit
 
     Args:
@@ -182,7 +182,7 @@ def make_all_plots(kit, save_plots = False, plot_path = None, ext = '.png'):
         plt.savefig(plot_path+'l1'+ext, bbox_inches='tight', facecolor = 'w')
         plt.close()
 
-    kit.layer_2(output_table = False)
+    kit.layer_2(output_table = False, **{"suptitle":True})
     if save_plots: 
         plt.savefig(plot_path+'l2'+ext, bbox_inches='tight', facecolor = 'w')
         plt.close()
@@ -196,6 +196,7 @@ def make_all_plots(kit, save_plots = False, plot_path = None, ext = '.png'):
             path = plot_path+'l3_'+method+ext
             plt.savefig(path, bbox_inches='tight', facecolor = 'w')
             plt.close()
+
         
 #%%
 if __name__ == '__main__':
@@ -208,6 +209,6 @@ if __name__ == '__main__':
     for i, (mod_name, kit) in enumerate(FairKitDict.items()):
         print(i)
         path = figure_path + mod_name + '_'
-        make_all_plots(kit, save_plots = update_figures, plot_path = path)
+        make_all_plots(kit, save_plots = update_figures, plot_path = path, **{"hej":True})
 
 # %%
