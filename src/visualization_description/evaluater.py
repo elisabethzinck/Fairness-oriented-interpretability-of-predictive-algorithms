@@ -214,23 +214,25 @@ if __name__ == '__main__':
 
     l1tab = get_l1_overview_table()
 
-    # Make all(!) plots as png 
-    for i, (mod_name, kit) in enumerate(FairKitDict.items()):
-        print(i)
-        path = figure_path + mod_name + '_'
-        make_all_plots(kit, 
-            save_plots = update_figures,
-            plot_path = path,
-            **{"run_layer_2":True})
-    
-    # Make all L2 plots as pdf 
-    for i, (mod_name, kit) in enumerate(FairKitDict.items()):
-        print(i)
-        path = fig_path_report + mod_name + '_'
-        make_all_plots(kit, 
-            save_plots = update_report_figures,
-            plot_path = path,
-            ext = ".pdf",
-            **{"run_layer_2":True})
+    run_plots = True
+    if run_plots: 
+        # Make all(!) plots as png 
+        for i, (mod_name, kit) in enumerate(FairKitDict.items()):
+            print(i)
+            path = figure_path + mod_name + '_'
+            make_all_plots(kit, 
+                save_plots = update_figures,
+                plot_path = path,
+                **{"run_layer_2":True})
+        
+        # Make all L2 plots as pdf 
+        for i, (mod_name, kit) in enumerate(FairKitDict.items()):
+            print(i)
+            path = fig_path_report + mod_name + '_'
+            make_all_plots(kit, 
+                save_plots = update_report_figures,
+                plot_path = path,
+                ext = ".pdf",
+                **{"run_layer_2":True})
 
 # %%
