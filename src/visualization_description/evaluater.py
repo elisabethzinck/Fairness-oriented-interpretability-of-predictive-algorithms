@@ -8,10 +8,10 @@ from src.evaluation_tool.utils import static_split
 
 #%% Initialize parameters
 figure_path = 'figures/evaluation_plots/'
-fig_path_report = '../Thesis-report/00_figures/'
+fig_path_report = '../Thesis-report/00_figures/evalL2/'
 
 update_figures  = True
-update_report_figures = False # Write new figures to report repository?
+update_report_figures = True # Write new figures to report repository?
 
 #############################################
 #%% Load data and initialize FairKit
@@ -214,13 +214,22 @@ if __name__ == '__main__':
 
     l1tab = get_l1_overview_table()
 
-    # Make all(!) plots
+    # Make all(!) plots as png 
+    #for i, (mod_name, kit) in enumerate(FairKitDict.items()):
+    #    print(i)
+    #    path = figure_path + mod_name + '_'
+    #    make_all_plots(kit, 
+    #        save_plots = update_figures,
+    #        plot_path = path)
+    
+    # Make all L2 plots as pdf 
     for i, (mod_name, kit) in enumerate(FairKitDict.items()):
         print(i)
-        path = figure_path + mod_name + '_'
+        path = fig_path_report + mod_name + '_'
         make_all_plots(kit, 
-            save_plots = update_figures,
+            save_plots = update_report_figures,
             plot_path = path,
+            ext = ".pdf",
             **{"run_layer_2":True})
 
 # %%
