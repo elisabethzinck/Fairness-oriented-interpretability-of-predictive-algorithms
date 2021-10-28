@@ -138,7 +138,7 @@ class FairKit:
     
         if plot:
             gs = GridSpec(nrows = 10, ncols = 3)
-            f = plt.figure(figsize=(20,6))
+            f = plt.figure(figsize=(22,6))
             ax0 = f.add_subplot(gs[:, 0])
             ax2 = f.add_subplot(gs[5:,1:2])
             ax1 = f.add_subplot(gs[0:4,1:2], sharex = ax2)
@@ -647,11 +647,11 @@ class FairKit:
         sns.barplot(
             x = 'grey_bar', y = 'criterion', 
             data = plot_df,
-            ax = ax, zorder = 2, color = "#EBEBEB")
+            ax = ax, zorder = 2, color = "#EBEBEB", edgecolor="#EBEBEB")
         ax.set_xlabel('')
         ax.set_ylabel('')
         _, xmax = ax.get_xlim()
-        max_rr = plot_df.relative_rate.max()
+        max_rr = self.rel_rates.relative_rate.max()
         ax.set_xlim(left=-0.05*xmax, right=max_rr + 0.25*max_rr)
         ax.set_title('Unfairness barometer', fontsize=14, loc = 'left')
         sns.despine(ax = ax, left = True, top = True, right = True)

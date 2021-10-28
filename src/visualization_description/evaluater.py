@@ -8,10 +8,10 @@ from src.evaluation_tool.utils import static_split
 
 #%% Initialize parameters
 figure_path = 'figures/evaluation_plots/'
-fig_path_report = '../Thesis-report/00_figures/'
+fig_path_report = '../Thesis-report/00_figures/evalL2/'
 
 update_figures  = True
-update_report_figures = False # Write new figures to report repository?
+update_report_figures = True # Write new figures to report repository?
 
 #############################################
 #%% Load data and initialize FairKit
@@ -165,7 +165,7 @@ def print_FairKitDict(FairKitDict):
     for i, (mod_name, kit) in enumerate(FairKitDict.items()):
         print(f'{i} {mod_name}: {kit.model_name}') 
 
-def make_all_plots(kit, save_plots = False, plot_path = None, ext = '.png'):
+def make_all_plots(kit, save_plots = False, plot_path = None, ext = '.png', **kwargs):
     """ Makes all plots for FairKit instance kit
 
     Args:
@@ -174,28 +174,38 @@ def make_all_plots(kit, save_plots = False, plot_path = None, ext = '.png'):
         plot_path (str): path to save plots in. Must be supplied if `save_plots` = True
         ext (str): Extension to use. Must begin with '.' (e.g. '.png')
     """
+    # running all layers if nothing is specified in kwargs 
+    if all(key not in kwargs.keys() for key in ["run_layer_1", 'run_layer_2', 'run_layer_3']):
+        run_all = True 
+    else: 
+        run_all = False 
+
     if save_plots and plot_path is None:
         raise ValueError('You must supply a `plot_path` when `save_plots` = True')
 
-    kit.layer_1(output_table = False)
-    if save_plots: 
-        plt.savefig(plot_path+'l1'+ext, bbox_inches='tight', facecolor = 'w')
-        plt.close()
-
-    kit.layer_2(output_table = False)
-    if save_plots: 
-        plt.savefig(plot_path+'l2'+ext, bbox_inches='tight', facecolor = 'w')
-        plt.close()
-
-    method_options = [
-        'w_fp_influence', 'roc_curves', 'calibration', 
-        'confusion_matrix', 'independence_check']
-    for method in method_options:
-        kit.layer_3(method = method, output_table = False)
+    if kwargs.get("run_layer_1") or run_all:
+        kit.layer_1(output_table = False)
         if save_plots: 
-            path = plot_path+'l3_'+method+ext
-            plt.savefig(path, bbox_inches='tight', facecolor = 'w')
+            plt.savefig(plot_path+'l1'+ext, bbox_inches='tight', facecolor = 'w')
             plt.close()
+
+    if kwargs.get("run_layer_2") or run_all:
+        kit.layer_2(output_table = False, **{"suptitle":True})
+        if save_plots: 
+            plt.savefig(plot_path+'l2'+ext, bbox_inches='tight', facecolor = 'w')
+            plt.close()
+
+    if kwargs.get("run_layer_3") or run_all:
+        method_options = [
+            'w_fp_influence', 'roc_curves', 'calibration', 
+            'confusion_matrix', 'independence_check']
+        for method in method_options:
+            kit.layer_3(method = method, output_table = False)
+            if save_plots: 
+                path = plot_path+'l3_'+method+ext
+                plt.savefig(path, bbox_inches='tight', facecolor = 'w')
+                plt.close()
+
         
 #%%
 if __name__ == '__main__':
@@ -204,10 +214,25 @@ if __name__ == '__main__':
 
     l1tab = get_l1_overview_table()
 
-    # Make all(!) plots
-    for i, (mod_name, kit) in enumerate(FairKitDict.items()):
-        print(i)
-        path = figure_path + mod_name + '_'
-        make_all_plots(kit, save_plots = update_figures, plot_path = path)
+    run_plots = True
+    if run_plots: 
+        # Make all(!) plots as png 
+        for i, (mod_name, kit) in enumerate(FairKitDict.items()):
+            print(i)
+            path = figure_path + mod_name + '_'
+            make_all_plots(kit, 
+                save_plots = update_figures,
+                plot_path = path,
+                **{"run_layer_2":True})
+        
+        # Make all L2 plots as pdf 
+        for i, (mod_name, kit) in enumerate(FairKitDict.items()):
+            print(i)
+            path = fig_path_report + mod_name + '_'
+            make_all_plots(kit, 
+                save_plots = update_report_figures,
+                plot_path = path,
+                ext = ".pdf",
+                **{"run_layer_2":True})
 
 # %%
