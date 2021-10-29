@@ -149,6 +149,7 @@ def get_l1_overview_table(print_latex = True):
             'Dataset': dataset_name,
             'Model': model_name,
             'N': kit.n,
+            'w_fp': kit.w_fp,
             'Max WMR': round(l1max.weighted_misclassification_ratio.iat[0], 1),
             'Discriminated Group': l1max.grp.iat[0],
             'Accuracy': round(acc, 1)
@@ -214,7 +215,7 @@ if __name__ == '__main__':
 
     l1tab = get_l1_overview_table()
 
-    run_plots = True
+    run_plots = False
     if run_plots: 
         # Make all(!) plots as png 
         for i, (mod_name, kit) in enumerate(FairKitDict.items()):
