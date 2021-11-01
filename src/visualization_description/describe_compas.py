@@ -15,7 +15,8 @@ df = pd.read_csv("data/processed/compas/compas-scores-two-years-pred.csv")
 desc = DescribeData(data = df, 
                     y_name = "two_year_recid",
                     a_name = 'race', 
-                    id_name = 'id')
+                    id_name = 'id', 
+                    data_name='COMPAS')
 
 desc.descriptive_table_to_tex(target_tex_name="Recidivists")
 desc.plot_positive_rate(title = 'Percentage of Recidivists', orientation='v')
