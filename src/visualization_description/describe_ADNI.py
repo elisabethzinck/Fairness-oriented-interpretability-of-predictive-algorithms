@@ -10,7 +10,7 @@ from src.models.data_modules import ADNIDataModule
 
 write_sankey = False
 fig_path_report = '../Thesis-report/00_figures/describe_data/'
-update_report_figs = True
+update_report_figs = False
 
 #%%
 adni_no = 2

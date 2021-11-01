@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 
 from src.evaluation_tool.descriptive_tool import DescribeData
 
-update_report_figs = True
+update_report_figs = False
 fig_path_report = '../Thesis-report/00_figures/describe_data/'
 
 # reading data 

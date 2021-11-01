@@ -14,7 +14,7 @@ figure_path = 'figures/descriptive_plots/'
 fig_path_report = '../Thesis-report/00_figures/describe_data/'
 model_path = 'models/german_credit/'
 
-update_report_figs = True
+update_report_figs = False
 
 run_t_sne = False
 
