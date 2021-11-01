@@ -23,8 +23,8 @@ data.rename(
 # education and marriage map don't correspond to explanation in article, 
 # instead map from  https://www.kaggle.com/uciml/default-of-credit-card-clients-dataset/discussion/34608 is used
 sex_map = {
-    1: 'male',
-    2: 'female'
+    1: 'Male',
+    2: 'Female'
 }
 education_map = {
     0: 'others',

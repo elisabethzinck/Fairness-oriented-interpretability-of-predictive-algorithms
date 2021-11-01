@@ -55,13 +55,15 @@ class ADNIDataModule(pl.LightningDataModule):
     def process_raw_data(self):
         trainval_data = (
             pd.concat([self.raw_data['ad'], self.raw_data['nc']])
-            .assign(y = lambda x: x.label.map(self.label_to_y_map))
+            .assign(y = lambda x: x.label.map(self.label_to_y_map),
+                    sex = lambda x: x.sex.map({'M':'Male', 'F':'Female'}))
             .set_index('rid')
             .drop(columns = 'label')
         )
         test_data = (
             self.raw_data['mci']
-            .assign(y = lambda x: x[self.time_horizon].map(self.label_to_y_map))
+            .assign(y = lambda x: x[self.time_horizon].map(self.label_to_y_map),
+                    sex = lambda x: x.sex.map({'M':'Male', 'F':'Female'}))
             .set_index('rid')
             .drop(columns = ['label', '1y', '2y', '3y', '4y', '5y'])
             .dropna()

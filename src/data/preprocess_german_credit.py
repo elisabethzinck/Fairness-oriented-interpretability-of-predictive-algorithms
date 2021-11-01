@@ -59,11 +59,11 @@ df.personal_status_sex.unique()
 
 # Create sex column (from german_credit.doc)
 sex_map = {
-    'A91': 'male',
-    'A92': 'female',
-    'A93': 'male',
-    'A94': 'male', 
-    'A95': 'female'
+    'A91': 'Male',
+    'A92': 'Female',
+    'A93': 'Male',
+    'A94': 'Male', 
+    'A95': 'Female'
     }
 personal_status_map = {
     'A91': 'married/previously_married',
