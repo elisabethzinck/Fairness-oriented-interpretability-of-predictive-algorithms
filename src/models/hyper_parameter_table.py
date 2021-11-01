@@ -103,12 +103,12 @@ datasetinfo = pd.concat(
 datasetinfo
 
 
-#%%  Making it pretty for latex
+# Making it pretty for latex
 datasetinfo['lr'] = datasetinfo['lr'].round(4)
 datasetinfo['p_dropout'] = datasetinfo['p_dropout'].round(2)
 
 datasetinfo.columns = [label_case(col) for col in datasetinfo.columns]
-#print(datasetinfo.to_latex(index = False))
+print(datasetinfo.to_latex(index = False))
 
 
 

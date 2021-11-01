@@ -292,28 +292,30 @@ class FairKit:
         """Calculate rates by sensitive group"""
         if w_fp is None:
             w_fp = self.w_fp
-        rates = {}   
+        rates = []   
         for grp in self.sens_grps:
             TP, FN, FP, TN = extract_cm_values(self.cm, grp)
-            rates[grp] = {
-                'TPR': TP/(TP + FN), 
-                'FNR': FN/(TP + FN), 
-                'TNR': TN/(TN + FP),
-                'FPR': FP/(TN + FP),
-                'PPV': TP/(TP + FP),
-                'FDR': FP/(TP + FP),
-                'NPV': TN/(TN + FN),
-                'FOR': FN/(TN + FN),
-                'PN/n': (TN+FN)/(TP+FP+TN+FN),
-                'PP/n': (TP+FP)/(TP+FP+TN+FN)
-                }
+            rates_grp = (pd.DataFrame(
+                [['FNR', FN, (TP + FN)], 
+                ['FPR', FP, (TN + FP)],
+                ['FDR', FP, (TP + FP)],
+                ['FOR', FN, (TN + FN)],
+                ['PN/n', (TN+FN), (TP+FP+TN+FN)],
+                ['PP/n', (TP+FP), (TP+FP+TN+FN)]], 
+                columns = ['rate', 'numerator', 'denominator'])
+                .assign(
+                    grp = grp,
+                    rate_val = lambda x: x.numerator/x.denominator,
+                    rate_val_lwr = lambda x: wilson_confint(
+                        x.numerator, x.denominator, 'lwr'),
+                    rate_val_upr = lambda x: wilson_confint(
+                        x.numerator, x.denominator, 'upr'))
+                )
+            rates.append(rates_grp)
 
-        # Convert rate dict to data frame 
-        rates = pd.DataFrame(
-            [(grp, rate, val) 
-            for grp,grp_dict in rates.items() 
-            for rate,val in grp_dict.items()], 
-            columns = ['grp', 'rate', 'rate_val'])
+        rates = (pd.concat(rates)
+            .reset_index(drop = True)
+            .drop(columns = ['numerator', 'denominator']))
         
         return rates
 
@@ -472,6 +474,7 @@ class FairKit:
         Returns:
             pd.DataFrame with calculations. To do: Should columns be described? 
         """
+        # To do: Warn if no variation in one of bins (see catalan)
         bins = np.linspace(0, 1, num = n_bins+1)
         calibration_df = (
             self.classifier
@@ -576,7 +579,12 @@ class FairKit:
         rate_names = ['FPR', 'FNR', 'FDR', 'FOR']
         if w_fp is None:
             w_fp = self.w_fp
-        plot_df = self.rates[self.rates.rate.isin(rate_names)]
+        plot_df = (
+            fair_anym.rates[fair_anym.rates.rate.isin(rate_names)]
+            .assign(
+                conf_lwr = lambda x: x.rate_val_lwr,
+                conf_upr = lambda x: x.rate_val_upr))
+
         alpha_weights = get_alpha_weights(w_fp)
 
         if ax is None:
@@ -596,11 +604,21 @@ class FairKit:
         sns.despine(ax = ax, bottom = True, top = True, right = True)
         ax.tick_params(labelsize=12)
 
-        # Set alpha values
+        # Set alpha values and error bars manually
         containers = flatten_list(ax.containers) # order = from left to right by group
-        for bar, rate in zip(containers, rate_names*self.n_sens_grps):
+        rates = rate_names*fair_anym.n_sens_grps
+        groups = flatten_list([[grp]*4 for grp in fair_anym.sens_grps])
+        for bar, rate, grp in zip(containers, rates, groups):
             alpha = alpha_weights[rate]
             bar.set_alpha(alpha)
+
+            error_df = plot_df[(plot_df.grp == grp) & (plot_df.rate == rate)]
+            ax.vlines(
+                x = (bar._x0 + bar._x1)/2, 
+                ymin = error_df.conf_lwr, 
+                ymax = error_df.conf_upr, 
+                colors = '#6C757D',
+                alpha = alpha)
 
         return ax
 
