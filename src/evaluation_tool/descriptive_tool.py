@@ -276,7 +276,7 @@ class DescribeData:
                 ax.spines[pos].set_visible(False)
 
         if orientation == 'v':
-            fig = plt.figure(figsize=(4,3.5))
+            fig = plt.figure(figsize=(3.2,3.6))
             ax = fig.add_subplot(1, 1, 1)
             bar1 = sns.barplot(
                 y = 'N_people', x = 'a', 

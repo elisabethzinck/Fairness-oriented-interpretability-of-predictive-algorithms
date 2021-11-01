@@ -27,4 +27,4 @@ desc.plot_n_target_across_sens_var(
     return_ax=False, 
     **{"class_0_label":"Not Recidivated", "class_1_label":"Recidivated"})
 if update_report_figs: 
-    plt.savefig(fig_path_report+'catalan_N_by_sex.pdf', bbox_inches='tight')
+    plt.savefig(fig_path_report+'catalan_N_by_area.pdf', bbox_inches='tight')
