@@ -25,6 +25,8 @@ class ADNIDataModule(pl.LightningDataModule):
         self.sens_vars = ['sex', 'age']
         self.y_var = 'y'
 
+        self.dataset_name = 'ADNI'+str(dataset)
+
         self.label_to_y_map = {
             0: np.nan,          # Censoring
             1: 0,               # Normal controls
@@ -139,7 +141,8 @@ class CatalanDataModule(pl.LightningDataModule):
             'V1_sex', 'V8_age', 
             'V4_area_origin', 'V6_province'
             ]   
-        self.y_var = 'V115_RECID2015_recid'   
+        self.y_var = 'V115_RECID2015_recid' 
+        self.dataset_name = 'Catalan Recidivism'  
 
         self.load_raw_data()
         self.setup()
@@ -226,6 +229,7 @@ class GermanDataModule(pl.LightningDataModule):
         self.id_var = 'person_id'
         self.sens_vars = ['sex', 'age']   
         self.y_var = 'credit_score'
+        self.dataset_name = 'German Credit'
 
         self.raw_data = self.load_raw_data()
         self.setup()
@@ -313,6 +317,7 @@ class TaiwaneseDataModule(pl.LightningDataModule):
         self.id_var = 'id'
         self.sens_vars = ['sex', 'age']
         self.y_var = 'default_next_month'
+        self.dataset_name = 'Taiwanese Credit'
 
         self.load_raw_data()
         self.setup()
