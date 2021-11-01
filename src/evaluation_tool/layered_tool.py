@@ -570,7 +570,7 @@ class FairKit:
             plt.title(f'{str.title(grp)} (N = {n_obs})', size=self._title_size)
             f.subplots_adjust(wspace = 0.4, hspace = 0.4)
             if self.model_name != None:
-                f.suptitle(f"Confusion Matrices: {self.model_name}",
+                f.suptitle(f"{self.model_name}",
                     fontsize = self._title_size, horizontalalignment='center',
                     y = 1.05)
             
@@ -580,7 +580,7 @@ class FairKit:
         if w_fp is None:
             w_fp = self.w_fp
         plot_df = (
-            fair_anym.rates[fair_anym.rates.rate.isin(rate_names)]
+            self.rates[self.rates.rate.isin(rate_names)]
             .assign(
                 conf_lwr = lambda x: x.rate_val_lwr,
                 conf_upr = lambda x: x.rate_val_upr))
@@ -606,8 +606,8 @@ class FairKit:
 
         # Set alpha values and error bars manually
         containers = flatten_list(ax.containers) # order = from left to right by group
-        rates = rate_names*fair_anym.n_sens_grps
-        groups = flatten_list([[grp]*4 for grp in fair_anym.sens_grps])
+        rates = rate_names*self.n_sens_grps
+        groups = flatten_list([[grp]*4 for grp in self.sens_grps])
         for bar, rate, grp in zip(containers, rates, groups):
             alpha = alpha_weights[rate]
             bar.set_alpha(alpha)
@@ -794,6 +794,7 @@ class FairKit:
             t_dict = threshold
         
         # Select points corresponding to thresholds
+        # To do: Put error bars on this
         threshold_points = []
         for grp in self.sens_grps:
             t = t_dict[grp]

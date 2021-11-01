@@ -8,7 +8,18 @@ from src.evaluation_tool.utils import static_split
 
 #%% Initialize parameters
 figure_path = 'figures/evaluation_plots/'
-fig_path_report = '../Thesis-report/00_figures/evalL2/'
+fig_path_report_l2 = '../Thesis-report/00_figures/evalL2/'
+fig_path_report_l3 = '../Thesis-report/00_figures/evalL3/'
+
+l3_report_plots = {
+    'german_logreg': 'confusion_matrix',
+    'german_nn': 'confusion_matrix',
+    'taiwanese_logreg': 'roc_curves',
+    'catalan_logreg': 'roc_curves',
+    'catalan_logreg': 'independence_check',
+    'catalan_logreg': 'w_fp_influence',
+    'adni2_nn': 'calibration'
+}
 
 update_figures  = True
 update_report_figures = True # Write new figures to report repository?
@@ -215,27 +226,36 @@ if __name__ == '__main__':
 
     l1tab = get_l1_overview_table()
 
-    run_plots = False
-    if run_plots: 
+    run_all_plots = True
+    if run_all_plots: 
         # Make all(!) plots as png 
         for i, (mod_name, kit) in enumerate(FairKitDict.items()):
             print(i)
             path = figure_path + mod_name + '_'
             make_all_plots(kit, 
                 save_plots = update_figures,
-                plot_path = path,
-                **{"run_layer_2":True})
+                plot_path = path)
         
-        # Make all L2 plots as pdf 
+    run_l2_plots = False
+    if run_l2_plots:
         for i, (mod_name, kit) in enumerate(FairKitDict.items()):
             print(i)
             if mod_name == "anym":
                 continue
-            path = fig_path_report + mod_name + '_'
+            path = fig_path_report_l2 + mod_name + '_'
             make_all_plots(kit, 
                 save_plots = update_report_figures,
                 plot_path = path,
                 ext = ".pdf",
                 **{"run_layer_2":True})
+    
+    run_l3_plots = False
+    if run_l3_plots:
+        for dataset, method in l3_report_plots.items():
+            FairKitDict[dataset].layer_3(method = method)
+            if update_report_figures:
+                path = fig_path_report_l3 + dataset + '_' + method + '.pdf'
+                print(path)
+                plt.savefig(path, bbox_inches='tight', facecolor = 'w')
 
 # %%
