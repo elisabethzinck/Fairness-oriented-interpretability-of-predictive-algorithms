@@ -10,7 +10,7 @@ from src.evaluation_tool.descriptive_tool import DescribeData
 file_path = 'data\\processed\\catalan-juvenile-recidivism\\catalan-juvenile-recidivism-subset.csv'
 raw_data = pd.read_csv(file_path, index_col=0)
 
-fig_path_report = '../Thesis-report/00_figures/'
+fig_path_report = '../Thesis-report/00_figures/describe_data/'
 update_report_figs = True
 
 #%% Aggregated tables 

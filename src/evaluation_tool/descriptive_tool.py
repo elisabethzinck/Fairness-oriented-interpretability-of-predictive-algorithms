@@ -18,7 +18,7 @@ from src.evaluation_tool.utils import (
     N_pos, frac_pos, wilson_confint, error_bar, abs_percentage_tick)
 #%% 
 class DescribeData:
-    def __init__(self, y_name, a_name, id_name = None, data = None):
+    def __init__(self, y_name, a_name, id_name = None, data = None, data_name = None):
         """Methods to describe data with focus on sensitive groups
         
         Args:
@@ -26,13 +26,14 @@ class DescribeData:
             a_name (string): Name of sensitive variable 
             id_name (string): Name of id variable
             data (data frame): Data frame with data
-
+            data_name (string): Name of data 
         """
         self.y_name = y_name
         self.a_name = a_name
         self.id_name = id_name
         
         self.data = data.rename(columns = {self.y_name: 'y', self.a_name: 'a'})
+        self.data_name = data_name
         
         self.sens_grps = sorted(self.data.a.unique())
         self.n_sens_grps = len(self.sens_grps)
@@ -83,6 +84,7 @@ class DescribeData:
                 conf_lwr = lambda x: wilson_confint(x.N_positive, x.N, 'lwr'),
                 conf_upr = lambda x: wilson_confint(x.N_positive, x.N, 'upr')))
         df_agg =self.descriptive_table.append(row_total, ignore_index=True)
+        df_agg['a'] = df_agg['a'].apply(lambda x: x.title())
 
         # Latex formatting
         agg_data_tex = (df_agg
@@ -99,7 +101,7 @@ class DescribeData:
         s = agg_data_tex.style.format(escape = "latex")
         s.hide_index()
         s.set_table_styles([mid_rule])
-        column_format =  "lcr"
+        column_format =  "lclr"
         s_tex = s.to_latex(column_format = column_format,
                         convert_css = False)
         
@@ -229,6 +231,85 @@ class DescribeData:
             labelbottom=False)
         plt.title('t-SNE of Data')
 
+    #%% How do they distribute across Race? 
+    def plot_n_target_across_sens_var(self, orientation = 'h', return_ax = False, **kwargs):
+        
+        # Fixing class labels if provided
+        class_labels = [None]*2
+        for i in range(2):
+            if f"class_{i}_label" in  kwargs.keys():
+                print(f"class_{i}_label")
+                class_labels[i] = kwargs[f"class_{i}_label"]
+            else: 
+                class_labels[i] = f"y = {i}"
+        print(class_labels)
+                
+        plot_df = (self.data.groupby(['a'])
+                        .agg(N_people = (self.id_name, 'count'), 
+                            class_1 = ('y', lambda x: np.count_nonzero(x)),
+                            class_0 = ('y', lambda x: len(x)-np.count_nonzero(x)),
+                            class1_frac = ('y', lambda x: np.count_nonzero(x)/len(x)))
+                        .reset_index()
+                        .sort_values(by = 'N_people', ascending = False)
+                    )
+        plot_df['a'] = plot_df['a'].apply(lambda x: x.title())
+        
+        if orientation == 'h':
+            fig = plt.figure(figsize=(5,3.5))
+            ax = fig.add_subplot(1, 1, 1)
+            bar1 = sns.barplot(
+                x = 'N_people', y = 'a', 
+                data = plot_df,
+                estimator=sum,
+                palette = custom_palette(specific_col_idx = [6]),
+                label = f'{class_labels[0]}',
+                ax = ax)
+            bar2 = sns.barplot(
+                x = 'class_1', y = 'a', 
+                data = plot_df,
+                palette = custom_palette(specific_col_idx = [2]),
+                label = f'{class_labels[1]}',
+                ax = ax)
+            ax.set_xlabel('Number of Observations', size = 12)
+            ax.set_ylabel('')
+            for pos in ['right', 'top']:
+                ax.spines[pos].set_visible(False)
+
+        if orientation == 'v':
+            fig = plt.figure(figsize=(4,3.5))
+            ax = fig.add_subplot(1, 1, 1)
+            bar1 = sns.barplot(
+                y = 'N_people', x = 'a', 
+                data = plot_df,
+                estimator=sum,
+                palette = custom_palette(specific_col_idx = [6]),
+                label = f'{class_labels[0]}',
+                ax = ax)
+            bar2 = sns.barplot(
+                y = 'class_1', x = 'a', 
+                data = plot_df,
+                palette = custom_palette(specific_col_idx = [2]),
+                label = f'{class_labels[1]}',
+                ax = ax)
+            ax.set_ylim(0, 1.25*max(plot_df.N_people))
+            ax.set_ylabel('Number of Observations', size = 12)
+            ax.set_xlabel('')
+            for pos in ['right', 'top']:
+                ax.spines[pos].set_visible(False)
+        
+        ax.tick_params(left=True, labelsize=12)
+        if self.data_name is not None:
+            ax.set_title(f'{self.data_name}')
+        
+        if "legend_title" in kwargs.keys():
+            ax.legend(loc = 'best', title = kwargs["legend_title"], frameon = False)
+        else:
+            ax.legend(loc = 'best', frameon = False)
+
+        if return_ax: 
+            return ax
+
+
 
     
 #%%
@@ -248,6 +329,6 @@ if __name__ == "__main__":
     desc.descriptive_table_to_tex(target_tex_name='Defaulted')
     ax = desc.plot_positive_rate(orientation = 'v', title ='Fraction of Bad Credit Scores')
     desc.plot_positive_rate(orientation = 'h', title ='Fraction of Bad Credit Scores')
-   
+    
 
 # %%

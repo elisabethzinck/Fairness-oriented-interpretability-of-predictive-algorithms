@@ -3,12 +3,18 @@ import pandas as pd
 import numpy as np
 
 import plotly.graph_objects as go
+import matplotlib.pyplot as plt 
 
+from src.evaluation_tool.descriptive_tool import DescribeData
 from src.models.data_modules import ADNIDataModule
 
-#%%
-dm = ADNIDataModule(dataset = 1)
+write_sankey = False
+fig_path_report = '../Thesis-report/00_figures/describe_data/'
+update_report_figs = True
 
+#%%
+adni_no = 2
+dm = ADNIDataModule(dataset = adni_no)
 
 # %% Create node labels
 time_frames = ['label', '1y', '2y', '3y', '4y', '5y']
@@ -58,6 +64,32 @@ fig = go.Figure(data=[go.Sankey(
   ))])
 fig.show()
 # %%
-fig.write_image('figures/descriptive_plots/ADNI_sankey.png')
+if write_sankey: 
+    fig.write_image(f'figures/descriptive_plots/ADNI{adni_no}_sankey.png')
 
 # %%
+
+# Extracting data from data module
+processed_data = (
+    pd.concat([dm.processed_data['test_data'], dm.processed_data['trainval_data']])
+    .reset_index(drop = False)
+)
+
+desc = DescribeData(y_name='y', 
+                    a_name = 'sex',
+                    id_name = 'rid',
+                    data = processed_data, 
+                    data_name = f'ADNI{adni_no}')
+
+desc.plot_n_target_across_sens_var(
+    orientation='v',
+    return_ax=True, 
+    **{"class_0_label":"No Alzheimer", "class_1_label":"Alzheimer"})
+if update_report_figs: 
+    plt.savefig(fig_path_report+f'ADNI{adni_no}_N_by_sex.pdf', bbox_inches='tight')
+
+desc.descriptive_table_to_tex(target_tex_name='Has Alzheimer')
+
+
+# %%
+
