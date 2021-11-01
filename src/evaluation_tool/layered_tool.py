@@ -28,7 +28,7 @@ from src.evaluation_tool.utils import (
     flatten_list, cm_dict_to_matrix, add_colors_with_stripes, get_alpha_weights, 
     value_counts_df, desaturate, label_case, format_text_layer_1,
     N_pos, N_neg, frac_pos, frac_neg, wilson_confint, 
-    error_bar, flip_dataframe, extract_cm_values, cm_vals_to_matrix,
+    error_bar, flip_dataframe, cm_vals_to_matrix,
     get_BW_fairness_barometer_legend_patches
     )
 
@@ -65,7 +65,7 @@ class FairKit:
         """Saves and calculates all necessary attributes for FairKit object
         
         Args:
-            data (DataFrame): DataFrame containing data used for evaluation
+            data (pd.DataFrame): DataFrame containing data used for evaluation
             y_name (str): Name of target variable
             y_hat_name (str): Name of binary output variable
             r_name (str): Name of variable containing scores (must be within [0,1])
@@ -73,7 +73,24 @@ class FairKit:
             w_fp (int or float): False positive error rate
             model_name (str): Name of the model or dataset used. Is used for plot titles. 
         """
-        # To do: Input checks
+
+        if not isinstance(data, pd.DataFrame):
+            raise ValueError(f'`data` must be a dataframe. You supplied a {type(data)}')
+        
+        input_names = set([y_name, y_hat_name, a_name, r_name])
+        if not input_names.issubset(set(data.columns)): 
+            raise ValueError('`y_name`, `y_hat_name`, `a_name`, and `r_name` must be present in columns of `data`.')
+
+        if not data[r_name].between(0,1).all():
+            raise ValueError('Scores in column `r_name` must be in range [0,1]')
+
+        y_binary = data[y_name].isin([0,1]).all()
+        y_hat_binary = data[y_hat_name].isin([0,1]).all()
+        if not (y_binary and y_hat_binary):
+            raise ValueError('Targets in column `y_name` and predictions in column `y_hat_name` must be binary.')
+
+
+
         self.data = data
         self.y = data[y_name]
         self.y_hat = data[y_hat_name]
@@ -401,11 +418,13 @@ class FairKit:
             fpr, tpr, thresholds = roc_curve(
                 y_true = data_grp.y, 
                 y_score = data_grp.r)
-            roc_list.append(pd.DataFrame({
-                'fpr': fpr, 
-                'tpr': tpr, 
-                'threshold': thresholds,
-                'sens_grp': grp}))
+            roc_grp = (
+                pd.DataFrame({
+                    'fpr': fpr, 
+                    'tpr': tpr, 
+                    'threshold': thresholds,
+                    'sens_grp': grp}))
+            roc_list.append(roc_grp)
         roc = pd.concat(roc_list).reset_index(drop = True)  
         return roc  
 
@@ -921,7 +940,7 @@ if __name__ == "__main__":
         r_name = 'phat',
         w_fp = 0.8,
         model_name="Example Data")
-
+#%%
     # l1 check
     l1 = fair_anym.layer_1()
 
@@ -936,7 +955,5 @@ if __name__ == "__main__":
     roc = fair_anym.layer_3(method = 'roc_curves', **{'threshold': thresholds})
     calibration = fair_anym.layer_3(method = 'calibration', **{'n_bins': 5})
     independence = fair_anym.layer_3('independence_check', **{'orientation':'h'}) 
-
-
 
 # %%
