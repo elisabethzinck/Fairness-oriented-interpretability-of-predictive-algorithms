@@ -230,7 +230,7 @@ class FairKit:
                 return calibration
 
         if method == 'confusion_matrix':
-            self.plot_confusion_matrix()
+            self.plot_confusion_matrix(**kwargs)
             if output_table:
                 conf = self.get_confusion_matrix()
                 return conf
@@ -514,7 +514,7 @@ class FairKit:
     #                  VISUALIZATION METHODS
     ###############################################################
 
-    def plot_confusion_matrix(self):
+    def plot_confusion_matrix(self, **kwargs):
         n_grps = len(self.sens_grps)
 
         # make gridspec for groups
@@ -556,10 +556,18 @@ class FairKit:
 
             # Adjust figure labels
             names = ['TP', 'FN', 'FP', 'TN']
-            for name, a in zip(names, ax.texts): 
+            vals = [TP, FN, FP, TN]
+            coords = [(0.25,0.7), (1.25,0.7), (0.25,1.7), (1.25,1.7)]#coords for text 
+            for name, val, coord, a in zip(names, vals, coords, ax.texts): 
                 old_text = a.get_text()
                 new_text = f"{name}: {old_text}%"
                 a.set_text(new_text)
+                if "cm_print_n" in kwargs.keys() and kwargs["cm_print_n"]:
+                    ax.text(x=coord[0],
+                            y=coord[1],
+                            s=f"(n={val})",
+                            **{"c":a.get_c(), "fontsize":11})
+                
             # Centering tick labels on y axis
             for label in ax.get_yticklabels():
                 label.set_ha('center')

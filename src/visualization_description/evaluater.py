@@ -249,7 +249,7 @@ if __name__ == '__main__':
                 ext = ".pdf",
                 **{"run_layer_2":True})
     
-    run_l3_plots = True
+    run_l3_plots = False
     if run_l3_plots:
         for dataset, method in l3_report_plots:
             FairKitDict[dataset].layer_3(method = method)
@@ -257,5 +257,10 @@ if __name__ == '__main__':
                 path = fig_path_report_l3 + dataset + '_' + method + '.pdf'
                 print(path)
                 plt.savefig(path, bbox_inches='tight', facecolor = 'w')
+
+# %%
+FairKitDict["taiwanese_logreg"].layer_3(method='confusion_matrix',
+                                        output_table = False, 
+                                        **{"cm_print_n":True})
 
 # %%
