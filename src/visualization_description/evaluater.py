@@ -11,17 +11,17 @@ figure_path = 'figures/evaluation_plots/'
 fig_path_report_l2 = '../Thesis-report/00_figures/evalL2/'
 fig_path_report_l3 = '../Thesis-report/00_figures/evalL3/'
 
-l3_report_plots = {
-    'german_logreg': 'confusion_matrix',
-    'german_nn': 'confusion_matrix',
-    'taiwanese_logreg': 'roc_curves',
-    'catalan_logreg': 'roc_curves',
-    'catalan_logreg': 'independence_check',
-    'catalan_logreg': 'w_fp_influence',
-    'adni2_nn': 'calibration'
-}
+l3_report_plots = [
+    ['german_logreg', 'confusion_matrix'],
+    ['german_nn', 'confusion_matrix'],
+    ['taiwanese_logreg', 'roc_curves'],
+    ['catalan_logreg', 'roc_curves'],
+    ['catalan_logreg', 'independence_check'],
+    ['catalan_logreg', 'w_fp_influence'],
+    ['adni2_nn', 'calibration']
+]
 
-update_figures  = True
+update_figures  = False
 update_report_figures = True # Write new figures to report repository?
 
 #############################################
@@ -226,7 +226,7 @@ if __name__ == '__main__':
 
     l1tab = get_l1_overview_table()
 
-    run_all_plots = True
+    run_all_plots = False
     if run_all_plots: 
         # Make all(!) plots as png 
         for i, (mod_name, kit) in enumerate(FairKitDict.items()):
@@ -249,9 +249,9 @@ if __name__ == '__main__':
                 ext = ".pdf",
                 **{"run_layer_2":True})
     
-    run_l3_plots = False
+    run_l3_plots = True
     if run_l3_plots:
-        for dataset, method in l3_report_plots.items():
+        for dataset, method in l3_report_plots:
             FairKitDict[dataset].layer_3(method = method)
             if update_report_figures:
                 path = fig_path_report_l3 + dataset + '_' + method + '.pdf'
