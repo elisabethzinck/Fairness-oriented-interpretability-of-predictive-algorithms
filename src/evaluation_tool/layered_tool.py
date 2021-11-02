@@ -614,7 +614,7 @@ class FairKit:
 
             error_df = plot_df[(plot_df.grp == grp) & (plot_df.rate == rate)]
             ax.vlines(
-                x = (bar._x0 + bar._x1)/2, 
+                x = bar.get_x() + bar.get_width()/2, 
                 ymin = error_df.conf_lwr, 
                 ymax = error_df.conf_upr, 
                 colors = '#6C757D',
