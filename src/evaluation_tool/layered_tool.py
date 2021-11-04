@@ -226,7 +226,7 @@ class FairKit:
             if plot:
                 self.plot_calibration(**kwargs)
             if output_table:
-                calibration = self.get_calibration(**kwargs)
+                calibration = self.get_calibration()
                 return calibration
 
         if method == 'confusion_matrix':
@@ -848,7 +848,7 @@ class FairKit:
             prop={'size':self._legend_size},
             markerfirst = False)
 
-    def plot_independence_check(self, ax=None, orientation = 'h', w_fp = None):
+    def plot_independence_check(self, ax=None, orientation = 'h', w_fp = None, **kwargs):
         """ Bar plot of the percentage of predicted positives per
         sensitive group including a Wilson 95% CI 
         """
@@ -909,7 +909,7 @@ class FairKit:
         ax.tick_params(left=True, labelsize=self._tick_size)
         ax.set_title('Independence Check', size=self._title_size)
 
-    def plot_calibration(self, n_bins = 5, ax = None):
+    def plot_calibration(self, n_bins = 5, ax = None, **kwargs):
         """Plot calibration by sensitive groups
         
         Args:

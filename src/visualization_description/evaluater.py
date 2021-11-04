@@ -15,6 +15,7 @@ l3_report_plots = [
     ['german_logreg', 'confusion_matrix'],
     ['german_nn', 'confusion_matrix'],
     ['taiwanese_logreg', 'roc_curves'],
+    ['taiwanese_nn', 'roc_curves'],
     ['catalan_logreg', 'roc_curves'],
     ['catalan_logreg', 'independence_check'],
     ['catalan_logreg', 'w_fp_influence'],
@@ -249,10 +250,10 @@ if __name__ == '__main__':
                 ext = ".pdf",
                 **{"run_layer_2":True})
     
-    run_l3_plots = False
+    run_l3_plots = True
     if run_l3_plots:
         for dataset, method in l3_report_plots:
-            FairKitDict[dataset].layer_3(method = method)
+            FairKitDict[dataset].layer_3(method = method, **{"cm_print_n":True})
             if update_report_figures:
                 path = fig_path_report_l3 + dataset + '_' + method + '.pdf'
                 print(path)
