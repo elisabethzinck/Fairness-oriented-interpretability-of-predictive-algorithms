@@ -260,8 +260,8 @@ if __name__ == '__main__':
                 plt.savefig(path, bbox_inches='tight', facecolor = 'w')
 
 # %%
-FairKitDict["taiwanese_logreg"].layer_3(method='confusion_matrix',
-                                        output_table = False, 
-                                        **{"cm_print_n":True})
+    FairKitDict["taiwanese_logreg"].layer_3(method='confusion_matrix',
+                                            output_table = False, 
+                                            **{"cm_print_n":True})
 
 # %%
