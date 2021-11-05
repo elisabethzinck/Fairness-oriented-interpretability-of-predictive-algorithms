@@ -89,16 +89,19 @@ class FairKit:
         if not (y_binary and y_hat_binary):
             raise ValueError('Targets in column `y_name` and predictions in column `y_hat_name` must be binary.')
 
-
-
+        # Save inputs
         self.data = data
+        self.y_name = y_name
+        self.y_hat_name = y_hat_name
+        self.r_name = r_name
+        self.a_name = a_name
+        self.w_fp = w_fp
+        self.model_name = model_name
+
         self.y = data[y_name]
         self.y_hat = data[y_hat_name]
         self.a = data[a_name]
         self.r = data[r_name]
-
-        self.model_name = model_name
-        self.w_fp = w_fp
 
         self.classifier = pd.DataFrame({
             'y': self.y, 
