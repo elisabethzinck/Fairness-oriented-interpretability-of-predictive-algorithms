@@ -8,7 +8,7 @@ Loading python3/3.8.11
 --- Output from Python -----
 ----------------------------
 Global seed set to 42
-[32m[I 2021-11-01 10:53:49,858][0m A new study created in memory with name: no-name-8a05233b-9fc3-4326-96eb-398002d7e128[0m
+[32m[I 2021-11-05 10:18:48,579][0m A new study created in memory with name: no-name-75f0b23e-9c35-4e8e-8e5e-030f8ea10416[0m
 GPU available: True, used: True
 TPU available: False, using: 0 TPU cores
 IPU available: False, using: 0 IPUs
@@ -23,7 +23,7 @@ LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
 51        Total params
 0.000     Total estimated model params size (MB)
 Global seed set to 42
-[32m[I 2021-11-01 10:54:54,017][0m Trial 0 finished with value: 0.5011875629425049 and parameters: {'n_layers': 2, 'n_hidden_0': 1, 'n_hidden_1': 7, 'lr': 0.005546505049361992, 'p_dropout': 0.2492535061512952}. Best is trial 0 with value: 0.5011875629425049.[0m
+[32m[I 2021-11-05 10:20:03,517][0m Trial 0 finished with value: 0.5011875629425049 and parameters: {'n_layers': 2, 'n_hidden_0': 1, 'n_hidden_1': 7, 'lr': 0.005546505049361992, 'p_dropout': 0.2492535061512952}. Best is trial 0 with value: 0.5011875629425049.[0m
 GPU available: True, used: True
 TPU available: False, using: 0 TPU cores
 IPU available: False, using: 0 IPUs
@@ -38,7 +38,7 @@ LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
 61        Total params
 0.000     Total estimated model params size (MB)
 Global seed set to 42
-[32m[I 2021-11-01 10:55:18,219][0m Trial 1 finished with value: 0.45689448714256287 and parameters: {'n_layers': 1, 'n_hidden_0': 2, 'lr': 0.006348243270946396, 'p_dropout': 0.08455541828126772}. Best is trial 1 with value: 0.45689448714256287.[0m
+[32m[I 2021-11-05 10:20:23,571][0m Trial 1 finished with value: 0.45689448714256287 and parameters: {'n_layers': 1, 'n_hidden_0': 2, 'lr': 0.006348243270946396, 'p_dropout': 0.08455541828126772}. Best is trial 1 with value: 0.45689448714256287.[0m
 GPU available: True, used: True
 TPU available: False, using: 0 TPU cores
 IPU available: False, using: 0 IPUs
@@ -53,7 +53,7 @@ LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
 211       Total params
 0.001     Total estimated model params size (MB)
 Global seed set to 42
-[32m[I 2021-11-01 10:55:49,351][0m Trial 2 finished with value: 0.46310484409332275 and parameters: {'n_layers': 1, 'n_hidden_0': 7, 'lr': 0.05847452881552244, 'p_dropout': 0.0019741331639572257}. Best is trial 1 with value: 0.45689448714256287.[0m
+[32m[I 2021-11-05 10:20:49,205][0m Trial 2 finished with value: 0.46310484409332275 and parameters: {'n_layers': 1, 'n_hidden_0': 7, 'lr': 0.05847452881552244, 'p_dropout': 0.0019741331639572257}. Best is trial 1 with value: 0.45689448714256287.[0m
 GPU available: True, used: True
 TPU available: False, using: 0 TPU cores
 IPU available: False, using: 0 IPUs
@@ -68,7 +68,7 @@ LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
 339       Total params
 0.001     Total estimated model params size (MB)
 Global seed set to 42
-[32m[I 2021-11-01 10:56:26,841][0m Trial 3 finished with value: 0.4453430771827698 and parameters: {'n_layers': 2, 'n_hidden_0': 9, 'n_hidden_1': 7, 'lr': 0.004062342974817012, 'p_dropout': 0.14593803408531658}. Best is trial 3 with value: 0.4453430771827698.[0m
+[32m[I 2021-11-05 10:21:20,403][0m Trial 3 finished with value: 0.4453430771827698 and parameters: {'n_layers': 2, 'n_hidden_0': 9, 'n_hidden_1': 7, 'lr': 0.004062342974817012, 'p_dropout': 0.14593803408531658}. Best is trial 3 with value: 0.4453430771827698.[0m
 GPU available: True, used: True
 TPU available: False, using: 0 TPU cores
 IPU available: False, using: 0 IPUs
@@ -83,7 +83,7 @@ LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
 293       Total params
 0.001     Total estimated model params size (MB)
 Global seed set to 42
-[32m[I 2021-11-01 10:59:34,068][0m Trial 4 finished with value: 0.5362560749053955 and parameters: {'n_layers': 2, 'n_hidden_0': 8, 'n_hidden_1': 6, 'lr': 5.138664194679256e-06, 'p_dropout': 0.1866703800257346}. Best is trial 3 with value: 0.4453430771827698.[0m
+[32m[I 2021-11-05 10:23:55,475][0m Trial 4 finished with value: 0.5362560749053955 and parameters: {'n_layers': 2, 'n_hidden_0': 8, 'n_hidden_1': 6, 'lr': 5.138664194679256e-06, 'p_dropout': 0.1866703800257346}. Best is trial 3 with value: 0.4453430771827698.[0m
 GPU available: True, used: True
 TPU available: False, using: 0 TPU cores
 IPU available: False, using: 0 IPUs
@@ -97,7 +97,7 @@ LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
 0         Non-trainable params
 181       Total params
 0.001     Total estimated model params size (MB)
-[32m[I 2021-11-01 10:59:34,085][0m Trial 5 pruned. Trial was pruned at epoch 0.[0m
+[32m[I 2021-11-05 10:23:55,489][0m Trial 5 pruned. Trial was pruned at epoch 0.[0m
 GPU available: True, used: True
 TPU available: False, using: 0 TPU cores
 IPU available: False, using: 0 IPUs
@@ -111,7 +111,7 @@ LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
 0         Non-trainable params
 285       Total params
 0.001     Total estimated model params size (MB)
-[32m[I 2021-11-01 10:59:34,095][0m Trial 6 pruned. Trial was pruned at epoch 0.[0m
+[32m[I 2021-11-05 10:23:55,498][0m Trial 6 pruned. Trial was pruned at epoch 0.[0m
 GPU available: True, used: True
 TPU available: False, using: 0 TPU cores
 IPU available: False, using: 0 IPUs
@@ -125,7 +125,7 @@ LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
 0         Non-trainable params
 31        Total params
 0.000     Total estimated model params size (MB)
-[32m[I 2021-11-01 10:59:34,104][0m Trial 7 pruned. Trial was pruned at epoch 0.[0m
+[32m[I 2021-11-05 10:23:55,506][0m Trial 7 pruned. Trial was pruned at epoch 0.[0m
 GPU available: True, used: True
 TPU available: False, using: 0 TPU cores
 IPU available: False, using: 0 IPUs
@@ -139,7 +139,7 @@ LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
 0         Non-trainable params
 51        Total params
 0.000     Total estimated model params size (MB)
-[32m[I 2021-11-01 10:59:34,114][0m Trial 8 pruned. Trial was pruned at epoch 0.[0m
+[32m[I 2021-11-05 10:23:55,514][0m Trial 8 pruned. Trial was pruned at epoch 0.[0m
 GPU available: True, used: True
 TPU available: False, using: 0 TPU cores
 IPU available: False, using: 0 IPUs
@@ -153,7 +153,7 @@ LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
 0         Non-trainable params
 271       Total params
 0.001     Total estimated model params size (MB)
-[32m[I 2021-11-01 10:59:34,123][0m Trial 9 pruned. Trial was pruned at epoch 0.[0m
+[32m[I 2021-11-05 10:23:55,522][0m Trial 9 pruned. Trial was pruned at epoch 0.[0m
 GPU available: True, used: True
 TPU available: False, using: 0 TPU cores
 IPU available: False, using: 0 IPUs
@@ -167,7 +167,7 @@ LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
 0         Non-trainable params
 303       Total params
 0.001     Total estimated model params size (MB)
-[32m[I 2021-11-01 10:59:34,147][0m Trial 10 pruned. Trial was pruned at epoch 0.[0m
+[32m[I 2021-11-05 10:23:55,540][0m Trial 10 pruned. Trial was pruned at epoch 0.[0m
 GPU available: True, used: True
 TPU available: False, using: 0 TPU cores
 IPU available: False, using: 0 IPUs
@@ -181,7 +181,7 @@ LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
 0         Non-trainable params
 121       Total params
 0.000     Total estimated model params size (MB)
-[32m[I 2021-11-01 10:59:34,166][0m Trial 11 pruned. Trial was pruned at epoch 0.[0m
+[32m[I 2021-11-05 10:23:55,556][0m Trial 11 pruned. Trial was pruned at epoch 0.[0m
 GPU available: True, used: True
 TPU available: False, using: 0 TPU cores
 IPU available: False, using: 0 IPUs
@@ -195,7 +195,7 @@ LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
 0         Non-trainable params
 91        Total params
 0.000     Total estimated model params size (MB)
-[32m[I 2021-11-01 10:59:34,185][0m Trial 12 pruned. Trial was pruned at epoch 0.[0m
+[32m[I 2021-11-05 10:23:55,572][0m Trial 12 pruned. Trial was pruned at epoch 0.[0m
 GPU available: True, used: True
 TPU available: False, using: 0 TPU cores
 IPU available: False, using: 0 IPUs
@@ -209,7 +209,7 @@ LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
 0         Non-trainable params
 91        Total params
 0.000     Total estimated model params size (MB)
-[32m[I 2021-11-01 10:59:34,204][0m Trial 13 pruned. Trial was pruned at epoch 0.[0m
+[32m[I 2021-11-05 10:23:55,588][0m Trial 13 pruned. Trial was pruned at epoch 0.[0m
 GPU available: True, used: True
 TPU available: False, using: 0 TPU cores
 IPU available: False, using: 0 IPUs
@@ -223,7 +223,7 @@ LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
 0         Non-trainable params
 181       Total params
 0.001     Total estimated model params size (MB)
-[32m[I 2021-11-01 10:59:34,224][0m Trial 14 pruned. Trial was pruned at epoch 0.[0m
+[32m[I 2021-11-05 10:23:55,604][0m Trial 14 pruned. Trial was pruned at epoch 0.[0m
 GPU available: True, used: True
 TPU available: False, using: 0 TPU cores
 IPU available: False, using: 0 IPUs
@@ -238,7 +238,7 @@ LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
 327       Total params
 0.001     Total estimated model params size (MB)
 Global seed set to 42
-[32m[I 2021-11-01 10:59:45,592][0m Trial 15 pruned. Trial was pruned at epoch 2.[0m
+[32m[I 2021-11-05 10:24:04,858][0m Trial 15 pruned. Trial was pruned at epoch 2.[0m
 GPU available: True, used: True
 TPU available: False, using: 0 TPU cores
 IPU available: False, using: 0 IPUs
@@ -252,7 +252,7 @@ LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
 0         Non-trainable params
 91        Total params
 0.000     Total estimated model params size (MB)
-[32m[I 2021-11-01 10:59:45,618][0m Trial 16 pruned. Trial was pruned at epoch 0.[0m
+[32m[I 2021-11-05 10:24:04,882][0m Trial 16 pruned. Trial was pruned at epoch 0.[0m
 GPU available: True, used: True
 TPU available: False, using: 0 TPU cores
 IPU available: False, using: 0 IPUs
@@ -266,7 +266,7 @@ LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
 0         Non-trainable params
 216       Total params
 0.001     Total estimated model params size (MB)
-[32m[I 2021-11-01 10:59:45,641][0m Trial 17 pruned. Trial was pruned at epoch 0.[0m
+[32m[I 2021-11-05 10:24:04,900][0m Trial 17 pruned. Trial was pruned at epoch 0.[0m
 GPU available: True, used: True
 TPU available: False, using: 0 TPU cores
 IPU available: False, using: 0 IPUs
@@ -280,7 +280,7 @@ LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
 0         Non-trainable params
 241       Total params
 0.001     Total estimated model params size (MB)
-[32m[I 2021-11-01 10:59:45,660][0m Trial 18 pruned. Trial was pruned at epoch 0.[0m
+[32m[I 2021-11-05 10:24:04,915][0m Trial 18 pruned. Trial was pruned at epoch 0.[0m
 GPU available: True, used: True
 TPU available: False, using: 0 TPU cores
 IPU available: False, using: 0 IPUs
@@ -294,7 +294,7 @@ LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
 0         Non-trainable params
 75        Total params
 0.000     Total estimated model params size (MB)
-[32m[I 2021-11-01 10:59:45,683][0m Trial 19 pruned. Trial was pruned at epoch 0.[0m
+[32m[I 2021-11-05 10:24:04,935][0m Trial 19 pruned. Trial was pruned at epoch 0.[0m
 GPU available: True, used: True
 TPU available: False, using: 0 TPU cores
 IPU available: False, using: 0 IPUs
@@ -308,7 +308,7 @@ LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
 0         Non-trainable params
 181       Total params
 0.001     Total estimated model params size (MB)
-[32m[I 2021-11-01 10:59:45,703][0m Trial 20 pruned. Trial was pruned at epoch 0.[0m
+[32m[I 2021-11-05 10:24:04,951][0m Trial 20 pruned. Trial was pruned at epoch 0.[0m
 GPU available: True, used: True
 TPU available: False, using: 0 TPU cores
 IPU available: False, using: 0 IPUs
@@ -322,7 +322,7 @@ LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
 0         Non-trainable params
 241       Total params
 0.001     Total estimated model params size (MB)
-[32m[I 2021-11-01 10:59:45,723][0m Trial 21 pruned. Trial was pruned at epoch 0.[0m
+[32m[I 2021-11-05 10:24:04,967][0m Trial 21 pruned. Trial was pruned at epoch 0.[0m
 GPU available: True, used: True
 TPU available: False, using: 0 TPU cores
 IPU available: False, using: 0 IPUs
@@ -336,7 +336,7 @@ LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
 0         Non-trainable params
 211       Total params
 0.001     Total estimated model params size (MB)
-[32m[I 2021-11-01 10:59:45,743][0m Trial 22 pruned. Trial was pruned at epoch 0.[0m
+[32m[I 2021-11-05 10:24:04,984][0m Trial 22 pruned. Trial was pruned at epoch 0.[0m
 GPU available: True, used: True
 TPU available: False, using: 0 TPU cores
 IPU available: False, using: 0 IPUs
@@ -350,7 +350,7 @@ LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
 0         Non-trainable params
 271       Total params
 0.001     Total estimated model params size (MB)
-[32m[I 2021-11-01 10:59:45,762][0m Trial 23 pruned. Trial was pruned at epoch 0.[0m
+[32m[I 2021-11-05 10:24:05,000][0m Trial 23 pruned. Trial was pruned at epoch 0.[0m
 GPU available: True, used: True
 TPU available: False, using: 0 TPU cores
 IPU available: False, using: 0 IPUs
@@ -365,7 +365,7 @@ LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
 211       Total params
 0.001     Total estimated model params size (MB)
 Global seed set to 42
-[32m[I 2021-11-01 11:00:27,356][0m Trial 24 finished with value: 0.4512421786785126 and parameters: {'n_layers': 1, 'n_hidden_0': 7, 'lr': 0.0051896150171407565, 'p_dropout': 0.049608033226571986}. Best is trial 3 with value: 0.4453430771827698.[0m
+[32m[I 2021-11-05 10:24:38,754][0m Trial 24 finished with value: 0.4512421786785126 and parameters: {'n_layers': 1, 'n_hidden_0': 7, 'lr': 0.0051896150171407565, 'p_dropout': 0.049608033226571986}. Best is trial 3 with value: 0.4453430771827698.[0m
 GPU available: True, used: True
 TPU available: False, using: 0 TPU cores
 IPU available: False, using: 0 IPUs
@@ -379,7 +379,7 @@ LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
 0         Non-trainable params
 271       Total params
 0.001     Total estimated model params size (MB)
-[32m[I 2021-11-01 11:00:27,382][0m Trial 25 pruned. Trial was pruned at epoch 0.[0m
+[32m[I 2021-11-05 10:24:38,775][0m Trial 25 pruned. Trial was pruned at epoch 0.[0m
 GPU available: True, used: True
 TPU available: False, using: 0 TPU cores
 IPU available: False, using: 0 IPUs
@@ -394,7 +394,7 @@ LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
 165       Total params
 0.001     Total estimated model params size (MB)
 Global seed set to 42
-[32m[I 2021-11-01 11:00:34,967][0m Trial 26 pruned. Trial was pruned at epoch 1.[0m
+[32m[I 2021-11-05 10:24:44,970][0m Trial 26 pruned. Trial was pruned at epoch 1.[0m
 GPU available: True, used: True
 TPU available: False, using: 0 TPU cores
 IPU available: False, using: 0 IPUs
@@ -408,7 +408,7 @@ LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
 0         Non-trainable params
 181       Total params
 0.001     Total estimated model params size (MB)
-[32m[I 2021-11-01 11:00:34,995][0m Trial 27 pruned. Trial was pruned at epoch 0.[0m
+[32m[I 2021-11-05 10:24:44,994][0m Trial 27 pruned. Trial was pruned at epoch 0.[0m
 GPU available: True, used: True
 TPU available: False, using: 0 TPU cores
 IPU available: False, using: 0 IPUs
@@ -422,7 +422,7 @@ LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
 0         Non-trainable params
 253       Total params
 0.001     Total estimated model params size (MB)
-[32m[I 2021-11-01 11:00:35,018][0m Trial 28 pruned. Trial was pruned at epoch 0.[0m
+[32m[I 2021-11-05 10:24:45,013][0m Trial 28 pruned. Trial was pruned at epoch 0.[0m
 GPU available: True, used: True
 TPU available: False, using: 0 TPU cores
 IPU available: False, using: 0 IPUs
@@ -436,7 +436,7 @@ LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
 0         Non-trainable params
 301       Total params
 0.001     Total estimated model params size (MB)
-[32m[I 2021-11-01 11:00:35,039][0m Trial 29 pruned. Trial was pruned at epoch 0.[0m
+[32m[I 2021-11-05 10:24:45,029][0m Trial 29 pruned. Trial was pruned at epoch 0.[0m
 GPU available: True, used: True
 TPU available: False, using: 0 TPU cores
 IPU available: False, using: 0 IPUs
@@ -450,7 +450,7 @@ LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
 0         Non-trainable params
 294       Total params
 0.001     Total estimated model params size (MB)
-[32m[I 2021-11-01 11:00:35,062][0m Trial 30 pruned. Trial was pruned at epoch 0.[0m
+[32m[I 2021-11-05 10:24:45,048][0m Trial 30 pruned. Trial was pruned at epoch 0.[0m
 GPU available: True, used: True
 TPU available: False, using: 0 TPU cores
 IPU available: False, using: 0 IPUs
@@ -464,7 +464,7 @@ LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
 0         Non-trainable params
 211       Total params
 0.001     Total estimated model params size (MB)
-[32m[I 2021-11-01 11:00:35,082][0m Trial 31 pruned. Trial was pruned at epoch 0.[0m
+[32m[I 2021-11-05 10:24:45,065][0m Trial 31 pruned. Trial was pruned at epoch 0.[0m
 GPU available: True, used: True
 TPU available: False, using: 0 TPU cores
 IPU available: False, using: 0 IPUs
@@ -479,7 +479,7 @@ LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
 151       Total params
 0.001     Total estimated model params size (MB)
 Global seed set to 42
-[32m[I 2021-11-01 11:00:42,117][0m Trial 32 pruned. Trial was pruned at epoch 1.[0m
+[32m[I 2021-11-05 10:24:50,800][0m Trial 32 pruned. Trial was pruned at epoch 1.[0m
 GPU available: True, used: True
 TPU available: False, using: 0 TPU cores
 IPU available: False, using: 0 IPUs
@@ -493,7 +493,7 @@ LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
 0         Non-trainable params
 241       Total params
 0.001     Total estimated model params size (MB)
-[32m[I 2021-11-01 11:00:42,146][0m Trial 33 pruned. Trial was pruned at epoch 0.[0m
+[32m[I 2021-11-05 10:24:50,823][0m Trial 33 pruned. Trial was pruned at epoch 0.[0m
 GPU available: True, used: True
 TPU available: False, using: 0 TPU cores
 IPU available: False, using: 0 IPUs
@@ -507,7 +507,7 @@ LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
 0         Non-trainable params
 271       Total params
 0.001     Total estimated model params size (MB)
-[32m[I 2021-11-01 11:00:42,167][0m Trial 34 pruned. Trial was pruned at epoch 0.[0m
+[32m[I 2021-11-05 10:24:50,840][0m Trial 34 pruned. Trial was pruned at epoch 0.[0m
 GPU available: True, used: True
 TPU available: False, using: 0 TPU cores
 IPU available: False, using: 0 IPUs
@@ -521,7 +521,7 @@ LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
 0         Non-trainable params
 181       Total params
 0.001     Total estimated model params size (MB)
-[32m[I 2021-11-01 11:00:42,187][0m Trial 35 pruned. Trial was pruned at epoch 0.[0m
+[32m[I 2021-11-05 10:24:50,856][0m Trial 35 pruned. Trial was pruned at epoch 0.[0m
 GPU available: True, used: True
 TPU available: False, using: 0 TPU cores
 IPU available: False, using: 0 IPUs
@@ -535,7 +535,7 @@ LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
 0         Non-trainable params
 147       Total params
 0.001     Total estimated model params size (MB)
-[32m[I 2021-11-01 11:00:42,211][0m Trial 36 pruned. Trial was pruned at epoch 0.[0m
+[32m[I 2021-11-05 10:24:50,874][0m Trial 36 pruned. Trial was pruned at epoch 0.[0m
 GPU available: True, used: True
 TPU available: False, using: 0 TPU cores
 IPU available: False, using: 0 IPUs
@@ -549,7 +549,7 @@ LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
 0         Non-trainable params
 211       Total params
 0.001     Total estimated model params size (MB)
-[32m[I 2021-11-01 11:00:42,231][0m Trial 37 pruned. Trial was pruned at epoch 0.[0m
+[32m[I 2021-11-05 10:24:50,892][0m Trial 37 pruned. Trial was pruned at epoch 0.[0m
 GPU available: True, used: True
 TPU available: False, using: 0 TPU cores
 IPU available: False, using: 0 IPUs
@@ -563,7 +563,7 @@ LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
 0         Non-trainable params
 91        Total params
 0.000     Total estimated model params size (MB)
-[32m[I 2021-11-01 11:00:42,255][0m Trial 38 pruned. Trial was pruned at epoch 0.[0m
+[32m[I 2021-11-05 10:24:50,911][0m Trial 38 pruned. Trial was pruned at epoch 0.[0m
 GPU available: True, used: True
 TPU available: False, using: 0 TPU cores
 IPU available: False, using: 0 IPUs
@@ -577,7 +577,7 @@ LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
 0         Non-trainable params
 211       Total params
 0.001     Total estimated model params size (MB)
-[32m[I 2021-11-01 11:00:42,276][0m Trial 39 pruned. Trial was pruned at epoch 0.[0m
+[32m[I 2021-11-05 10:24:50,928][0m Trial 39 pruned. Trial was pruned at epoch 0.[0m
 GPU available: True, used: True
 TPU available: False, using: 0 TPU cores
 IPU available: False, using: 0 IPUs
@@ -591,7 +591,7 @@ LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
 0         Non-trainable params
 241       Total params
 0.001     Total estimated model params size (MB)
-[32m[I 2021-11-01 11:00:42,296][0m Trial 40 pruned. Trial was pruned at epoch 0.[0m
+[32m[I 2021-11-05 10:24:50,944][0m Trial 40 pruned. Trial was pruned at epoch 0.[0m
 GPU available: True, used: True
 TPU available: False, using: 0 TPU cores
 IPU available: False, using: 0 IPUs
@@ -605,7 +605,7 @@ LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
 0         Non-trainable params
 51        Total params
 0.000     Total estimated model params size (MB)
-[32m[I 2021-11-01 11:00:42,319][0m Trial 41 pruned. Trial was pruned at epoch 0.[0m
+[32m[I 2021-11-05 10:24:50,964][0m Trial 41 pruned. Trial was pruned at epoch 0.[0m
 GPU available: True, used: True
 TPU available: False, using: 0 TPU cores
 IPU available: False, using: 0 IPUs
@@ -619,7 +619,7 @@ LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
 0         Non-trainable params
 83        Total params
 0.000     Total estimated model params size (MB)
-[32m[I 2021-11-01 11:00:42,343][0m Trial 42 pruned. Trial was pruned at epoch 0.[0m
+[32m[I 2021-11-05 10:24:50,983][0m Trial 42 pruned. Trial was pruned at epoch 0.[0m
 GPU available: True, used: True
 TPU available: False, using: 0 TPU cores
 IPU available: False, using: 0 IPUs
@@ -634,7 +634,7 @@ LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
 54        Total params
 0.000     Total estimated model params size (MB)
 Global seed set to 42
-[32m[I 2021-11-01 11:00:49,909][0m Trial 43 pruned. Trial was pruned at epoch 1.[0m
+[32m[I 2021-11-05 10:24:57,268][0m Trial 43 pruned. Trial was pruned at epoch 1.[0m
 GPU available: True, used: True
 TPU available: False, using: 0 TPU cores
 IPU available: False, using: 0 IPUs
@@ -648,7 +648,7 @@ LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
 0         Non-trainable params
 51        Total params
 0.000     Total estimated model params size (MB)
-[32m[I 2021-11-01 11:00:49,940][0m Trial 44 pruned. Trial was pruned at epoch 0.[0m
+[32m[I 2021-11-05 10:24:57,295][0m Trial 44 pruned. Trial was pruned at epoch 0.[0m
 GPU available: True, used: True
 TPU available: False, using: 0 TPU cores
 IPU available: False, using: 0 IPUs
@@ -663,7 +663,7 @@ LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
 75        Total params
 0.000     Total estimated model params size (MB)
 Global seed set to 42
-[32m[I 2021-11-01 11:00:57,531][0m Trial 45 pruned. Trial was pruned at epoch 1.[0m
+[32m[I 2021-11-05 10:25:03,514][0m Trial 45 pruned. Trial was pruned at epoch 1.[0m
 GPU available: True, used: True
 TPU available: False, using: 0 TPU cores
 IPU available: False, using: 0 IPUs
@@ -677,7 +677,7 @@ LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
 0         Non-trainable params
 209       Total params
 0.001     Total estimated model params size (MB)
-[32m[I 2021-11-01 11:00:57,562][0m Trial 46 pruned. Trial was pruned at epoch 0.[0m
+[32m[I 2021-11-05 10:25:03,540][0m Trial 46 pruned. Trial was pruned at epoch 0.[0m
 GPU available: True, used: True
 TPU available: False, using: 0 TPU cores
 IPU available: False, using: 0 IPUs
@@ -691,7 +691,7 @@ LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
 0         Non-trainable params
 91        Total params
 0.000     Total estimated model params size (MB)
-[32m[I 2021-11-01 11:00:57,582][0m Trial 47 pruned. Trial was pruned at epoch 0.[0m
+[32m[I 2021-11-05 10:25:03,558][0m Trial 47 pruned. Trial was pruned at epoch 0.[0m
 GPU available: True, used: True
 TPU available: False, using: 0 TPU cores
 IPU available: False, using: 0 IPUs
@@ -705,7 +705,7 @@ LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
 0         Non-trainable params
 328       Total params
 0.001     Total estimated model params size (MB)
-[32m[I 2021-11-01 11:00:57,606][0m Trial 48 pruned. Trial was pruned at epoch 0.[0m
+[32m[I 2021-11-05 10:25:03,577][0m Trial 48 pruned. Trial was pruned at epoch 0.[0m
 GPU available: True, used: True
 TPU available: False, using: 0 TPU cores
 IPU available: False, using: 0 IPUs
@@ -719,7 +719,7 @@ LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
 0         Non-trainable params
 181       Total params
 0.001     Total estimated model params size (MB)
-[32m[I 2021-11-01 11:00:57,626][0m Trial 49 pruned. Trial was pruned at epoch 0.[0m
+[32m[I 2021-11-05 10:25:03,593][0m Trial 49 pruned. Trial was pruned at epoch 0.[0m
 GPU available: True, used: True
 TPU available: False, using: 0 TPU cores
 IPU available: False, using: 0 IPUs
@@ -733,7 +733,7 @@ LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
 0         Non-trainable params
 31        Total params
 0.000     Total estimated model params size (MB)
-[32m[I 2021-11-01 11:00:57,646][0m Trial 50 pruned. Trial was pruned at epoch 0.[0m
+[32m[I 2021-11-05 10:25:03,609][0m Trial 50 pruned. Trial was pruned at epoch 0.[0m
 GPU available: True, used: True
 TPU available: False, using: 0 TPU cores
 IPU available: False, using: 0 IPUs
@@ -748,7 +748,7 @@ LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
 293       Total params
 0.001     Total estimated model params size (MB)
 Global seed set to 42
-[32m[I 2021-11-01 11:01:05,157][0m Trial 51 pruned. Trial was pruned at epoch 1.[0m
+[32m[I 2021-11-05 10:25:09,818][0m Trial 51 pruned. Trial was pruned at epoch 1.[0m
 GPU available: True, used: True
 TPU available: False, using: 0 TPU cores
 IPU available: False, using: 0 IPUs
@@ -762,7 +762,7 @@ LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
 0         Non-trainable params
 339       Total params
 0.001     Total estimated model params size (MB)
-[32m[I 2021-11-01 11:01:05,188][0m Trial 52 pruned. Trial was pruned at epoch 0.[0m
+[32m[I 2021-11-05 10:25:09,843][0m Trial 52 pruned. Trial was pruned at epoch 0.[0m
 GPU available: True, used: True
 TPU available: False, using: 0 TPU cores
 IPU available: False, using: 0 IPUs
@@ -776,7 +776,7 @@ LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
 0         Non-trainable params
 351       Total params
 0.001     Total estimated model params size (MB)
-[32m[I 2021-11-01 11:01:05,212][0m Trial 53 pruned. Trial was pruned at epoch 0.[0m
+[32m[I 2021-11-05 10:25:09,862][0m Trial 53 pruned. Trial was pruned at epoch 0.[0m
 GPU available: True, used: True
 TPU available: False, using: 0 TPU cores
 IPU available: False, using: 0 IPUs
@@ -790,7 +790,7 @@ LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
 0         Non-trainable params
 240       Total params
 0.001     Total estimated model params size (MB)
-[32m[I 2021-11-01 11:01:05,236][0m Trial 54 pruned. Trial was pruned at epoch 0.[0m
+[32m[I 2021-11-05 10:25:09,882][0m Trial 54 pruned. Trial was pruned at epoch 0.[0m
 GPU available: True, used: True
 TPU available: False, using: 0 TPU cores
 IPU available: False, using: 0 IPUs
@@ -804,7 +804,7 @@ LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
 0         Non-trainable params
 323       Total params
 0.001     Total estimated model params size (MB)
-[32m[I 2021-11-01 11:01:05,260][0m Trial 55 pruned. Trial was pruned at epoch 0.[0m
+[32m[I 2021-11-05 10:25:09,901][0m Trial 55 pruned. Trial was pruned at epoch 0.[0m
 GPU available: True, used: True
 TPU available: False, using: 0 TPU cores
 IPU available: False, using: 0 IPUs
@@ -818,7 +818,7 @@ LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
 0         Non-trainable params
 293       Total params
 0.001     Total estimated model params size (MB)
-[32m[I 2021-11-01 11:01:05,285][0m Trial 56 pruned. Trial was pruned at epoch 0.[0m
+[32m[I 2021-11-05 10:25:09,921][0m Trial 56 pruned. Trial was pruned at epoch 0.[0m
 GPU available: True, used: True
 TPU available: False, using: 0 TPU cores
 IPU available: False, using: 0 IPUs
@@ -832,7 +832,7 @@ LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
 0         Non-trainable params
 211       Total params
 0.001     Total estimated model params size (MB)
-[32m[I 2021-11-01 11:01:05,306][0m Trial 57 pruned. Trial was pruned at epoch 0.[0m
+[32m[I 2021-11-05 10:25:09,937][0m Trial 57 pruned. Trial was pruned at epoch 0.[0m
 GPU available: True, used: True
 TPU available: False, using: 0 TPU cores
 IPU available: False, using: 0 IPUs
@@ -846,7 +846,7 @@ LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
 0         Non-trainable params
 271       Total params
 0.001     Total estimated model params size (MB)
-[32m[I 2021-11-01 11:01:05,327][0m Trial 58 pruned. Trial was pruned at epoch 0.[0m
+[32m[I 2021-11-05 10:25:09,956][0m Trial 58 pruned. Trial was pruned at epoch 0.[0m
 GPU available: True, used: True
 TPU available: False, using: 0 TPU cores
 IPU available: False, using: 0 IPUs
@@ -860,7 +860,7 @@ LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
 0         Non-trainable params
 91        Total params
 0.000     Total estimated model params size (MB)
-[32m[I 2021-11-01 11:01:05,353][0m Trial 59 pruned. Trial was pruned at epoch 0.[0m
+[32m[I 2021-11-05 10:25:09,975][0m Trial 59 pruned. Trial was pruned at epoch 0.[0m
 GPU available: True, used: True
 TPU available: False, using: 0 TPU cores
 IPU available: False, using: 0 IPUs
@@ -874,7 +874,7 @@ LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
 0         Non-trainable params
 301       Total params
 0.001     Total estimated model params size (MB)
-[32m[I 2021-11-01 11:01:05,374][0m Trial 60 pruned. Trial was pruned at epoch 0.[0m
+[32m[I 2021-11-05 10:25:09,993][0m Trial 60 pruned. Trial was pruned at epoch 0.[0m
 GPU available: True, used: True
 TPU available: False, using: 0 TPU cores
 IPU available: False, using: 0 IPUs
@@ -889,7 +889,7 @@ LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
 327       Total params
 0.001     Total estimated model params size (MB)
 Global seed set to 42
-[32m[I 2021-11-01 11:01:13,055][0m Trial 61 pruned. Trial was pruned at epoch 1.[0m
+[32m[I 2021-11-05 10:25:16,203][0m Trial 61 pruned. Trial was pruned at epoch 1.[0m
 GPU available: True, used: True
 TPU available: False, using: 0 TPU cores
 IPU available: False, using: 0 IPUs
@@ -903,7 +903,7 @@ LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
 0         Non-trainable params
 327       Total params
 0.001     Total estimated model params size (MB)
-[32m[I 2021-11-01 11:01:13,087][0m Trial 62 pruned. Trial was pruned at epoch 0.[0m
+[32m[I 2021-11-05 10:25:16,230][0m Trial 62 pruned. Trial was pruned at epoch 0.[0m
 GPU available: True, used: True
 TPU available: False, using: 0 TPU cores
 IPU available: False, using: 0 IPUs
@@ -917,7 +917,7 @@ LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
 0         Non-trainable params
 273       Total params
 0.001     Total estimated model params size (MB)
-[32m[I 2021-11-01 11:01:13,111][0m Trial 63 pruned. Trial was pruned at epoch 0.[0m
+[32m[I 2021-11-05 10:25:16,249][0m Trial 63 pruned. Trial was pruned at epoch 0.[0m
 GPU available: True, used: True
 TPU available: False, using: 0 TPU cores
 IPU available: False, using: 0 IPUs
@@ -931,7 +931,7 @@ LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
 0         Non-trainable params
 147       Total params
 0.001     Total estimated model params size (MB)
-[32m[I 2021-11-01 11:01:13,136][0m Trial 64 pruned. Trial was pruned at epoch 0.[0m
+[32m[I 2021-11-05 10:25:16,270][0m Trial 64 pruned. Trial was pruned at epoch 0.[0m
 GPU available: True, used: True
 TPU available: False, using: 0 TPU cores
 IPU available: False, using: 0 IPUs
@@ -945,7 +945,7 @@ LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
 0         Non-trainable params
 339       Total params
 0.001     Total estimated model params size (MB)
-[32m[I 2021-11-01 11:01:13,160][0m Trial 65 pruned. Trial was pruned at epoch 0.[0m
+[32m[I 2021-11-05 10:25:16,289][0m Trial 65 pruned. Trial was pruned at epoch 0.[0m
 GPU available: True, used: True
 TPU available: False, using: 0 TPU cores
 IPU available: False, using: 0 IPUs
@@ -960,7 +960,7 @@ LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
 327       Total params
 0.001     Total estimated model params size (MB)
 Global seed set to 42
-[32m[I 2021-11-01 11:01:20,824][0m Trial 66 pruned. Trial was pruned at epoch 1.[0m
+[32m[I 2021-11-05 10:25:22,490][0m Trial 66 pruned. Trial was pruned at epoch 1.[0m
 GPU available: True, used: True
 TPU available: False, using: 0 TPU cores
 IPU available: False, using: 0 IPUs
@@ -974,7 +974,7 @@ LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
 0         Non-trainable params
 181       Total params
 0.001     Total estimated model params size (MB)
-[32m[I 2021-11-01 11:01:20,852][0m Trial 67 pruned. Trial was pruned at epoch 0.[0m
+[32m[I 2021-11-05 10:25:22,514][0m Trial 67 pruned. Trial was pruned at epoch 0.[0m
 GPU available: True, used: True
 TPU available: False, using: 0 TPU cores
 IPU available: False, using: 0 IPUs
@@ -988,7 +988,7 @@ LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
 0         Non-trainable params
 241       Total params
 0.001     Total estimated model params size (MB)
-[32m[I 2021-11-01 11:01:20,873][0m Trial 68 pruned. Trial was pruned at epoch 0.[0m
+[32m[I 2021-11-05 10:25:22,531][0m Trial 68 pruned. Trial was pruned at epoch 0.[0m
 GPU available: True, used: True
 TPU available: False, using: 0 TPU cores
 IPU available: False, using: 0 IPUs
@@ -1002,7 +1002,7 @@ LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
 0         Non-trainable params
 222       Total params
 0.001     Total estimated model params size (MB)
-[32m[I 2021-11-01 11:01:20,898][0m Trial 69 pruned. Trial was pruned at epoch 0.[0m
+[32m[I 2021-11-05 10:25:22,551][0m Trial 69 pruned. Trial was pruned at epoch 0.[0m
 GPU available: True, used: True
 TPU available: False, using: 0 TPU cores
 IPU available: False, using: 0 IPUs
@@ -1016,7 +1016,7 @@ LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
 0         Non-trainable params
 151       Total params
 0.001     Total estimated model params size (MB)
-[32m[I 2021-11-01 11:01:20,919][0m Trial 70 pruned. Trial was pruned at epoch 0.[0m
+[32m[I 2021-11-05 10:25:22,569][0m Trial 70 pruned. Trial was pruned at epoch 0.[0m
 GPU available: True, used: True
 TPU available: False, using: 0 TPU cores
 IPU available: False, using: 0 IPUs
@@ -1030,7 +1030,7 @@ LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
 0         Non-trainable params
 327       Total params
 0.001     Total estimated model params size (MB)
-[32m[I 2021-11-01 11:01:20,943][0m Trial 71 pruned. Trial was pruned at epoch 0.[0m
+[32m[I 2021-11-05 10:25:22,588][0m Trial 71 pruned. Trial was pruned at epoch 0.[0m
 GPU available: True, used: True
 TPU available: False, using: 0 TPU cores
 IPU available: False, using: 0 IPUs
@@ -1044,7 +1044,7 @@ LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
 0         Non-trainable params
 315       Total params
 0.001     Total estimated model params size (MB)
-[32m[I 2021-11-01 11:01:20,968][0m Trial 72 pruned. Trial was pruned at epoch 0.[0m
+[32m[I 2021-11-05 10:25:22,607][0m Trial 72 pruned. Trial was pruned at epoch 0.[0m
 GPU available: True, used: True
 TPU available: False, using: 0 TPU cores
 IPU available: False, using: 0 IPUs
@@ -1059,7 +1059,7 @@ LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
 306       Total params
 0.001     Total estimated model params size (MB)
 Global seed set to 42
-[32m[I 2021-11-01 11:01:28,553][0m Trial 73 pruned. Trial was pruned at epoch 1.[0m
+[32m[I 2021-11-05 10:25:28,817][0m Trial 73 pruned. Trial was pruned at epoch 1.[0m
 GPU available: True, used: True
 TPU available: False, using: 0 TPU cores
 IPU available: False, using: 0 IPUs
@@ -1073,7 +1073,7 @@ LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
 0         Non-trainable params
 306       Total params
 0.001     Total estimated model params size (MB)
-[32m[I 2021-11-01 11:01:28,584][0m Trial 74 pruned. Trial was pruned at epoch 0.[0m
+[32m[I 2021-11-05 10:25:28,844][0m Trial 74 pruned. Trial was pruned at epoch 0.[0m
 GPU available: True, used: True
 TPU available: False, using: 0 TPU cores
 IPU available: False, using: 0 IPUs
@@ -1087,7 +1087,7 @@ LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
 0         Non-trainable params
 283       Total params
 0.001     Total estimated model params size (MB)
-[32m[I 2021-11-01 11:01:28,609][0m Trial 75 pruned. Trial was pruned at epoch 0.[0m
+[32m[I 2021-11-05 10:25:28,863][0m Trial 75 pruned. Trial was pruned at epoch 0.[0m
 GPU available: True, used: True
 TPU available: False, using: 0 TPU cores
 IPU available: False, using: 0 IPUs
@@ -1101,7 +1101,7 @@ LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
 0         Non-trainable params
 328       Total params
 0.001     Total estimated model params size (MB)
-[32m[I 2021-11-01 11:01:28,633][0m Trial 76 pruned. Trial was pruned at epoch 0.[0m
+[32m[I 2021-11-05 10:25:28,884][0m Trial 76 pruned. Trial was pruned at epoch 0.[0m
 GPU available: True, used: True
 TPU available: False, using: 0 TPU cores
 IPU available: False, using: 0 IPUs
@@ -1115,7 +1115,7 @@ LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
 0         Non-trainable params
 108       Total params
 0.000     Total estimated model params size (MB)
-[32m[I 2021-11-01 11:01:28,657][0m Trial 77 pruned. Trial was pruned at epoch 0.[0m
+[32m[I 2021-11-05 10:25:28,904][0m Trial 77 pruned. Trial was pruned at epoch 0.[0m
 GPU available: True, used: True
 TPU available: False, using: 0 TPU cores
 IPU available: False, using: 0 IPUs
@@ -1129,7 +1129,7 @@ LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
 0         Non-trainable params
 241       Total params
 0.001     Total estimated model params size (MB)
-[32m[I 2021-11-01 11:01:28,678][0m Trial 78 pruned. Trial was pruned at epoch 0.[0m
+[32m[I 2021-11-05 10:25:28,922][0m Trial 78 pruned. Trial was pruned at epoch 0.[0m
 GPU available: True, used: True
 TPU available: False, using: 0 TPU cores
 IPU available: False, using: 0 IPUs
@@ -1143,7 +1143,7 @@ LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
 0         Non-trainable params
 54        Total params
 0.000     Total estimated model params size (MB)
-[32m[I 2021-11-01 11:01:28,703][0m Trial 79 pruned. Trial was pruned at epoch 0.[0m
+[32m[I 2021-11-05 10:25:28,944][0m Trial 79 pruned. Trial was pruned at epoch 0.[0m
 GPU available: True, used: True
 TPU available: False, using: 0 TPU cores
 IPU available: False, using: 0 IPUs
@@ -1158,7 +1158,7 @@ LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
 61        Total params
 0.000     Total estimated model params size (MB)
 Global seed set to 42
-[32m[I 2021-11-01 11:01:35,759][0m Trial 80 pruned. Trial was pruned at epoch 1.[0m
+[32m[I 2021-11-05 10:25:34,631][0m Trial 80 pruned. Trial was pruned at epoch 1.[0m
 GPU available: True, used: True
 TPU available: False, using: 0 TPU cores
 IPU available: False, using: 0 IPUs
@@ -1172,7 +1172,7 @@ LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
 0         Non-trainable params
 327       Total params
 0.001     Total estimated model params size (MB)
-[32m[I 2021-11-01 11:01:35,793][0m Trial 81 pruned. Trial was pruned at epoch 0.[0m
+[32m[I 2021-11-05 10:25:34,658][0m Trial 81 pruned. Trial was pruned at epoch 0.[0m
 GPU available: True, used: True
 TPU available: False, using: 0 TPU cores
 IPU available: False, using: 0 IPUs
@@ -1187,7 +1187,7 @@ LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
 315       Total params
 0.001     Total estimated model params size (MB)
 Global seed set to 42
-[32m[I 2021-11-01 11:01:47,163][0m Trial 82 pruned. Trial was pruned at epoch 2.[0m
+[32m[I 2021-11-05 10:25:43,951][0m Trial 82 pruned. Trial was pruned at epoch 2.[0m
 GPU available: True, used: True
 TPU available: False, using: 0 TPU cores
 IPU available: False, using: 0 IPUs
@@ -1202,7 +1202,7 @@ LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
 284       Total params
 0.001     Total estimated model params size (MB)
 Global seed set to 42
-[32m[I 2021-11-01 11:01:54,774][0m Trial 83 pruned. Trial was pruned at epoch 1.[0m
+[32m[I 2021-11-05 10:25:50,191][0m Trial 83 pruned. Trial was pruned at epoch 1.[0m
 GPU available: True, used: True
 TPU available: False, using: 0 TPU cores
 IPU available: False, using: 0 IPUs
@@ -1217,7 +1217,7 @@ LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
 273       Total params
 0.001     Total estimated model params size (MB)
 Global seed set to 42
-[32m[I 2021-11-01 11:03:09,867][0m Trial 84 finished with value: 0.4442850351333618 and parameters: {'n_layers': 2, 'n_hidden_0': 9, 'n_hidden_1': 1, 'lr': 0.002659102555728029, 'p_dropout': 0.041619104365003476}. Best is trial 84 with value: 0.4442850351333618.[0m
+[32m[I 2021-11-05 10:26:51,642][0m Trial 84 finished with value: 0.4442850351333618 and parameters: {'n_layers': 2, 'n_hidden_0': 9, 'n_hidden_1': 1, 'lr': 0.002659102555728029, 'p_dropout': 0.041619104365003476}. Best is trial 84 with value: 0.4442850351333618.[0m
 GPU available: True, used: True
 TPU available: False, using: 0 TPU cores
 IPU available: False, using: 0 IPUs
@@ -1232,7 +1232,7 @@ LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
 213       Total params
 0.001     Total estimated model params size (MB)
 Global seed set to 42
-[32m[I 2021-11-01 11:03:17,472][0m Trial 85 pruned. Trial was pruned at epoch 1.[0m
+[32m[I 2021-11-05 10:26:57,869][0m Trial 85 pruned. Trial was pruned at epoch 1.[0m
 GPU available: True, used: True
 TPU available: False, using: 0 TPU cores
 IPU available: False, using: 0 IPUs
@@ -1246,7 +1246,7 @@ LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
 0         Non-trainable params
 303       Total params
 0.001     Total estimated model params size (MB)
-[32m[I 2021-11-01 11:03:17,504][0m Trial 86 pruned. Trial was pruned at epoch 0.[0m
+[32m[I 2021-11-05 10:26:57,897][0m Trial 86 pruned. Trial was pruned at epoch 0.[0m
 GPU available: True, used: True
 TPU available: False, using: 0 TPU cores
 IPU available: False, using: 0 IPUs
@@ -1260,7 +1260,7 @@ LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
 0         Non-trainable params
 191       Total params
 0.001     Total estimated model params size (MB)
-[32m[I 2021-11-01 11:03:17,528][0m Trial 87 pruned. Trial was pruned at epoch 0.[0m
+[32m[I 2021-11-05 10:26:57,918][0m Trial 87 pruned. Trial was pruned at epoch 0.[0m
 GPU available: True, used: True
 TPU available: False, using: 0 TPU cores
 IPU available: False, using: 0 IPUs
@@ -1275,7 +1275,7 @@ LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
 243       Total params
 0.001     Total estimated model params size (MB)
 Global seed set to 42
-[32m[I 2021-11-01 11:03:25,086][0m Trial 88 pruned. Trial was pruned at epoch 1.[0m
+[32m[I 2021-11-05 10:27:04,117][0m Trial 88 pruned. Trial was pruned at epoch 1.[0m
 GPU available: True, used: True
 TPU available: False, using: 0 TPU cores
 IPU available: False, using: 0 IPUs
@@ -1289,7 +1289,7 @@ LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
 0         Non-trainable params
 271       Total params
 0.001     Total estimated model params size (MB)
-[32m[I 2021-11-01 11:03:25,116][0m Trial 89 pruned. Trial was pruned at epoch 0.[0m
+[32m[I 2021-11-05 10:27:04,141][0m Trial 89 pruned. Trial was pruned at epoch 0.[0m
 GPU available: True, used: True
 TPU available: False, using: 0 TPU cores
 IPU available: False, using: 0 IPUs
@@ -1303,7 +1303,7 @@ LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
 0         Non-trainable params
 51        Total params
 0.000     Total estimated model params size (MB)
-[32m[I 2021-11-01 11:03:25,141][0m Trial 90 pruned. Trial was pruned at epoch 0.[0m
+[32m[I 2021-11-05 10:27:04,162][0m Trial 90 pruned. Trial was pruned at epoch 0.[0m
 GPU available: True, used: True
 TPU available: False, using: 0 TPU cores
 IPU available: False, using: 0 IPUs
@@ -1318,7 +1318,7 @@ LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
 284       Total params
 0.001     Total estimated model params size (MB)
 Global seed set to 42
-[32m[I 2021-11-01 11:03:51,475][0m Trial 91 finished with value: 0.44816842675209045 and parameters: {'n_layers': 2, 'n_hidden_0': 9, 'n_hidden_1': 2, 'lr': 0.018516205159636, 'p_dropout': 0.03166703012869914}. Best is trial 84 with value: 0.4442850351333618.[0m
+[32m[I 2021-11-05 10:27:25,840][0m Trial 91 finished with value: 0.44816842675209045 and parameters: {'n_layers': 2, 'n_hidden_0': 9, 'n_hidden_1': 2, 'lr': 0.018516205159635993, 'p_dropout': 0.03166703012869914}. Best is trial 84 with value: 0.4442850351333618.[0m
 GPU available: True, used: True
 TPU available: False, using: 0 TPU cores
 IPU available: False, using: 0 IPUs
@@ -1333,7 +1333,7 @@ LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
 315       Total params
 0.001     Total estimated model params size (MB)
 Global seed set to 42
-[32m[I 2021-11-01 11:04:21,646][0m Trial 92 finished with value: 0.4483838975429535 and parameters: {'n_layers': 2, 'n_hidden_0': 10, 'n_hidden_1': 2, 'lr': 0.019195876500636016, 'p_dropout': 0.0420572239259542}. Best is trial 84 with value: 0.4442850351333618.[0m
+[32m[I 2021-11-05 10:27:50,495][0m Trial 92 finished with value: 0.4483838975429535 and parameters: {'n_layers': 2, 'n_hidden_0': 10, 'n_hidden_1': 2, 'lr': 0.019195876500636016, 'p_dropout': 0.0420572239259542}. Best is trial 84 with value: 0.4442850351333618.[0m
 GPU available: True, used: True
 TPU available: False, using: 0 TPU cores
 IPU available: False, using: 0 IPUs
@@ -1347,7 +1347,7 @@ LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
 0         Non-trainable params
 284       Total params
 0.001     Total estimated model params size (MB)
-[32m[I 2021-11-01 11:04:21,679][0m Trial 93 pruned. Trial was pruned at epoch 0.[0m
+[32m[I 2021-11-05 10:27:50,523][0m Trial 93 pruned. Trial was pruned at epoch 0.[0m
 GPU available: True, used: True
 TPU available: False, using: 0 TPU cores
 IPU available: False, using: 0 IPUs
@@ -1361,7 +1361,7 @@ LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
 0         Non-trainable params
 243       Total params
 0.001     Total estimated model params size (MB)
-[32m[I 2021-11-01 11:04:21,705][0m Trial 94 pruned. Trial was pruned at epoch 0.[0m
+[32m[I 2021-11-05 10:27:50,544][0m Trial 94 pruned. Trial was pruned at epoch 0.[0m
 GPU available: True, used: True
 TPU available: False, using: 0 TPU cores
 IPU available: False, using: 0 IPUs
@@ -1375,7 +1375,7 @@ LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
 0         Non-trainable params
 339       Total params
 0.001     Total estimated model params size (MB)
-[32m[I 2021-11-01 11:04:21,730][0m Trial 95 pruned. Trial was pruned at epoch 0.[0m
+[32m[I 2021-11-05 10:27:50,564][0m Trial 95 pruned. Trial was pruned at epoch 0.[0m
 GPU available: True, used: True
 TPU available: False, using: 0 TPU cores
 IPU available: False, using: 0 IPUs
@@ -1389,7 +1389,7 @@ LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
 0         Non-trainable params
 315       Total params
 0.001     Total estimated model params size (MB)
-[32m[I 2021-11-01 11:04:21,755][0m Trial 96 pruned. Trial was pruned at epoch 0.[0m
+[32m[I 2021-11-05 10:27:50,585][0m Trial 96 pruned. Trial was pruned at epoch 0.[0m
 GPU available: True, used: True
 TPU available: False, using: 0 TPU cores
 IPU available: False, using: 0 IPUs
@@ -1403,7 +1403,7 @@ LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
 0         Non-trainable params
 328       Total params
 0.001     Total estimated model params size (MB)
-[32m[I 2021-11-01 11:04:21,781][0m Trial 97 pruned. Trial was pruned at epoch 0.[0m
+[32m[I 2021-11-05 10:27:50,606][0m Trial 97 pruned. Trial was pruned at epoch 0.[0m
 GPU available: True, used: True
 TPU available: False, using: 0 TPU cores
 IPU available: False, using: 0 IPUs
@@ -1417,7 +1417,7 @@ LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
 0         Non-trainable params
 301       Total params
 0.001     Total estimated model params size (MB)
-[32m[I 2021-11-01 11:04:21,802][0m Trial 98 pruned. Trial was pruned at epoch 0.[0m
+[32m[I 2021-11-05 10:27:50,625][0m Trial 98 pruned. Trial was pruned at epoch 0.[0m
 GPU available: True, used: True
 TPU available: False, using: 0 TPU cores
 IPU available: False, using: 0 IPUs
@@ -1431,7 +1431,7 @@ LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
 0         Non-trainable params
 213       Total params
 0.001     Total estimated model params size (MB)
-[32m[I 2021-11-01 11:04:21,827][0m Trial 99 pruned. Trial was pruned at epoch 0.[0m
+[32m[I 2021-11-05 10:27:50,645][0m Trial 99 pruned. Trial was pruned at epoch 0.[0m
 GPU available: True, used: True
 TPU available: False, using: 0 TPU cores
 IPU available: False, using: 0 IPUs
@@ -1451,7 +1451,7 @@ Global seed set to 42
 --- Testing and making predictions using best model ---
 Final accuracy score: 0.82
 --- Saving best model and predictions---
-Total time to run script: 11.54 mins
+Total time to run script: 9.86 mins
 ----------------------------
 ---       DONE :)      -----
 ----------------------------
