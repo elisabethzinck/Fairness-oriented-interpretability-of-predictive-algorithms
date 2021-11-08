@@ -385,13 +385,78 @@ class TaiwaneseDataModule(pl.LightningDataModule):
 
     def predict_dataloader(self):
         return DataLoader(self.test_data, batch_size=self.batch_size)
+    
+class CheXpertDataModule(pl.LightningDataModule):
+    def __init__(self):
+        super().__init__()
+        self.folder_path = 'data/CheXpert/raw/'
+
+        self.batch_size = 16
+        #self.test_size = 0.2
+        #self.val_size = 0.2 # Relative to train val
+        self.seed = 42
+
+        #self.id_var = 'id'
+        #self.sens_vars = ['sex', 'age']
+        #self.y_var = 'default_next_month' # Maybe depending on which patology we predict
+        self.dataset_name = 'CheXpert'
+
+        self.setup()
+
+    
+    def setup(self, stage = None):
+        
+        self.train_df = pd.read_csv(self.folder_path + 'CheXpert-v1.0-small/train.csv')
+        self.val_df = pd.read_csv(self.folder_path + 'CheXpert-v1.0-small/valid.csv')
+        
+        # Saving n output and features for plNet
+        #self.n_obs = X.shape[0]
+        #self.n_features = X.shape[1]
+        #self.n_output = 1
+
+        # Split data into train+validation and test
+
+    
+        # Split train+val into train and val
+       
+        #Scaler to standardize for optimization step
+
+        # Saving test, train and val idx in self
+
+
+        if stage in (None, "fit"): 
+            pass
+        
+        if stage in (None, "test"):
+            pass
+
+    def load_image(path):
+        image_path = self.folder_path + path
+        
+    
+    def train_dataloader(self):
+        #return DataLoader(self.train_data, batch_size=self.batch_size)
+        return None
+
+    def val_dataloader(self):
+        #return DataLoader(self.val_data, batch_size=self.batch_size)
+        return None
+    
+    def test_dataloader(self):
+        #return DataLoader(self.test_data, batch_size=self.batch_size)
+        return None
+
+    def predict_dataloader(self):
+        #return DataLoader(self.test_data, batch_size=self.batch_size)
+        return None
 #%%
 if __name__ == '__main__':
-    dm_adni = ADNIDataModule(dataset = 1)
-    dm_taiwan = TaiwaneseDataModule()
-    dm_german = GermanDataModule()
-    dm_german.make_KFold_split(fold = 2)
-    dm_catalan = CatalanDataModule()
-    dm_catalan.make_KFold_split(fold = 1)
+    #dm_adni = ADNIDataModule(dataset = 1)
+    #dm_taiwan = TaiwaneseDataModule()
+    #dm_german = GermanDataModule()
+    #dm_german.make_KFold_split(fold = 2)
+    #dm_catalan = CatalanDataModule()
+    #dm_catalan.make_KFold_split(fold = 1)
+    dm = CheXpertDataModule()
 
 # %%
