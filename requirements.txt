@@ -13,3 +13,5 @@ pytorch-lightning
 optuna
 xlrd
 statsmodels
+Pillow
+scikit-image
