@@ -396,9 +396,15 @@ class CheXpertDataset(Dataset):
         
         Args:
             dataset_df (pd.DataFrame): DataFrame containing paths to images and targets. 
+            image_size (tuple): image size in a tuple (height, width)
         """
         self.dataset_df = dataset_df
-        self.image_size = image_size
+
+        if min(image_size) >= 224:
+            self.image_size = image_size
+        else:
+            raise ValueError('DenseNet in Pytorch requires height and width to be at least 224')
+        
 
         self.X_paths = dataset_df.Path
         self.y = dataset_df.y
