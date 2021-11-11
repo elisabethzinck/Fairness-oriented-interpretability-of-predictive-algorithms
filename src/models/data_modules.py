@@ -7,6 +7,7 @@ from sklearn.model_selection import train_test_split, KFold
 from sklearn.preprocessing import StandardScaler
 from torch.utils.data.dataloader import DataLoader
 from torch.utils.data import Dataset
+import torch
 
 from PIL import Image
 from skimage.transform import resize
@@ -407,11 +408,12 @@ class CheXpertDataset(Dataset):
         
 
         self.X_paths = dataset_df.Path
-        self.y = dataset_df.y
+        self.y = np.expand_dims(dataset_df.y, axis = 1)
         
     def __getitem__(self, idx):
         image_path = self.X_paths[idx]
         batch_x = self.load_image(image_path)
+        batch_x = np.moveaxis(batch_x, source=-1, destination=0)
         batch_y = self.y[idx]
 
         # To do: Flip image horizontally with 1/2 prob
@@ -460,7 +462,7 @@ class CheXpertDataModule(pl.LightningDataModule):
         self.train_raw = pd.read_csv(self.folder_path + 'CheXpert-v1.0-small/train.csv')
         self.val_raw = pd.read_csv(self.folder_path + 'CheXpert-v1.0-small/valid.csv')
 
-        dataset_df = self.train_raw
+        dataset_df = self.val_raw
 
 
         # Uncertainty approach
@@ -505,16 +507,16 @@ class CheXpertDataModule(pl.LightningDataModule):
         
     
     def train_dataloader(self):
-        return DataLoader(self.train_data, batch_size=self.batch_size)
+        return DataLoader(self.train_data, batch_size=self.batch_size, drop_last=False)
 
     def val_dataloader(self):
-        return DataLoader(self.val_data, batch_size=self.batch_size)
+        return DataLoader(self.val_data, batch_size=self.batch_size, drop_last=False)
     
     def test_dataloader(self):
-        return DataLoader(self.test_data, batch_size=self.batch_size)
+        return DataLoader(self.test_data, batch_size=self.batch_size, drop_last=False)
 
     def predict_dataloader(self):
-        return DataLoader(self.test_data, batch_size=self.batch_size)
+        return DataLoader(self.test_data, batch_size=self.batch_size, drop_last=False)
 #%%
 if __name__ == '__main__':
     #dm_adni = ADNIDataModule(dataset = 1)
@@ -525,5 +527,8 @@ if __name__ == '__main__':
     #dm_catalan.make_KFold_split(fold = 1)
     dm = CheXpertDataModule()
     tmp = next(iter(dm.train_dataloader()))
+
+    dm_t = TaiwaneseDataModule()
+    tmp_t = next(iter(dm_t.train_dataloader()))
 
 # %%
