@@ -6,6 +6,11 @@ import pytorch_lightning as pl
 from sklearn.model_selection import train_test_split, KFold
 from sklearn.preprocessing import StandardScaler
 from torch.utils.data.dataloader import DataLoader
+from torch.utils.data import Dataset
+import torch
+
+from PIL import Image
+from skimage.transform import resize
 
 from src.data.general_preprocess_functions import one_hot_encode_mixed_data
 from src.models.general_modelling_functions import myData
@@ -385,13 +390,145 @@ class TaiwaneseDataModule(pl.LightningDataModule):
 
     def predict_dataloader(self):
         return DataLoader(self.test_data, batch_size=self.batch_size)
+
+class CheXpertDataset(Dataset):
+    def __init__(self, dataset_df, image_size):
+        """Dataset for CheXpert data
+        
+        Args:
+            dataset_df (pd.DataFrame): DataFrame containing paths to images and targets. 
+            image_size (tuple): image size in a tuple (height, width)
+        """
+        self.dataset_df = dataset_df
+
+        if min(image_size) >= 224:
+            self.image_size = image_size
+        else:
+            raise ValueError('DenseNet in Pytorch requires height and width to be at least 224')
+        
+
+        self.X_paths = dataset_df.Path
+        self.y = np.expand_dims(dataset_df.y, axis = 1)
+        
+    def __getitem__(self, idx):
+        image_path = self.X_paths[idx]
+        batch_x = self.load_image(image_path)
+        batch_x = np.moveaxis(batch_x, source=-1, destination=0)
+        batch_y = self.y[idx]
+
+        # To do: Flip image horizontally with 1/2 prob
+
+        return batch_x, batch_y
+        
+    def __len__ (self):
+        return len(self.X_paths)
+
+    def load_image(self, image_path):
+        """Loads image and turns it into array of appropiate size
+        """
+        image = Image.open(image_path)
+        image_array = np.asarray(image.convert("RGB"))
+        image_array = image_array / 255.
+        image_array = resize(image_array, self.image_size)
+
+        # Standardize image to match imagenet
+        imagenet_mean = np.array([0.485, 0.456, 0.406])
+        imagenet_std = np.array([0.229, 0.224, 0.225])
+        image_array = (image_array - imagenet_mean) / imagenet_std
+        return image_array
+    
+class CheXpertDataModule(pl.LightningDataModule):
+    def __init__(self):
+        super().__init__()
+        
+        self.folder_path = 'data/CheXpert/raw/'
+        self.dataset_name = 'CheXpert'
+
+        self.uncertainty_approach = 'U-Ones'
+        self.target_disease = 'Pneumonia'
+        self.augment_images = False
+
+        self.batch_size = 16
+        self.image_size = (224, 224)
+        self.test_size = 0.2
+        self.val_size = 0.2 # Relative to train_val
+        self.seed = 42
+
+        self.setup()
+
+    
+    def setup(self, stage = None):
+        
+        self.train_raw = pd.read_csv(self.folder_path + 'CheXpert-v1.0-small/train.csv')
+        self.val_raw = pd.read_csv(self.folder_path + 'CheXpert-v1.0-small/valid.csv')
+
+        dataset_df = self.val_raw
+
+
+        # Uncertainty approach
+        if self.uncertainty_approach == 'U-Ones':
+            target_map = {
+                np.nan: 0,  # unmentioned
+                0.0: 0,     # negative
+                -1.0: 1,    # uncertain
+                1.0: 1      # positive
+                }
+        else:
+            raise ValueError('Only uncertainty approach U-Ones is implemented.')
+
+        dataset_df = (dataset_df
+            .assign(
+                patient_id = lambda x: x.Path.str.split('/').str[2],
+                Path = lambda x: self.folder_path + x.Path,
+                y = lambda x: x[self.target_disease].map(target_map))
+            .loc[lambda x: x['Frontal/Lateral'] == 'Frontal']
+            )
+
+        # Make splits based on patients
+        patients = dataset_df[['patient_id']].drop_duplicates()
+        train_val_patients, test_patients = train_test_split(
+            patients, test_size = self.test_size)
+        train_patients, val_patients = train_test_split(
+            patients, test_size = self.val_size)
+
+
+        if stage in (None, "fit"): 
+            train_df = train_patients.merge(
+                dataset_df, how = 'inner', on = 'patient_id')
+            val_df = val_patients.merge(
+                dataset_df, how = 'inner', on = 'patient_id')
+            self.train_data = CheXpertDataset(train_df, self.image_size)
+            self.val_data = CheXpertDataset(val_df, self.image_size)
+        
+        if stage in (None, "test"):
+            test_df = test_patients.merge(
+                dataset_df, how = 'inner', on = 'patient_id')
+            self.test_data = CheXpertDataset(test_df, self.image_size)
+        
+    
+    def train_dataloader(self):
+        return DataLoader(self.train_data, batch_size=self.batch_size, drop_last=False)
+
+    def val_dataloader(self):
+        return DataLoader(self.val_data, batch_size=self.batch_size, drop_last=False)
+    
+    def test_dataloader(self):
+        return DataLoader(self.test_data, batch_size=self.batch_size, drop_last=False)
+
+    def predict_dataloader(self):
+        return DataLoader(self.test_data, batch_size=self.batch_size, drop_last=False)
 #%%
 if __name__ == '__main__':
-    dm_adni = ADNIDataModule(dataset = 1)
-    dm_taiwan = TaiwaneseDataModule()
-    dm_german = GermanDataModule()
-    dm_german.make_KFold_split(fold = 2)
-    dm_catalan = CatalanDataModule()
-    dm_catalan.make_KFold_split(fold = 1)
+    #dm_adni = ADNIDataModule(dataset = 1)
+    #dm_taiwan = TaiwaneseDataModule()
+    #dm_german = GermanDataModule()
+    #dm_german.make_KFold_split(fold = 2)
+    #dm_catalan = CatalanDataModule()
+    #dm_catalan.make_KFold_split(fold = 1)
+    dm = CheXpertDataModule()
+    tmp = next(iter(dm.train_dataloader()))
+
+    dm_t = TaiwaneseDataModule()
+    tmp_t = next(iter(dm_t.train_dataloader()))
 
 # %%
