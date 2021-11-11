@@ -1,6 +1,7 @@
 numpy
 pandas
 torch
+torchvision
 scikit-learn==0.24.2
 matplotlib
 seaborn
@@ -15,3 +16,4 @@ xlrd
 statsmodels
 Pillow
 scikit-image
+pandoc
