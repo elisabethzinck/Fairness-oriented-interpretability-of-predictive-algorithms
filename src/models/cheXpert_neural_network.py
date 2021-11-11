@@ -30,7 +30,6 @@ if __name__ == "__main__":
     param_path = 'data/CheXpert/predictions/cheXpert_nn_pred_hyperparams.csv'
     model_path = 'models/CheXpert/NN_cheXpert'
 
-    n_trials = 100
     max_epochs = 50
 
     #### Prepare data #######
