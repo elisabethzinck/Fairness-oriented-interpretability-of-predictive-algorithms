@@ -419,7 +419,7 @@ class CheXpertDataset(Dataset):
     def __getitem__(self, idx):
         image_path = self.X_paths[idx]
         batch_x = self.load_image(image_path)
-        batch_x = self.augmenter.augment_image(batch_x) #dim=(H, W, C)
+        batch_x = self.augmenter.augment_image(batch_x).copy() #dim=(H, W, C)
         batch_x = np.moveaxis(batch_x, source=-1, destination=0) #dim=(C, H, W)
         batch_y = self.y[idx]
 
