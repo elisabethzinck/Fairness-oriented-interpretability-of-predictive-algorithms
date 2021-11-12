@@ -1,6 +1,7 @@
 import pytorch_lightning as pl
 import torch 
 import torch.nn.functional as F
+from torch.optim.lr_scheduler import ReduceLROnPlateau
 #%% 
 
 # Gather the parameters to be optimized/updated in this run. If we are
@@ -31,10 +32,19 @@ def set_parameter_requires_grad(model, feature_extracting):
 
 #%% Pytorh Lightning network
 class BinaryClassificationTaskCheXpert(pl.LightningModule):
-    def __init__(self, model, lr = 1e-3):
+    def __init__(
+            self, 
+            model, 
+            lr = 1e-3, 
+            feature_extract = True, 
+            reduce_lr_on_plateau = False,
+            lr_scheduler_patience = None):
         super().__init__()
         self.model = model
         self.lr = lr
+        self.feature_extract = feature_extract
+        self.reduce_lr_on_plateau = reduce_lr_on_plateau
+        self.lr_scheduler_patience = lr_scheduler_patience
 
     def training_step(self, batch, batch_idx):
         x, y = batch
@@ -72,7 +82,17 @@ class BinaryClassificationTaskCheXpert(pl.LightningModule):
         return y_hat
 
     def configure_optimizers(self):
-        params_to_optimize = get_params_to_update(self.model, feature_extract = True)
-        return torch.optim.Adam(params_to_optimize, lr = self.lr)
+        params_to_optimize = get_params_to_update(self.model, feature_extract = self.feature_extract)
+        optimizer = torch.optim.Adam(params_to_optimize, lr = self.lr)
+        optimizer_dict = {'optimizer': optimizer}
+        if self.reduce_lr_on_plateau:
+            lr_scheduler_config = {
+                'scheduler': ReduceLROnPlateau(
+                    optimizer, 
+                    patience = self.lr_scheduler_patience),
+                'interval': 'epoch',
+                'frequency': 1,
+                'monitor': 'val_loss'}
+        return 
 
 

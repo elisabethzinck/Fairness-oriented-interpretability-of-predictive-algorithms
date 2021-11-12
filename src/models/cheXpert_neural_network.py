@@ -17,6 +17,30 @@ from src.models.data_modules import CheXpertDataModule
 
 #%%
 if __name__ == "__main__":
+        
+    ##### DEFINITIONS #######
+
+    model_name = 'test_model'
+    model_path = 'models/CheXpert/' + model_name
+    
+    # All defined variables below must be included into save_dict
+    only_feature_extraction = True
+    max_epochs = 50
+    lr = 0.001
+    reduce_lr_on_plateau = True
+    lr_scheduler_patience = 1 # To do: Decide this
+    early_stopping_patience = 3 # To do: Decide this
+
+    
+    save_dict = {
+        'only_feature_extraction': only_feature_extraction,
+        'max_epochs': max_epochs,
+        'lr': lr,
+        'reduce_lr_on_plateau': reduce_lr_on_plateau,
+        'lr_scheduler_patience': lr_scheduler_patience,
+        'early_stopping_patience': early_stopping_patience
+        }
+
     ##### Setup #########
     if torch.cuda.is_available():
         GPU = 1
@@ -24,17 +48,6 @@ if __name__ == "__main__":
         GPU = None
     pl.seed_everything(42)
     t0 = time.time()
-    
-    ##### DEFINITIONS #######
-    model_name = 'test_model'
-    model_path = 'models/CheXpert/' + model_name
-    
-
-    only_feature_extraction = True
-
-    max_epochs = 50
-    lr = 0.0001 
-    early_stopping_patience = 3
 
     #### Prepare data #######
     dm = CheXpertDataModule()
@@ -55,7 +68,12 @@ if __name__ == "__main__":
     model.classifier = torch.nn.Linear(in_features_classifier, 1)
 
     model = model.double() # To ensure compatibilty with dataset
-    pl_model = BinaryClassificationTaskCheXpert(model = model, lr = lr)
+    pl_model = BinaryClassificationTaskCheXpert(
+        model = model, 
+        lr = lr,
+        feature_extract = only_feature_extraction,
+        reduce_lr_on_plateau = reduce_lr_on_plateau,
+        lr_scheduler_patience = lr_scheduler_patience)
 
     early_stopping = EarlyStopping(
         'val_loss', 
@@ -72,8 +90,8 @@ if __name__ == "__main__":
         gpus = GPU)
     trainer.fit(pl_model, dm)
 
-    print('--- Saving model and predictions---')
-    save_dict = {'model': pl_model.model.eval()}
+    print('--- Saving model and hyperparameters---')
+    save_dict['model'] = pl_model.model.eval()
     torch.save(save_dict, model_path)
     
     ### FINISHING UP ####
