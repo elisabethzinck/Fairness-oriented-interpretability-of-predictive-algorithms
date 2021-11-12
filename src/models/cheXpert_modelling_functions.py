@@ -1,7 +1,15 @@
 import pytorch_lightning as pl
 import torch 
 import torch.nn.functional as F
+from imgaug import augmenters as iaa
 
+# Augmenter from https://github.com/brucechou1983/CheXNet-Keras/blob/b80afc83a3b3550fae3d7acc27b4cfa75272517a/augmenter.py
+augmenter = iaa.Sequential(
+    [
+        iaa.Fliplr(0.5),
+    ],
+    random_order=True,
+)
 #%% 
 
 # Gather the parameters to be optimized/updated in this run. If we are
