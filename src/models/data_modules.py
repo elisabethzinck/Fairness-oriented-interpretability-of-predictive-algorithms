@@ -14,6 +14,7 @@ from skimage.transform import resize
 
 from src.data.general_preprocess_functions import one_hot_encode_mixed_data
 from src.models.general_modelling_functions import myData
+from imgaug import augmenters as iaa
 
 #%%
 #######################################################################
@@ -405,18 +406,22 @@ class CheXpertDataset(Dataset):
             self.image_size = image_size
         else:
             raise ValueError('DenseNet in Pytorch requires height and width to be at least 224')
-        
 
         self.X_paths = dataset_df.Path
         self.y = np.expand_dims(dataset_df.y, axis = 1)
+
+        # same image augmenter as https://github.com/brucechou1983/CheXNet-Keras
+        self.augmenter = iaa.Sequential(
+            [iaa.Fliplr(0.5),],
+            random_order=True,
+        )
         
     def __getitem__(self, idx):
         image_path = self.X_paths[idx]
         batch_x = self.load_image(image_path)
-        batch_x = np.moveaxis(batch_x, source=-1, destination=0)
+        batch_x = self.augmenter.augment_image(batch_x) #dim=(H, W, C)
+        batch_x = np.moveaxis(batch_x, source=-1, destination=0) #dim=(C, H, W)
         batch_y = self.y[idx]
-
-        # To do: Flip image horizontally with 1/2 prob
 
         return batch_x, batch_y
         
@@ -436,6 +441,8 @@ class CheXpertDataset(Dataset):
         imagenet_std = np.array([0.229, 0.224, 0.225])
         image_array = (image_array - imagenet_mean) / imagenet_std
         return image_array
+    
+    
     
 class CheXpertDataModule(pl.LightningDataModule):
     def __init__(self):
