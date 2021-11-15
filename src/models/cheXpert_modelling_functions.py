@@ -45,6 +45,7 @@ class BinaryClassificationTaskCheXpert(pl.LightningModule):
         self.feature_extract = feature_extract
         self.reduce_lr_on_plateau = reduce_lr_on_plateau
         self.lr_scheduler_patience = lr_scheduler_patience
+        self.save_hyperparameters()
 
     def training_step(self, batch, batch_idx):
         x, y = batch
