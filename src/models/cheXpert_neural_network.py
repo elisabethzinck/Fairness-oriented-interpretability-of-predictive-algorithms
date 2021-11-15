@@ -9,6 +9,7 @@ import torch
 
 import pytorch_lightning as pl
 from pytorch_lightning.callbacks import EarlyStopping
+from pytorch_lightning.loggers import TensorBoardLogger
 
 from src.models.cheXpert_modelling_functions import(BinaryClassificationTaskCheXpert, 
     set_parameter_requires_grad)
@@ -23,16 +24,16 @@ if __name__ == "__main__":
     model_name = 'test_model'
     model_path = 'models/CheXpert/' + model_name
     
-    # All defined variables below must be included into save_dict
+    # All defined variables below must be included into hyper_dict
     only_feature_extraction = True
-    max_epochs = 50
+    max_epochs = 1
     lr = 0.001
     reduce_lr_on_plateau = True
     lr_scheduler_patience = 1 # To do: Decide this
     early_stopping_patience = 3 # To do: Decide this
 
     
-    save_dict = {
+    hyper_dict = {
         'only_feature_extraction': only_feature_extraction,
         'max_epochs': max_epochs,
         'lr': lr,
@@ -80,19 +81,20 @@ if __name__ == "__main__":
         patience = early_stopping_patience)
 
     print('--- Training model ---')
+    logger = TensorBoardLogger(
+        save_dir = 'models/CheXpert/lightning_logs', 
+        name = model_name)
+    logger.log_hyperparams(hyper_dict)
     trainer = pl.Trainer(
-        fast_dev_run = True,
+        fast_dev_run = False,
         log_every_n_steps = 1, 
         max_epochs = max_epochs,
         deterministic = True,
         callbacks = [early_stopping],
         progress_bar_refresh_rate = 0,
-        gpus = GPU)
+        gpus = GPU,
+        logger = logger)
     trainer.fit(pl_model, dm)
-
-    print('--- Saving model and hyperparameters---')
-    save_dict['model'] = pl_model.model.eval()
-    torch.save(save_dict, model_path)
     
     ### FINISHING UP ####
     t1 = time.time()

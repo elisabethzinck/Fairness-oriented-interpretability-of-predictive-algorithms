@@ -1,0 +1,6 @@
+early_stopping_patience: 3
+lr: 0.001
+lr_scheduler_patience: 1
+max_epochs: 1
+only_feature_extraction: true
+reduce_lr_on_plateau: true
