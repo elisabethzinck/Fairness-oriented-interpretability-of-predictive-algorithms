@@ -461,7 +461,7 @@ class CheXpertDataModule(pl.LightningDataModule):
         else:
             self.target_disease = kwargs.get("target_disease")
 
-        self.batch_size = 16
+        self.batch_size = 32 
         self.image_size = (224, 224)
         self.test_size = 0.2
         self.val_size = 0.2 # Relative to train_val
