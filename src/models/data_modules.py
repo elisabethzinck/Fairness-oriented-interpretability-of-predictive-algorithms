@@ -451,7 +451,10 @@ class CheXpertDataModule(pl.LightningDataModule):
         self.folder_path = 'data/CheXpert/raw/'
         self.dataset_name = 'CheXpert'
 
-        self.uncertainty_approach = 'U-Ones'
+        if kwargs.get("uncertainty_approach") is None: 
+            self.uncertainty_approach = 'U-Ones'
+        else: 
+            self.uncertainty_approach = kwargs.get("uncertainty_approach")
         
         if kwargs.get("target_disease") is None:
             self.target_disease = 'Pneumonia'
@@ -472,8 +475,7 @@ class CheXpertDataModule(pl.LightningDataModule):
         self.train_raw = pd.read_csv(self.folder_path + 'CheXpert-v1.0-small/train.csv')
         self.val_raw = pd.read_csv(self.folder_path + 'CheXpert-v1.0-small/valid.csv')
 
-        dataset_df = self.train_raw
-
+        dataset_df = self.val_raw
 
         # Uncertainty approach
         if self.uncertainty_approach == 'U-Ones':
@@ -483,8 +485,15 @@ class CheXpertDataModule(pl.LightningDataModule):
                 -1.0: 1,    # uncertain
                 1.0: 1      # positive
                 }
+        elif self.uncertainty_approach == 'U-Zeros':
+            target_map = {
+                np.nan: 0,  # unmentioned
+                0.0: 0,     # negative
+                -1.0: 0,    # uncertain
+                1.0: 1      # positive
+                }
         else:
-            raise ValueError('Only uncertainty approach U-Ones is implemented.')
+            raise ValueError('Only uncertainty approaches U-Ones and U-Zeros are implemented.')
 
         dataset_df = (dataset_df
             .assign(
@@ -536,7 +545,7 @@ if __name__ == '__main__':
     #dm_german.make_KFold_split(fold = 2)
     #dm_catalan = CatalanDataModule()
     #dm_catalan.make_KFold_split(fold = 1)
-    dm = CheXpertDataModule(**{"target_disease":"Cardiomegaly"})
+    dm = CheXpertDataModule(**{"target_disease":"Cardiomegaly", "uncertainty_approach": "U-Zeros"})
     tmp = next(iter(dm.train_dataloader()))
 
     dm_t = TaiwaneseDataModule()
