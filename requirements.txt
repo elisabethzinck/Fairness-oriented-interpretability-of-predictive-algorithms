@@ -10,7 +10,7 @@ plotnine
 plotly
 kaleido
 --editable .
-pytorch-lightning
+pytorch-lightning >= 1.5.0
 optuna
 xlrd
 statsmodels
