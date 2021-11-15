@@ -445,15 +445,18 @@ class CheXpertDataset(Dataset):
     
     
 class CheXpertDataModule(pl.LightningDataModule):
-    def __init__(self):
+    def __init__(self, **kwargs):
         super().__init__()
         
         self.folder_path = 'data/CheXpert/raw/'
         self.dataset_name = 'CheXpert'
 
         self.uncertainty_approach = 'U-Ones'
-        self.target_disease = 'Pneumonia'
-        self.augment_images = False
+        
+        if kwargs.get("target_disease") is None:
+            self.target_disease = 'Pneumonia'
+        else:
+            self.target_disease = kwargs.get("target_disease")
 
         self.batch_size = 16
         self.image_size = (224, 224)
@@ -469,7 +472,7 @@ class CheXpertDataModule(pl.LightningDataModule):
         self.train_raw = pd.read_csv(self.folder_path + 'CheXpert-v1.0-small/train.csv')
         self.val_raw = pd.read_csv(self.folder_path + 'CheXpert-v1.0-small/valid.csv')
 
-        dataset_df = self.val_raw
+        dataset_df = self.train_raw
 
 
         # Uncertainty approach
@@ -489,6 +492,7 @@ class CheXpertDataModule(pl.LightningDataModule):
                 Path = lambda x: self.folder_path + x.Path,
                 y = lambda x: x[self.target_disease].map(target_map))
             .loc[lambda x: x['Frontal/Lateral'] == 'Frontal']
+            .query('Sex == "Male" or Sex == "Female"')
             )
 
         # Make splits based on patients
@@ -532,7 +536,7 @@ if __name__ == '__main__':
     #dm_german.make_KFold_split(fold = 2)
     #dm_catalan = CatalanDataModule()
     #dm_catalan.make_KFold_split(fold = 1)
-    dm = CheXpertDataModule()
+    dm = CheXpertDataModule(**{"target_disease":"Cardiomegaly"})
     tmp = next(iter(dm.train_dataloader()))
 
     dm_t = TaiwaneseDataModule()
