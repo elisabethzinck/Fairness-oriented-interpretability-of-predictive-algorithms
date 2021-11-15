@@ -50,7 +50,7 @@ if __name__ == "__main__":
     t0 = time.time()
 
     #### Prepare data #######
-    dm = CheXpertDataModule()
+    dm = CheXpertDataModule(**{"target_disease":"Cardiomegaly", "uncertainty_approach": "U-Zeros"})
 
     print('--- Initializing model ---') 
 
