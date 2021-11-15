@@ -30,7 +30,8 @@ if __name__ == "__main__":
     lr = 0.001
     reduce_lr_on_plateau = True
     lr_scheduler_patience = 1 
-    early_stopping_patience = 3 # To do: Decide this
+    early_stopping = False
+    early_stopping_patience = 3
     
     hyper_dict = {
         'only_feature_extraction': only_feature_extraction,
@@ -38,6 +39,7 @@ if __name__ == "__main__":
         'lr': lr,
         'reduce_lr_on_plateau': reduce_lr_on_plateau,
         'lr_scheduler_patience': lr_scheduler_patience,
+        'early_stopping': early_stopping,
         'early_stopping_patience': early_stopping_patience
         }
 
@@ -93,13 +95,17 @@ if __name__ == "__main__":
         save_dir = 'models/CheXpert/lightning_logs', 
         name = model_name)
     logger.log_hyperparams(hyper_dict)
+    if early_stopping:
+        callbacks = [model_checkpoint_callback, early_stopping]
+    else:
+        callbacks = [model_checkpoint_callback]
     trainer = pl.Trainer(
         fast_dev_run = False,
         log_every_n_steps = 1, # Set this to determine when to log 
         max_epochs = max_epochs,
         deterministic = True,
         enable_checkpointing = True,
-        callbacks = [model_checkpoint_callback, early_stopping],
+        callbacks = callbacks,
         progress_bar_refresh_rate = 0,
         gpus = GPU,
         logger = logger)
