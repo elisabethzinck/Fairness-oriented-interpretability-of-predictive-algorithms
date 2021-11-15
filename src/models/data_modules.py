@@ -509,7 +509,7 @@ class CheXpertDataModule(pl.LightningDataModule):
         train_val_patients, test_patients = train_test_split(
             patients, test_size = self.test_size)
         train_patients, val_patients = train_test_split(
-            patients, test_size = self.val_size)
+            train_val_patients, test_size = self.val_size)
 
 
         if stage in (None, "fit"): 
