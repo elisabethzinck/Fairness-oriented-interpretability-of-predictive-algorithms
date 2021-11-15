@@ -128,18 +128,19 @@ def objective_function(trial, dm, max_layers, max_hidden, max_epochs):
     Args:
         trial (lambda function): to be passed from study.optimize  
         dm (class): data module 
-        max_layers (int): maximum number of layers in NN
-        max_hidden (int): maximum number of units in each layer 
         max_epochs (int): maximum number of epochs
     """
     # Define hyperparameters
-    n_layers = trial.suggest_int('n_layers', 1, max_layers)
+    n_layers = trial.suggest_int('n_layers', 1, 3)
     n_hidden_list = []
     for i in range(n_layers):
         name = 'n_hidden_' + str(i)
-        n_hidden_list.append(trial.suggest_int(name, 1, max_hidden))
-    lr = trial.suggest_loguniform('lr', 1e-6, 1e-1)
-    p_dropout = trial.suggest_uniform('p_dropout', 0, 0.5)
+        n_hidden = trial.suggest_int(
+            name = name, low = 5, high = 20, step = 5)
+        n_hidden_list.append(n_hidden)
+    lr = trial.suggest_categorical('lr', [1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1])
+    p_dropout = trial.suggest_discrete_uniform(
+        name = 'p_dropout', low = 0, high = 0.5, q = 0.1)
     
     # Define network and lightning
     net = Net(
