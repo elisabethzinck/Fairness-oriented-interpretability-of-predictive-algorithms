@@ -452,7 +452,7 @@ class CheXpertDataModule(pl.LightningDataModule):
         self.dataset_name = 'CheXpert'
 
         if kwargs.get("uncertainty_approach") is None: 
-            self.uncertainty_approach = 'U-Ones'
+            self.uncertainty_approach = 'U-Zeros'
         else: 
             self.uncertainty_approach = kwargs.get("uncertainty_approach")
         

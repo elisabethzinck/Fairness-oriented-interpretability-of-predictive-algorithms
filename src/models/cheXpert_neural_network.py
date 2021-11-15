@@ -33,7 +33,7 @@ if __name__ == "__main__":
     max_epochs = 50
 
     #### Prepare data #######
-    dm = CheXpertDataModule()
+    dm = CheXpertDataModule(**{"target_disease":"Cardiomegaly", "uncertainty_approach": "U-Zeros"})
 
     cols_to_keep = ["patient_id", "y"] 
     output_data = (dm.test_data.dataset_df[cols_to_keep]
