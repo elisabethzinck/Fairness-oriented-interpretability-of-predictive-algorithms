@@ -1,0 +1,30 @@
+#%%
+import pandas as pd
+import numpy as np
+
+import plotly.graph_objects as go
+import matplotlib.pyplot as plt 
+
+from src.evaluation_tool.descriptive_tool import DescribeData
+from src.models.data_modules import CheXpertDataModule
+
+# Distributions without considering patients with more than one image
+
+#%% Aggregated tables for Cardiomelagy  
+dm = CheXpertDataModule(**{"target_disease": "Cardiomegaly"})
+meta_dat = dm.train_data.dataset_df
+
+desc = DescribeData(a_name = "Sex", 
+                    y_name = "y", 
+                    id_name = 'patient_id', 
+                    data = meta_dat,
+                    data_name='CheXpert, target: Cardiomegaly', 
+                    **{"decimal":4})
+
+desc.descriptive_table_to_tex(target_tex_name='Has Cardiomegaly')
+desc.plot_positive_rate(title = 'Percentage with Cardiomegaly', orientation='v')
+desc.plot_n_target_across_sens_var(
+    orientation='v',
+    return_ax=False, 
+    **{"class_1_label":"Cardiomegaly", "class_0_label": "No Cardiomegaly"})
+

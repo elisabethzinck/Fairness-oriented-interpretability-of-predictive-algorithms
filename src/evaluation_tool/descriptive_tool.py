@@ -18,7 +18,7 @@ from src.evaluation_tool.utils import (
     N_pos, frac_pos, wilson_confint, error_bar, abs_percentage_tick)
 #%% 
 class DescribeData:
-    def __init__(self, y_name, a_name, id_name = None, data = None, data_name = None):
+    def __init__(self, y_name, a_name, id_name = None, data = None, data_name = None, **kwargs):
         """Methods to describe data with focus on sensitive groups
         
         Args:
@@ -41,9 +41,9 @@ class DescribeData:
         self.sens_grps_cols = dict(
             zip(self.sens_grps, custom_palette(n_colors = self.n_sens_grps))
             )
-        self.descriptive_table = self.get_descriptive_table()
+        self.descriptive_table = self.get_descriptive_table(**kwargs)
 
-    def get_descriptive_table(self):
+    def get_descriptive_table(self, **kwargs):
         """Positive rates and confidence intervals of data 
         aggregated by the sensitive variable"""
         df_agg = (self.data
@@ -57,6 +57,12 @@ class DescribeData:
                 conf_upr = lambda x: wilson_confint(x.N_positive, x.N, 'upr'))
             .sort_values(by = 'N', ascending = False)
         )
+
+        if kwargs.get("decimal") is not None:
+            df_agg = df_agg.round(kwargs.get("decimal"))
+        else:
+            df_agg = df_agg.round(2)
+
         return df_agg
 
     def descriptive_table_to_tex(self, target_tex_name = None):
@@ -66,10 +72,10 @@ class DescribeData:
               
         # helper lambda functions
         tex_pos_rate = (lambda x :
-            [f"{x.N_positive[i]} ({x.positive_frac[i]*100:.0f}%)" for i in range(x.shape[0])]
+            [f"{x.N_positive[i]} ({x.positive_frac[i]*100}%)" for i in range(x.shape[0])]
             )
         tex_conf_int = (lambda x :
-            [f"[{x.conf_lwr[i]*100:.0f}%, {x.conf_upr[i]*100:.0f}%]" for i in range(x.shape[0])]
+            [f"[{x.conf_lwr[i]*100}%, {x.conf_upr[i]*100}%]" for i in range(x.shape[0])]
             )
         
         # appending total row: 

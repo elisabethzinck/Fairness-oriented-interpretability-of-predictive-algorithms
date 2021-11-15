@@ -17,3 +17,5 @@ statsmodels
 Pillow
 scikit-image
 pandoc
+imgaug==0.2.5
+opencv-python
