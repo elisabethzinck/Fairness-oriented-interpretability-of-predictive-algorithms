@@ -1,28 +1,20 @@
 #%% Imports
-import os
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
 import time
-from pytorch_lightning.core import datamodule
 
-from sklearn.model_selection import train_test_split, KFold
-from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import accuracy_score
-from torch._C import _TensorBase
-
-from src.data.general_preprocess_functions import one_hot_encode_mixed_data
-from src.models.general_modelling_functions import (get_n_hidden_list, myData, Net, BinaryClassificationTask, print_timing)
 from src.models.data_modules import GermanDataModule
 
+from src.models.general_modelling_functions import (get_n_hidden_list, Net, 
+BinaryClassificationTask, print_timing, objective_function)
+
 import torch
-from torch.utils.data import DataLoader
 
 import pytorch_lightning as pl
 from pytorch_lightning.callbacks import EarlyStopping
 
 import optuna
-from optuna.integration import PyTorchLightningPruningCallback
 from optuna.samplers import TPESampler
 
 import warnings
@@ -31,55 +23,9 @@ warnings.simplefilter("ignore")
 import logging
 logging.getLogger('lightning').setLevel(logging.ERROR)
 
-n_trails = 100
-max_epochs = 50
-
-#%% Objective function for optuna optimizer
-def objective_function(trial: optuna.trial.Trial):
-    logging.getLogger('lightning').setLevel(logging.ERROR)
-    # Define parameters
-    n_layers = trial.suggest_int('n_layers', 1, 2)
-    n_hidden_list = []
-    for i in range(n_layers):
-        name = 'n_hidden_' + str(i)
-        n_hidden_list.append(trial.suggest_int(name, 1, 10))
-    lr = trial.suggest_loguniform('lr', 1e-6, 1e-1)
-    p_dropout = trial.suggest_uniform('p_dropout', 0, 0.5)
-    
-    # Define network and lightning
-    net = Net(
-        num_features = GM.n_features, 
-        num_hidden_list = n_hidden_list, 
-        num_output = GM.n_output,
-        p_dropout = p_dropout)
-    plnet = BinaryClassificationTask(model = net, lr = lr)
-
-    if torch.cuda.is_available():
-        GPU = 1
-    else:
-        GPU = None
-
-    early_stopping = EarlyStopping('val_loss', patience = 3)
-    optuna_pruning = PyTorchLightningPruningCallback(trial, monitor="val_loss")
-    trainer = pl.Trainer(
-        fast_dev_run = False,
-        log_every_n_steps = 1, 
-        max_epochs = max_epochs,
-        callbacks = [early_stopping, optuna_pruning], 
-        deterministic = True,
-        logger = False,
-        progress_bar_refresh_rate = 0,
-        gpus = GPU)
-
-    trainer.fit(plnet, GM)
-
-    return trainer.callback_metrics['val_loss'].item()
-
-
-# To open tensorboard (type in command line)
-# tensorboard --logdir lightning_logs
+n_trials = 100
+max_epochs = 100
 #%%
-
 if __name__ == "__main__":
     pl.seed_everything(42)
     t0 = time.time()
@@ -105,13 +51,14 @@ if __name__ == "__main__":
         # Find optimal model
         print('Using optuna')
         study = optuna.create_study(
-        direction = 'minimize', 
-        sampler = TPESampler(seed=10))
-        max_minutes = 2
+            direction = 'minimize', 
+            sampler = TPESampler(seed=10))
         study.optimize(
-            objective_function, 
-            #timeout = max_minutes*60,
-            n_trials = n_trails,
+            lambda trial: objective_function(
+                trial = trial, 
+                dm = GM, 
+                max_epochs = max_epochs), 
+            n_trials = n_trials,
             show_progress_bar=False)
 
         # %% Train model on all data

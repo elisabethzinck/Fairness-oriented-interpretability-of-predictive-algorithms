@@ -121,7 +121,7 @@ def print_timing(t0, t1, text = 'Minutes elapsed:'):
     print(f'{text} {n_mins:.2f} mins')
 
 # Objective function for optuna
-def objective_function(trial, dm, max_layers, max_hidden, max_epochs):
+def objective_function(trial, dm, max_epochs):
     """General objective function to find hyper parameters of a 
     NN with optuna
 

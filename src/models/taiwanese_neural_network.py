@@ -34,10 +34,8 @@ if __name__ == "__main__":
     model_path = 'models/taiwanese/NN_taiwanese'
 
     n_trials = 100
-    max_epochs = 50
+    max_epochs = 100
 
-    max_layers = 2
-    max_hidden = 10
 
     #### Prepare data #######
     dm = TaiwaneseDataModule()
@@ -57,7 +55,7 @@ if __name__ == "__main__":
         sampler = TPESampler(seed=10))
     study.optimize(
         lambda trial: objective_function(
-            trial, dm, max_layers, max_hidden, max_epochs), 
+            trial, dm, max_epochs), 
         n_trials = n_trials,
         show_progress_bar=False)
 

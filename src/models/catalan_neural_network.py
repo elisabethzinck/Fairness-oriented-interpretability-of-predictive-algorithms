@@ -24,11 +24,9 @@ import logging
 logging.getLogger('lightning').setLevel(logging.ERROR)
 
 #%% Epochs, trials, max_layers and max_hidden for optuna
-max_epochs = 200
-n_trials = 700
+max_epochs = 100
+n_trials = 100
 
-max_layers = 5
-max_hidden = 15
 
 # Save models 
 save_models_to_csv = True
@@ -66,7 +64,7 @@ if __name__ == "__main__":
             sampler = TPESampler(seed=10))
         study.optimize(
             lambda trial: objective_function(
-                trial, dm, max_layers, max_hidden, max_epochs), 
+                trial, dm, max_epochs), 
             n_trials = n_trials,
             show_progress_bar=False)
 
