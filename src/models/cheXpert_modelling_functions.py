@@ -93,6 +93,7 @@ class BinaryClassificationTaskCheXpert(pl.LightningModule):
                 'interval': 'epoch',
                 'frequency': 1,
                 'monitor': 'val_loss'}
-        return 
+            optimizer_dict['lr_scheduler'] = lr_scheduler_config
+        return optimizer_dict
 
 
