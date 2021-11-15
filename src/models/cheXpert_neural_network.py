@@ -8,7 +8,7 @@ from sklearn.metrics import accuracy_score
 import torch
 
 import pytorch_lightning as pl
-from pytorch_lightning.callbacks import EarlyStopping
+from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint
 
 from src.models.cheXpert_modelling_functions import(BinaryClassificationTaskCheXpert, 
     set_parameter_requires_grad)
@@ -25,12 +25,11 @@ if __name__ == "__main__":
     
     # All defined variables below must be included into save_dict
     only_feature_extraction = True
-    max_epochs = 50
+    max_epochs = 1
     lr = 0.001
     reduce_lr_on_plateau = True
-    lr_scheduler_patience = 1 # To do: Decide this
+    lr_scheduler_patience = 1 
     early_stopping_patience = 3 # To do: Decide this
-
     
     save_dict = {
         'only_feature_extraction': only_feature_extraction,
@@ -40,6 +39,15 @@ if __name__ == "__main__":
         'lr_scheduler_patience': lr_scheduler_patience,
         'early_stopping_patience': early_stopping_patience
         }
+
+    model_checkpoint_callback = ModelCheckpoint(
+        dirpath = f'models/CheXpert/checkpoints_from_trainer/{model_name}', 
+        filename=f"{model_name}-"+"{epoch}-{step}-{val_loss:.2f}",
+        save_top_k = 1, 
+        save_last=True, 
+        monitor='val_loss', 
+        mode='min'   
+    )
 
     ##### Setup #########
     if torch.cuda.is_available():
@@ -81,11 +89,12 @@ if __name__ == "__main__":
 
     print('--- Training model ---')
     trainer = pl.Trainer(
-        fast_dev_run = True,
-        log_every_n_steps = 1, 
+        fast_dev_run = False,
+        log_every_n_steps = 1, # Set this to determine when to log 
         max_epochs = max_epochs,
         deterministic = True,
-        callbacks = [early_stopping],
+        enable_checkpointing = True,
+        callbacks = [model_checkpoint_callback, early_stopping],
         progress_bar_refresh_rate = 0,
         gpus = GPU)
     trainer.fit(pl_model, dm)
