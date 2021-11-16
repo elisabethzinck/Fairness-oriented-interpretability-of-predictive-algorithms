@@ -1,5 +1,6 @@
 import pytorch_lightning as pl
 import torch 
+from torchmetrics.functional import accuracy, auroc
 import torch.nn.functional as F
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 #%% 
@@ -48,23 +49,20 @@ class BinaryClassificationTaskCheXpert(pl.LightningModule):
         self.save_hyperparameters()
 
     def training_step(self, batch, batch_idx):
-        x, y = batch
-        y_hat = self.model(x.double())
-
-        loss, acc = self._shared_eval_step(batch, batch_idx)
-        metrics = {"train_loss": loss, 'train_acc': acc}
+        loss, acc, auc = self._shared_eval_step(batch, batch_idx)
+        metrics = {"train_loss": loss, 'train_acc': acc, 'train_auc': auc}
         self.log_dict(metrics)
         return loss
 
     def validation_step(self, batch, batch_idx):
-        loss, acc = self._shared_eval_step(batch, batch_idx)
-        metrics = {"val_loss": loss, 'val_acc': acc}
+        loss, acc, auc = self._shared_eval_step(batch, batch_idx)
+        metrics = {"val_loss": loss, 'val_acc': acc, 'val_auc': auc}
         self.log_dict(metrics)
         return metrics
 
     def test_step(self, batch, batch_idx):
-        loss, acc = self._shared_eval_step(batch, batch_idx)
-        metrics = {"test_loss": loss, 'test_acc': acc}
+        loss, acc, auc = self._shared_eval_step(batch, batch_idx)
+        metrics = {"test_loss": loss, 'test_acc': acc, 'test_auc': auc}
         self.log_dict(metrics)
         return metrics
 
@@ -72,10 +70,12 @@ class BinaryClassificationTaskCheXpert(pl.LightningModule):
         x, y = batch
         y_hat = torch.sigmoid(self.model(x.double()))
         loss = F.binary_cross_entropy(y_hat, y.double())
-        y_hat_binary = (y_hat >= 0.5)
-        n_batch = y.size(0)
-        accuracy = (y_hat_binary == y).sum().item()/n_batch
-        return loss, accuracy
+        #y_hat_binary = (y_hat >= 0.5)
+        #n_batch = y.size(0)
+        #accuracy = (y_hat_binary == y).sum().item()/n_batch
+        acc = accuracy(y_hat, y)
+        auc = auroc(y_hat, y)
+        return loss, acc, auc
 
     def predict_step(self, batch, batch_idx):
         x, y = batch
