@@ -53,7 +53,7 @@ class BinaryClassificationTaskCheXpert(pl.LightningModule):
 
         loss, acc = self._shared_eval_step(batch, batch_idx)
         metrics = {"train_loss": loss, 'train_acc': acc}
-        self.log_dict(metrics, on_epoch = True, on_step = False)
+        self.log_dict(metrics)
         return loss
 
     def validation_step(self, batch, batch_idx):
