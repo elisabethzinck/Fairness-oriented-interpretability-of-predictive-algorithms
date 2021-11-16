@@ -1,6 +1,6 @@
 import pytorch_lightning as pl
 import torch 
-from torchmetrics.functional import accuracy, auroc
+from torchmetrics.functional import accuracy
 import torch.nn.functional as F
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 #%% 
@@ -49,20 +49,20 @@ class BinaryClassificationTaskCheXpert(pl.LightningModule):
         self.save_hyperparameters()
 
     def training_step(self, batch, batch_idx):
-        loss, acc, auc = self._shared_eval_step(batch, batch_idx)
-        metrics = {"train_loss": loss, 'train_acc': acc, 'train_auc': auc}
+        loss, acc = self._shared_eval_step(batch, batch_idx)
+        metrics = {"train_loss": loss, 'train_acc': acc}
         self.log_dict(metrics)
         return loss
 
     def validation_step(self, batch, batch_idx):
-        loss, acc, auc = self._shared_eval_step(batch, batch_idx)
-        metrics = {"val_loss": loss, 'val_acc': acc, 'val_auc': auc}
+        loss, acc = self._shared_eval_step(batch, batch_idx)
+        metrics = {"val_loss": loss, 'val_acc': acc}
         self.log_dict(metrics)
         return metrics
 
     def test_step(self, batch, batch_idx):
-        loss, acc, auc = self._shared_eval_step(batch, batch_idx)
-        metrics = {"test_loss": loss, 'test_acc': acc, 'test_auc': auc}
+        loss, acc = self._shared_eval_step(batch, batch_idx)
+        metrics = {"test_loss": loss, 'test_acc': acc}
         self.log_dict(metrics)
         return metrics
 
@@ -74,8 +74,7 @@ class BinaryClassificationTaskCheXpert(pl.LightningModule):
         #n_batch = y.size(0)
         #accuracy = (y_hat_binary == y).sum().item()/n_batch
         acc = accuracy(y_hat, y)
-        auc = auroc(y_hat, y)
-        return loss, acc, auc
+        return loss, acc
 
     def predict_step(self, batch, batch_idx):
         x, y = batch
