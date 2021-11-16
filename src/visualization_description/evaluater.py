@@ -22,8 +22,11 @@ l3_report_plots = [
     ['adni2_nn', 'calibration']
 ]
 
-update_figures  = False
+update_figures  = True
 update_report_figures = True # Write new figures to report repository?
+run_all_plots = True
+run_l2_plots = True
+run_l3_plots = True
 
 #############################################
 #%% Load data and initialize FairKit
@@ -227,7 +230,7 @@ if __name__ == '__main__':
 
     l1tab = get_l1_overview_table()
 
-    run_all_plots = False
+    
     if run_all_plots: 
         # Make all(!) plots as png 
         for i, (mod_name, kit) in enumerate(FairKitDict.items()):
@@ -237,7 +240,6 @@ if __name__ == '__main__':
                 save_plots = update_figures,
                 plot_path = path)
         
-    run_l2_plots = False
     if run_l2_plots:
         for i, (mod_name, kit) in enumerate(FairKitDict.items()):
             print(i)
@@ -250,7 +252,6 @@ if __name__ == '__main__':
                 ext = ".pdf",
                 **{"run_layer_2":True})
     
-    run_l3_plots = True
     if run_l3_plots:
         for dataset, method in l3_report_plots:
             FairKitDict[dataset].layer_3(method = method, **{"cm_print_n":True})
@@ -260,8 +261,8 @@ if __name__ == '__main__':
                 plt.savefig(path, bbox_inches='tight', facecolor = 'w')
 
 # %%
-    FairKitDict["taiwanese_logreg"].layer_3(method='confusion_matrix',
-                                            output_table = False, 
-                                            **{"cm_print_n":True})
+#    FairKitDict["taiwanese_logreg"].layer_3(method='confusion_matrix',
+#                                            output_table = False, 
+#                                            **{"cm_print_n":True})
 
 # %%
