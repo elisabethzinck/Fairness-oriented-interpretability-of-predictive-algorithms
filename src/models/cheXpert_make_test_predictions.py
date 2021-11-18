@@ -1,6 +1,5 @@
 import torch
 import os
-import numpy as np
 import pandas as pd
 
 from torchmetrics.functional import accuracy, auroc
@@ -19,8 +18,8 @@ output_path = f"data/CheXpert/predictions/{model_name}/"
 if not os.path.exists(output_path):
     os.makedirs(output_path)
 
-save_metrics = True 
-save_preds = True
+save_metrics = False 
+save_preds = False
 
 # input checks
 assert eval_data in ['train', 'val', 'test'], "eval_data must be 'train', 'val' or 'test'"
