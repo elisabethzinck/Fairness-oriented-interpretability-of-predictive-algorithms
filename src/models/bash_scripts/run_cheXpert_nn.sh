@@ -5,7 +5,7 @@
 ### -- set the job Name --  (should be the same as in script)
 #BSUB -J test_model
 ### -- ask for number of cores (default: 1) -- 
-#BSUB -n 1 
+#BSUB -n 8 
 ### --- ask for gpu ---
 #BSUB -gpu "num=1"
 ### -- specify that the cores must be on the same host -- 
