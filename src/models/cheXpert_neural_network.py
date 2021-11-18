@@ -1,5 +1,7 @@
 #%% Imports
 import time
+import platform
+import os
 
 import torch
 import pytorch_lightning as pl
@@ -52,11 +54,20 @@ if __name__ == "__main__":
         GPU = 1
     else:
         GPU = None
+    if platform.system() == 'Linux':
+        n_avail_cpus = len(os.sched_getaffinity(0))
+        num_workers = min(n_avail_cpus-1, 8)
+    else:
+        num_workers = 0
+    
     pl.seed_everything(42)
     t0 = time.time()
 
     #### Prepare data #######
-    dm = CheXpertDataModule(**{"target_disease":"Cardiomegaly", "uncertainty_approach": "U-Zeros"})
+    dm = CheXpertDataModule(**{
+        "target_disease": "Cardiomegaly", 
+        "uncertainty_approach": "U-Zeros",
+        "num_workers": num_workers})
 
     print('--- Initializing model ---') 
 
@@ -96,7 +107,7 @@ if __name__ == "__main__":
         callbacks = [model_checkpoint_callback]
     trainer = pl.Trainer(
         fast_dev_run = False,
-        log_every_n_steps = 1, # Set this to determine when to log 
+        log_every_n_steps = 50, # Set this to determine when to log 
         max_epochs = max_epochs,
         deterministic = True,
         enable_checkpointing = True,
