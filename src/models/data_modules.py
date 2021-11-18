@@ -393,12 +393,13 @@ class TaiwaneseDataModule(pl.LightningDataModule):
         return DataLoader(self.test_data, batch_size=self.batch_size)
 
 class CheXpertDataset(Dataset):
-    def __init__(self, dataset_df, image_size):
+    def __init__(self, dataset_df, image_size, augment_images = True):
         """Dataset for CheXpert data
         
         Args:
             dataset_df (pd.DataFrame): DataFrame containing paths to images and targets. 
             image_size (tuple): image size in a tuple (height, width)
+            augment_images (bool): whether to augment images
         """
         self.dataset_df = dataset_df
 
@@ -407,6 +408,7 @@ class CheXpertDataset(Dataset):
         else:
             raise ValueError('DenseNet in Pytorch requires height and width to be at least 224')
 
+        self.augment_images = augment_images
         self.X_paths = dataset_df.Path
         self.y = np.expand_dims(dataset_df.y, axis = 1)
 
@@ -419,8 +421,9 @@ class CheXpertDataset(Dataset):
     def __getitem__(self, idx):
         image_path = self.X_paths[idx]
         batch_x = self.load_image(image_path)
-        batch_x = self.augmenter.augment_image(batch_x).copy() #dim=(H, W, C)
-        batch_x = np.moveaxis(batch_x, source=-1, destination=0) #dim=(C, H, W)
+        if self.augment_images:
+            batch_x = self.augmenter.augment_image(batch_x).copy() #dim=(H, W, C)
+            batch_x = np.moveaxis(batch_x, source=-1, destination=0) #dim=(C, H, W)
         batch_y = self.y[idx]
 
         return batch_x, batch_y
@@ -451,21 +454,19 @@ class CheXpertDataModule(pl.LightningDataModule):
         self.folder_path = 'data/CheXpert/raw/'
         self.dataset_name = 'CheXpert'
 
-        if kwargs.get("uncertainty_approach") is None: 
-            self.uncertainty_approach = 'U-Zeros'
-        else: 
-            self.uncertainty_approach = kwargs.get("uncertainty_approach")
-        
-        if kwargs.get("target_disease") is None:
-            self.target_disease = 'Pneumonia'
-        else:
-            self.target_disease = kwargs.get("target_disease")
+        self.uncertainty_approach = kwargs.get(
+            'uncertainty_approach', 'U-Zeros')
+        self.target_disease = kwargs.get('target_disease', 'Cardiomegaly')
+        self.augment_images = kwargs.get('augment_images', True)
+        self.num_workers = kwargs.get('num_workers', 0)
 
         self.batch_size = 32 
         self.image_size = (224, 224)
         self.test_size = 0.2
         self.val_size = 0.2 # Relative to train_val
         self.seed = 42
+
+        # 
 
         self.setup()
 
@@ -475,7 +476,7 @@ class CheXpertDataModule(pl.LightningDataModule):
         self.train_raw = pd.read_csv(self.folder_path + 'CheXpert-v1.0-small/train.csv')
         self.val_raw = pd.read_csv(self.folder_path + 'CheXpert-v1.0-small/valid.csv')
 
-        dataset_df = self.val_raw
+        dataset_df = self.train_raw
 
         # Uncertainty approach
         if self.uncertainty_approach == 'U-Ones':
@@ -507,9 +508,13 @@ class CheXpertDataModule(pl.LightningDataModule):
         # Make splits based on patients
         patients = dataset_df[['patient_id']].drop_duplicates()
         train_val_patients, test_patients = train_test_split(
-            patients, test_size = self.test_size)
+            patients, 
+            test_size = self.test_size, 
+            random_state = self.seed)
         train_patients, val_patients = train_test_split(
-            train_val_patients, test_size = self.val_size)
+            train_val_patients, 
+            test_size = self.val_size, 
+            random_state = self.seed)
 
 
         if stage in (None, "fit"): 
@@ -517,26 +522,51 @@ class CheXpertDataModule(pl.LightningDataModule):
                 dataset_df, how = 'inner', on = 'patient_id')
             val_df = val_patients.merge(
                 dataset_df, how = 'inner', on = 'patient_id')
-            self.train_data = CheXpertDataset(train_df, self.image_size)
-            self.val_data = CheXpertDataset(val_df, self.image_size)
+            self.train_data = CheXpertDataset(
+                train_df, 
+                image_size = self.image_size,
+                augment_images = self.augment_images)
+            self.val_data = CheXpertDataset(
+                val_df, 
+                image_size = self.image_size,
+                augment_images = self.augment_images)
         
         if stage in (None, "test"):
             test_df = test_patients.merge(
                 dataset_df, how = 'inner', on = 'patient_id')
-            self.test_data = CheXpertDataset(test_df, self.image_size)
+            self.test_data = CheXpertDataset(
+                test_df, 
+                image_size = self.image_size,
+                augment_images = self.augment_images)
         
     
     def train_dataloader(self):
-        return DataLoader(self.train_data, batch_size=self.batch_size, drop_last=False)
+        return DataLoader(
+            self.train_data, 
+            batch_size = self.batch_size, 
+            drop_last = False,
+            num_workers = self.num_workers)
 
     def val_dataloader(self):
-        return DataLoader(self.val_data, batch_size=self.batch_size, drop_last=False)
+        return DataLoader(
+            self.val_data, 
+            batch_size=self.batch_size, 
+            drop_last=False,
+            num_workers = self.num_workers)
     
     def test_dataloader(self):
-        return DataLoader(self.test_data, batch_size=self.batch_size, drop_last=False)
+        return DataLoader(
+            self.test_data, 
+            batch_size=self.batch_size, 
+            drop_last=False,
+            num_workers = self.num_workers)
 
     def predict_dataloader(self):
-        return DataLoader(self.test_data, batch_size=self.batch_size, drop_last=False)
+        return DataLoader(
+            self.test_data, 
+            batch_size=self.batch_size, 
+            drop_last=False,
+            num_workers = self.num_workers)
 #%%
 if __name__ == '__main__':
     #dm_adni = ADNIDataModule(dataset = 1)
