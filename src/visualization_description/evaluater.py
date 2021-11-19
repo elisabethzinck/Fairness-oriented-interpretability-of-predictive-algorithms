@@ -22,16 +22,16 @@ l3_report_plots = [
     ['adni2_nn', 'calibration']
 ]
 
-update_figures  = True
-update_report_figures = True # Write new figures to report repository?
-run_all_plots = True
-run_l2_plots = True
-run_l3_plots = True
+update_figures  = False
+update_report_figures = False # Write new figures to report repository?
+run_all_plots = False
+run_l2_plots = False
+run_l3_plots = False
 
 #############################################
 #%% Load data and initialize FairKit
 ##############################################
-def get_FairKitDict():
+def get_FairKitDict(include_anym = False, include_ADNI = False):
     "Initialize all FairKits and save them in dict"
     FairKitDict = {}
     credit_w_fp = 0.9
@@ -41,15 +41,16 @@ def get_FairKitDict():
     adni_w_fp = 0.1
 
     # Anym
-    anym = pd.read_csv('data/processed/anonymous_data.csv')
-    FairKitDict['anym'] = FairKit(
-        data = anym,
-        y_name = 'y', 
-        y_hat_name = 'yhat', 
-        a_name = 'grp', 
-        r_name = 'phat',
-        w_fp = anym_w_fp,
-        model_name = 'Anonymous Data')
+    if include_anym:
+        anym = pd.read_csv('data/processed/anonymous_data.csv')
+        FairKitDict['anym'] = FairKit(
+            data = anym,
+            y_name = 'y', 
+            y_hat_name = 'yhat', 
+            a_name = 'grp', 
+            r_name = 'phat',
+            w_fp = anym_w_fp,
+            model_name = 'Anonymous Data')
 
     # German logistic regression
     german_log_reg = pd.read_csv('data/predictions/german_credit_log_reg.csv')
@@ -85,16 +86,6 @@ def get_FairKitDict():
         model_name = 'COMPAS: Decile scores')
 
     # Catalan Neural network
-    catalan_nn = pd.read_csv('data/predictions/catalan-juvenile-recidivism/catalan_recid_nn_pred.csv')
-    FairKitDict['catalan_nn'] = FairKit(
-        data = catalan_nn,
-        y_name = 'V115_RECID2015_recid', 
-        y_hat_name = 'nn_pred', 
-        a_name = 'V4_area_origin', 
-        r_name = 'nn_prob',
-        w_fp = catalan_w_fp,
-        model_name = 'Catalan: Neural network')
-
     catalan_logreg = pd.read_csv('data/predictions/catalan_log_reg.csv')
     FairKitDict['catalan_logreg'] = FairKit(
         data = catalan_logreg,
@@ -104,17 +95,16 @@ def get_FairKitDict():
         r_name = 'log_reg_prob',
         w_fp = catalan_w_fp,
         model_name = 'Catalan: Logistic regression')
-
-    # Taiwanese nn
-    taiwanese_nn = pd.read_csv('data/predictions/taiwanese_nn_pred.csv')
-    FairKitDict['taiwanese_nn'] = FairKit(
-        data = taiwanese_nn,
-        y_name = 'default_next_month', 
+    
+    catalan_nn = pd.read_csv('data/predictions/catalan-juvenile-recidivism/catalan_recid_nn_pred.csv')
+    FairKitDict['catalan_nn'] = FairKit(
+        data = catalan_nn,
+        y_name = 'V115_RECID2015_recid', 
         y_hat_name = 'nn_pred', 
-        a_name = 'sex', 
+        a_name = 'V4_area_origin', 
         r_name = 'nn_prob',
-        w_fp = credit_w_fp,
-        model_name = 'Taiwanese: Neural network')
+        w_fp = catalan_w_fp,
+        model_name = 'Catalan: Neural network')
 
     # Taiwanese logreg
     taiwanese_logreg = pd.read_csv('data/predictions/taiwanese_log_reg.csv')
@@ -127,27 +117,42 @@ def get_FairKitDict():
         w_fp = credit_w_fp,
         model_name = 'Taiwanese: Logistic regression')
 
+    # Taiwanese nn
+    taiwanese_nn = pd.read_csv('data/predictions/taiwanese_nn_pred.csv')
+    FairKitDict['taiwanese_nn'] = FairKit(
+        data = taiwanese_nn,
+        y_name = 'default_next_month', 
+        y_hat_name = 'nn_pred', 
+        a_name = 'sex', 
+        r_name = 'nn_prob',
+        w_fp = credit_w_fp,
+        model_name = 'Taiwanese: Neural network')
 
-    for adni_no in [1,2]:
-        adni = pd.read_csv(f'data/ADNI/predictions/ADNI_{adni_no}_nn_pred.csv')
-        FairKitDict[f'adni{adni_no}_nn'] = FairKit(
-            data = adni,
-            y_name = 'y', 
-            y_hat_name = 'nn_pred', 
-            a_name = 'sex', 
-            r_name = 'nn_prob',
-            w_fp = adni_w_fp,
-            model_name = f'ADNI{adni_no}: Neural network')
-        
-        adni = pd.read_csv(f'data/ADNI/predictions/ADNI{adni_no}_log_reg.csv')
-        FairKitDict[f'adni{adni_no}_logreg'] = FairKit(
-            data = adni,
-            y_name = 'y', 
-            y_hat_name = 'log_reg_pred', 
-            a_name = 'sex', 
-            r_name = 'log_reg_prob',
-            w_fp = adni_w_fp,
-            model_name = f'ADNI{adni_no}: Logistic regression')
+
+    if include_ADNI:
+        for adni_no in [1,2]:
+            adni = pd.read_csv(f'data/ADNI/predictions/ADNI{adni_no}_log_reg.csv')
+            FairKitDict[f'adni{adni_no}_logreg'] = FairKit(
+                data = adni,
+                y_name = 'y', 
+                y_hat_name = 'log_reg_pred', 
+                a_name = 'sex', 
+                r_name = 'log_reg_prob',
+                w_fp = adni_w_fp,
+                model_name = f'ADNI{adni_no}: Logistic regression')
+            
+            
+            adni = pd.read_csv(f'data/ADNI/predictions/ADNI_{adni_no}_nn_pred.csv')
+            FairKitDict[f'adni{adni_no}_nn'] = FairKit(
+                data = adni,
+                y_name = 'y', 
+                y_hat_name = 'nn_pred', 
+                a_name = 'sex', 
+                r_name = 'nn_prob',
+                w_fp = adni_w_fp,
+                model_name = f'ADNI{adni_no}: Neural network')
+            
+
 
     return FairKitDict
             
@@ -165,7 +170,7 @@ def get_l1_overview_table(print_latex = True):
             'Model': model_name,
             'N': kit.n,
             'w_fp': kit.w_fp,
-            'Max WMR': round(l1max.weighted_misclassification_ratio.iat[0], 1),
+            'Max WMQ': round(l1max.weighted_misclassification_ratio.iat[0], 1),
             'Discriminated Group': l1max.grp.iat[0],
             'Accuracy': round(acc, 1)
         }, index = [0])
