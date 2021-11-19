@@ -1,6 +1,7 @@
 import pytorch_lightning as pl
 import torch 
 from torchmetrics.functional import accuracy
+from torchmetrics import AUROC
 import torch.nn.functional as F
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 #%% 
@@ -47,43 +48,41 @@ class BinaryClassificationTaskCheXpert(pl.LightningModule):
         self.reduce_lr_on_plateau = reduce_lr_on_plateau
         self.lr_scheduler_patience = lr_scheduler_patience
         self.save_hyperparameters()
+        self.train_auroc = AUROC(compute_on_step=False)
+        self.val_auroc = AUROC(compute_on_step = False)
 
     def training_step(self, batch, batch_idx):
-        loss, acc = self._shared_eval_step(batch, batch_idx)
-        metrics = {"train_loss": loss, 'train_acc': acc}
-        self.log_dict(metrics)
-        return loss
-
-    def validation_step(self, batch, batch_idx):
-        loss, acc = self._shared_eval_step(batch, batch_idx)
-        metrics = {"val_loss": loss, 'val_acc': acc}
-        self.log_dict(metrics)
-        return metrics
-
-    def test_step(self, batch, batch_idx):
-        loss, acc = self._shared_eval_step(batch, batch_idx)
-        metrics = {"test_loss": loss, 'test_acc': acc}
-        self.log_dict(metrics)
-        return metrics
-
-    def _shared_eval_step(self, batch, batch_idx):
         x, y = batch
         y_hat = torch.sigmoid(self.model(x.double()))
         loss = F.binary_cross_entropy(y_hat, y.double())
-        #y_hat_binary = (y_hat >= 0.5)
-        #n_batch = y.size(0)
-        #accuracy = (y_hat_binary == y).sum().item()/n_batch
         acc = accuracy(y_hat, y)
-        return loss, acc
+        metrics = {"train_loss": loss, 'train_acc': acc}
+        self.log_dict(metrics)
 
-    def predict_step(self, batch, batch_idx):
+        self.train_auroc(y_hat, y)
+        self.log(
+            'train_auroc', self.train_auroc, 
+            on_step = False, on_epoch = True)
+        return loss
+
+    def validation_step(self, batch, batch_idx):
         x, y = batch
         y_hat = torch.sigmoid(self.model(x.double()))
-        return y_hat
+        loss = F.binary_cross_entropy(y_hat, y.double())
+        acc = accuracy(y_hat, y)
+        
+        metrics = {"val_loss": loss, 'val_acc': acc}
+        self.log_dict(metrics)
+
+        self.val_auroc(y_hat, y)
+        self.log(
+            'val_auroc', self.val_auroc, 
+            on_step = False, on_epoch = True)
+        return metrics
 
     def configure_optimizers(self):
         params_to_optimize = get_params_to_update(self.model, feature_extract = self.feature_extract)
-        optimizer = torch.optim.Adam(params_to_optimize, lr = self.lr)
+        optimizer = torch.optim.SGD(params_to_optimize, lr = self.lr)
         optimizer_dict = {'optimizer': optimizer}
         if self.reduce_lr_on_plateau:
             lr_scheduler_config = {

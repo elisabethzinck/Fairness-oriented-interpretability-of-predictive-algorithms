@@ -14,3 +14,4 @@ notebooks/.ipynb_checkpoints/FairKit_demonstration-checkpoint.ipynb
 /data/CheXpert
 **/hparams.yaml
 *.ckpt
+/models/CheXpert/lightning_logs/tmp
