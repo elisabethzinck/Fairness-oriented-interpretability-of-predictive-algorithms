@@ -92,9 +92,7 @@ def get_hyperparameter_info(dm):
 datamodules = [
     GermanDataModule(),
     TaiwaneseDataModule(),
-    CatalanDataModule(),
-    ADNIDataModule(dataset = 1),
-    ADNIDataModule(dataset = 2)]
+    CatalanDataModule()]
 
 # Getting the data
 datasetinfo = pd.concat(
