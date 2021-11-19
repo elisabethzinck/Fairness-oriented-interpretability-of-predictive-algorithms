@@ -3,6 +3,8 @@ import os
 import platform
 import numpy as np
 import pandas as pd
+import re
+from torch._C import Value
 
 from torchmetrics.functional import accuracy, auroc
 from src.models.data_modules import CheXpertDataModule
@@ -16,11 +18,17 @@ if __name__ == '__main__':
         num_workers = min(n_avail_cpus-1, 8)
     else:
         num_workers = 0
+    
+    # ---- Start: Inputs in script----
+    save_metrics = True 
+    save_preds = True
 
-    eval_data = "val"
     model_name = "test_model"
-    model_type = "last"
-    model_ckpt = f"models/CheXpert/checkpoints_from_trainer/{model_name}/{model_type}.ckpt"
+    ckpt_folder_path = f"models/CheXpert/checkpoints_from_trainer/{model_name}/"
+    model_type = "last" # "best" or "last"
+    eval_data = "val"
+    assert eval_data in ['train', 'val', 'test'], "eval_data must be 'train', 'val' or 'test'"
+ 
     dm = CheXpertDataModule(**{
         "target_disease":"Cardiomegaly", 
         "uncertainty_approach": "U-Zeros",
@@ -28,16 +36,24 @@ if __name__ == '__main__':
 
     output_path = f"data/CheXpert/predictions/{model_name}/"
     if not os.path.exists(output_path):
-        os.makedirs(output_path)
-
-    save_metrics = True 
-    save_preds = True
-
-    # input checks
-    assert eval_data in ['train', 'val', 'test'], "eval_data must be 'train', 'val' or 'test'"
-    assert model_type in ['best', 'last'], "model_type must be 'last' or 'best'"
+        os.makedirs(output_path)    
+    # ---- End: Inputs in Script ----
 
     #### Loading Checkpointed Model #######
+    if model_type == 'best':
+        files = next(os.walk(ckpt_folder_path))[2]
+        best_ckpts = [f for f in files if "val_loss" in f]
+        loss_list = []
+        for ckpt_file in best_ckpts: 
+            loss = re.findall("val_loss=(.+).ckpt", ckpt_file)[0]
+            loss_list.append(float(loss))
+        best_model = best_ckpts[np.argmin(loss_list)]
+        model_ckpt = f"{ckpt_folder_path}{best_model}"
+    elif model_type == 'last':
+        model_ckpt = f"models/CheXpert/checkpoints_from_trainer/{model_name}/{model_type}.ckpt"
+    else:
+        raise ValueError("model_type must be 'best' or 'last'")
+     
     model = torch.hub.load(
         'pytorch/vision:v0.10.0', 
         'densenet121', 
