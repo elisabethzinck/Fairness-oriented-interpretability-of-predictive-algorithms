@@ -4,15 +4,22 @@ import platform
 import numpy as np
 import pandas as pd
 import re
-from torch._C import Value
+import time
 
 from torchmetrics.functional import accuracy, auroc
 from src.models.data_modules import CheXpertDataModule
 from src.models.cheXpert_modelling_functions import BinaryClassificationTaskCheXpert
 from src.models.data_modules import CheXpertDataModule
+from src.models.general_modelling_functions import print_timing
+
+def remove_grad(model):
+    for param in model.parameters():
+        param.requires_grad = False
 
 #### Setup #######
 if __name__ == '__main__':
+    t0 = time.time()
+    
     if platform.system() == 'Linux':
         n_avail_cpus = len(os.sched_getaffinity(0))
         num_workers = min(n_avail_cpus-1, 8)
@@ -53,7 +60,7 @@ if __name__ == '__main__':
         model_ckpt = f"models/CheXpert/checkpoints_from_trainer/{model_name}/{model_type}.ckpt"
     else:
         raise ValueError("model_type must be 'best' or 'last'")
-     
+    
     model = torch.hub.load(
         'pytorch/vision:v0.10.0', 
         'densenet121', 
@@ -61,10 +68,11 @@ if __name__ == '__main__':
     in_features_classifier = model.classifier.in_features
     model.classifier = torch.nn.Linear(in_features_classifier, 1)
     pl_model = BinaryClassificationTaskCheXpert(model = model)
-    print(f"Bias of ImageNet DenseNet:\n{pl_model.model.classifier.bias}")
-
+    remove_grad(pl_model)
+    #print(f"Bias of ImageNet DenseNet:\n{pl_model.model.classifier.bias}")
     pl_trained_model = pl_model.load_from_checkpoint(model_ckpt)
-    print(f"Bias of {model_name}:\n{pl_trained_model.model.classifier.bias}")
+    remove_grad(pl_trained_model)
+    #print(f"Bias of {model_name}:\n{pl_trained_model.model.classifier.bias}")
 
     ####  Predictions and Evaluation ######
     cols = ["patient_id", "y"]
@@ -80,16 +88,17 @@ if __name__ == '__main__':
 
     labels = torch.unsqueeze(torch.tensor(df.y), 1)
     scores = torch.ones([df.shape[0],1])*torch.nan
-
-    pl_trained_model.model.eval()
-    batch_start_idx = 0
-    for batch in dataloader:
-        #print(f"shape:{batch[0].shape}")
-        nn_prob = (torch.sigmoid(pl_trained_model.model
-            .forward(batch[0])))
-        batch_end_idx = batch_start_idx + batch[0].shape[0]
-        scores[batch_start_idx:batch_end_idx] = nn_prob
-        batch_start_idx = batch_end_idx
+    
+    pl_trained_model.eval()
+    with torch.no_grad():
+        batch_start_idx = 0
+        for batch in dataloader:
+            #print(f"shape:{batch[0].shape}")
+            nn_prob = (torch.sigmoid(pl_trained_model.model
+                .forward(batch[0])))
+            batch_end_idx = batch_start_idx + batch[0].shape[0]
+            scores[batch_start_idx:batch_end_idx] = nn_prob
+            batch_start_idx = batch_end_idx
 
     preds = (scores > 0.5)
 
@@ -98,7 +107,7 @@ if __name__ == '__main__':
     auc = auroc(scores, labels, num_classes=2, pos_label=1)
     print(f'Accuracy: {acc}, AUC: {auc}')
 
-    #### Saving predictions to csv ####
+#### Saving predictions to csv ####
     save_dict = {"model": model_name, "acc": acc.numpy(), "auc": auc.numpy()}
     if save_metrics:
         metric_df = pd.DataFrame(save_dict, index = pd.RangeIndex(1))
@@ -111,3 +120,6 @@ if __name__ == '__main__':
         preds_df.to_csv(f"{output_path}predictions.csv", index=False)
 
 
+    ### FINISHING UP ####
+    t1 = time.time()
+    print_timing(t0, t1, text = 'Total time to run script:')
