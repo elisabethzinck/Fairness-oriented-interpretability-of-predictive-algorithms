@@ -18,17 +18,19 @@ if __name__ == "__main__":
         
     ##### DEFINITIONS #######
 
-    model_name = 'test_model'
-    model_path = 'models/CheXpert/' + model_name
+    model_name = 'enzo_test'
+    model_path = f'models/CheXpert/checkpoints_from_trainer/{model_name}'
     
     # All defined variables below must be included into hyper_dict
-    only_feature_extraction = True
-    max_epochs = 1
+    only_feature_extraction = False
+    max_epochs = 10
     lr = 0.001
     reduce_lr_on_plateau = True
     lr_scheduler_patience = 1 
     early_stopping = False
     early_stopping_patience = 3
+    resume_from_checkpoint = True
+    
     
     hyper_dict = {
         'only_feature_extraction': only_feature_extraction,
@@ -37,11 +39,12 @@ if __name__ == "__main__":
         'reduce_lr_on_plateau': reduce_lr_on_plateau,
         'lr_scheduler_patience': lr_scheduler_patience,
         'early_stopping': early_stopping,
-        'early_stopping_patience': early_stopping_patience
+        'early_stopping_patience': early_stopping_patience,
+        'resume_from_checkpoint': resume_from_checkpoint
         }
 
     model_checkpoint_callback = ModelCheckpoint(
-        dirpath = f'models/CheXpert/checkpoints_from_trainer/{model_name}', 
+        dirpath = model_path, 
         filename=f"{model_name}-"+"{epoch}-{step}-{val_loss:.2f}",
         save_top_k = 1, 
         save_last=True, 
@@ -115,7 +118,11 @@ if __name__ == "__main__":
         progress_bar_refresh_rate = 0,
         gpus = GPU,
         logger = logger)
-    trainer.fit(pl_model, dm)
+    if resume_from_checkpoint:
+        ckpt_path = f'{model_path}/last.ckpt'
+        trainer.fit(pl_model, dm, ckpt_path = ckpt_path)
+    else:
+        trainer.fit(pl_model, dm)
     
     ### FINISHING UP ####
     t1 = time.time()
