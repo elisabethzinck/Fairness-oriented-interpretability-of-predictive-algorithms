@@ -12,3 +12,5 @@ references/.ipynb_checkpoints/optuna_pytorch_lightning_notebook-checkpoint.ipynb
 /data/ADNI
 notebooks/.ipynb_checkpoints/FairKit_demonstration-checkpoint.ipynb
 /data/CheXpert
+**/hparams.yaml
+*.ckpt
