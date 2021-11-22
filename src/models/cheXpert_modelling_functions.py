@@ -50,6 +50,12 @@ class BinaryClassificationTaskCheXpert(pl.LightningModule):
         self.save_hyperparameters()
         self.train_auroc = AUROC(compute_on_step=False)
         self.val_auroc = AUROC(compute_on_step = False)
+        self.test_auroc = AUROC(compute_on_step=False)
+
+    #def forward(self, x):
+    #    print(x)
+    #    y_hat = torch.sigmoid(self.model(x.double()))
+    #    return y_hat
 
     def training_step(self, batch, batch_idx):
         x, y = batch
@@ -73,10 +79,34 @@ class BinaryClassificationTaskCheXpert(pl.LightningModule):
         
         metrics = {"val_loss": loss, 'val_acc': acc}
         self.log_dict(metrics)
-
+        print("VALIDATING")
         self.val_auroc(y_hat, y)
         self.log(
             'val_auroc', self.val_auroc, 
+            on_step = False, on_epoch = True)
+        return metrics, y_hat
+
+    def validation_epoch_end(self, val_step_outputs):
+        preds = []
+        for metrics, pred in val_step_outputs:
+            print(f"metrics: {metrics}")
+            print(f"pred: {pred}")
+            preds.append(pred)
+        print(f"preds:{preds}")    
+        return metrics, preds
+
+    def test_step(self, batch, batch_idx):
+        x, y = batch
+        y_hat = torch.sigmoid(self.model(x.double()))
+        test_loss = F.binary_cross_entropy(y_hat, y.double())
+        test_acc = accuracy(y_hat, y)
+        
+        metrics = {"test_loss": test_loss, 'test_acc': test_acc}
+        self.log_dict(metrics)
+
+        self.test_auroc(y_hat, y)
+        self.log(
+            'test_auroc', self.test_auroc, 
             on_step = False, on_epoch = True)
         return metrics
 
