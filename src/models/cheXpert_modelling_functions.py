@@ -80,6 +80,15 @@ class BinaryClassificationTaskCheXpert(pl.LightningModule):
             on_step = False, on_epoch = True)
         return metrics
 
+    def validation_epoch_end(self, val_step_outputs):
+        preds = []
+        for metrics, pred in val_step_outputs:
+            print(f"metrics: {metrics}")
+            print(f"pred: {pred}")
+            preds.append(pred)
+        print(f"preds:{preds}")    
+        return metrics, preds
+
     def configure_optimizers(self):
         params_to_optimize = get_params_to_update(self.model, feature_extract = self.feature_extract)
         optimizer = torch.optim.SGD(params_to_optimize, lr = self.lr)
