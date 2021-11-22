@@ -57,7 +57,7 @@ class BinaryClassificationTaskCheXpert(pl.LightningModule):
         loss = F.binary_cross_entropy(y_hat, y.double())
         acc = accuracy(y_hat, y)
         metrics = {"train_loss": loss, 'train_acc': acc}
-        self.log_dict(metrics)
+        self.log_dict(metrics, on_step = False, on_epoch = True)
 
         self.train_auroc(y_hat, y)
         self.log(
@@ -72,7 +72,7 @@ class BinaryClassificationTaskCheXpert(pl.LightningModule):
         acc = accuracy(y_hat, y)
         
         metrics = {"val_loss": loss, 'val_acc': acc}
-        self.log_dict(metrics)
+        self.log_dict(metrics, on_step = False, on_epoch = True)
 
         self.val_auroc(y_hat, y)
         self.log(
