@@ -82,9 +82,9 @@ if __name__ == '__main__':
         deterministic = True,
         gpus = GPU)
     
-    print("Running Validation")
-    out = trainer.validate(pl_trained_model, dm)
-    print(f"output from validation:{out}")
+    print("Running Prediction")
+    out = trainer.predict(pl_trained_model, dataloaders = dm.val_dataloader())
+    print(f"output from prediction:{out}")
     
     ### FINISHING UP ####
     t1 = time.time()
