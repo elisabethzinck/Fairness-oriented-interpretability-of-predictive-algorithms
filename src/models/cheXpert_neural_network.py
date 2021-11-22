@@ -6,7 +6,7 @@ import os
 import torch
 import pytorch_lightning as pl
 from pytorch_lightning.loggers import TensorBoardLogger
-from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint
+from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint, LearningRateMonitor
 
 from src.models.cheXpert_modelling_functions import(BinaryClassificationTaskCheXpert, 
     set_parameter_requires_grad)
@@ -18,18 +18,18 @@ if __name__ == "__main__":
         
     ##### DEFINITIONS #######
 
-    model_name = 'enzo_test'
+    model_name = 'tmp'
     model_path = f'models/CheXpert/checkpoints_from_trainer/{model_name}'
     
     # All defined variables below must be included into hyper_dict
-    only_feature_extraction = False
-    max_epochs = 10
+    only_feature_extraction = True
+    max_epochs = 2
     lr = 0.001
     reduce_lr_on_plateau = True
     lr_scheduler_patience = 1 
     early_stopping = False
     early_stopping_patience = 3
-    resume_from_checkpoint = True
+    resume_from_checkpoint = False
     
     
     hyper_dict = {
@@ -95,19 +95,22 @@ if __name__ == "__main__":
         reduce_lr_on_plateau = reduce_lr_on_plateau,
         lr_scheduler_patience = lr_scheduler_patience)
 
-    early_stopping = EarlyStopping(
-        'val_loss', 
-        patience = early_stopping_patience)
 
-    print('--- Training model ---')
+
+    print('--- Setup training ---')
     logger = TensorBoardLogger(
         save_dir = 'models/CheXpert/lightning_logs', 
         name = model_name)
     logger.log_hyperparams(hyper_dict)
+    lr_monitor_callback = LearningRateMonitor(logging_interval='epoch')
+    callbacks = [model_checkpoint_callback, lr_monitor_callback]
     if early_stopping:
-        callbacks = [model_checkpoint_callback, early_stopping]
-    else:
-        callbacks = [model_checkpoint_callback]
+        early_stopping = EarlyStopping(
+            'val_loss', 
+            patience = early_stopping_patience)
+        callbacks.append(early_stopping)
+
+    print('--- Training model ---')
     trainer = pl.Trainer(
         fast_dev_run = False,
         log_every_n_steps = 50, # Set this to determine when to log 
