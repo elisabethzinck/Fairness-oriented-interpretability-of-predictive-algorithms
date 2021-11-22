@@ -18,12 +18,12 @@ if __name__ == "__main__":
         
     ##### DEFINITIONS #######
 
-    model_name = 'tmp'
+    model_name = 'benchmark'
     model_path = f'models/CheXpert/checkpoints_from_trainer/{model_name}'
     
     # All defined variables below must be included into hyper_dict
-    only_feature_extraction = True
-    max_epochs = 2
+    only_feature_extraction = False
+    max_epochs = 5
     lr = 0.001
     reduce_lr_on_plateau = True
     lr_scheduler_patience = 1 
