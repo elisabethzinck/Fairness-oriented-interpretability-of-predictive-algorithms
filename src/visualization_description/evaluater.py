@@ -23,15 +23,16 @@ l3_report_plots = [
 ]
 
 update_figures  = False
-update_report_figures = False # Write new figures to report repository?
+update_report_figures = True # Write new figures to report repository?
 run_all_plots = False
 run_l2_plots = False
 run_l3_plots = False
+run_anym_plots = True
 
 #############################################
 #%% Load data and initialize FairKit
 ##############################################
-def get_FairKitDict(include_anym = False, include_ADNI = False):
+def get_FairKitDict(include_anym = True, include_ADNI = False):
     "Initialize all FairKits and save them in dict"
     FairKitDict = {}
     credit_w_fp = 0.9
@@ -265,9 +266,17 @@ if __name__ == '__main__':
                 print(path)
                 plt.savefig(path, bbox_inches='tight', facecolor = 'w')
 
-# %%
-#    FairKitDict["taiwanese_logreg"].layer_3(method='confusion_matrix',
-#                                            output_table = False, 
-#                                            **{"cm_print_n":True})
+    if run_anym_plots:
+        kit = FairKitDict['anym']
+        path = '../Thesis-report/00_figures/anym/'
+        make_all_plots(kit, 
+            save_plots = update_report_figures,
+            plot_path = path,
+            ext = ".pdf",
+            **{"run_layer_2":True})
+        make_all_plots(kit, 
+            save_plots = update_report_figures,
+            plot_path = path,
+            ext = ".pdf",
+            **{"run_layer_3":True})
 
-# %%
