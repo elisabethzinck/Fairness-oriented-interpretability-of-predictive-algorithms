@@ -33,6 +33,7 @@ if __name__ == '__main__':
         num_workers = min(n_avail_cpus-1, 8)
     else:
         num_workers = 0
+    print(f"Using num_workers = {num_workers}")
     
     # ---- Start: Inputs in script----
     save_metrics = True 
@@ -47,7 +48,7 @@ if __name__ == '__main__':
         "target_disease":"Cardiomegaly", 
         "uncertainty_approach": "U-Zeros",
         "num_workers": num_workers, 
-        "tiny_sample_data": True})
+        "tiny_sample_data": False})
 
     output_path = f"data/CheXpert/predictions/{model_name}/"
     if not os.path.exists(output_path):
@@ -78,7 +79,8 @@ if __name__ == '__main__':
     trainer = pl.Trainer(
         fast_dev_run = False,
         deterministic = True,
-        gpus = GPU)
+        gpus = GPU, 
+        progress_bar_refresh_rate = 0)
 
     # Val, Test or train data to predict on
     cols = ["patient_id", "y"]
