@@ -51,6 +51,12 @@ class BinaryClassificationTaskCheXpert(pl.LightningModule):
         self.train_auroc = AUROC(compute_on_step=False)
         self.val_auroc = AUROC(compute_on_step = False)
 
+    def forward(self, batch): 
+        x, y = batch
+        print(f"x dim: {x.size()}")
+        forwarded_x = self.model(x.double())
+        return forwarded_x
+
     def training_step(self, batch, batch_idx):
         x, y = batch
         y_hat = torch.sigmoid(self.model(x.double()))
