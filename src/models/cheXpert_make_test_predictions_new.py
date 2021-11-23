@@ -17,6 +17,13 @@ def remove_grad(model):
     for param in model.parameters():
         param.requires_grad = False
 
+def print_res(acc, AUROC, eval_data):
+    print("---- Results ----")
+    print(f"\nPredicting on {eval_data}\n")
+    print(f"Accuracy = {acc}\n")
+    print(f"AUROC = {AUROC}\n")
+    print("------------------")
+
 #### Setup #######
 if __name__ == '__main__':
     t0 = time.time()
@@ -71,30 +78,52 @@ if __name__ == '__main__':
     pl_trained_model = pl_model.load_from_checkpoint(model_ckpt)
 
     ####  Predictions and Evaluation ######
-    print("Initializing trainer")
+    print("---- Initializing Training ----")
     trainer = pl.Trainer(
         fast_dev_run = False,
         deterministic = True,
         gpus = GPU)
 
     # Val, Test or train data to predict on
+    cols = ["patient_id", "y"]
     if eval_data == 'val':
-        df = dm.val_data.dataset_df[["patient_id", "y"]]
+        df = dm.val_data.dataset_df[cols]
         dataloader = dm.val_dataloader()
     elif eval_data == 'test':
-        df = dm.test_data.dataset_df[["patient_id", "y"]]
+        df = dm.test_data.dataset_df[cols]
         dataloader = dm.test_dataloader()
     elif eval_data == 'train':
-        df = dm.train_data.dataset_df[["patient_id", "y"]]
+        df = dm.train_data.dataset_df[cols]
         dataloader = dm.train_dataloader()
 
-    print("Running Prediction")
+    print("---- Running Predictions ----")
     out_batches = trainer.predict(pl_trained_model, dataloaders = dataloader)
     print(f"output from prediction:{out_batches}")
 
-    scores = torch.cat(out_batches, dim = 0)
+    scores = torch.sigmoid(torch.cat(out_batches, dim = 0))
+    preds = (scores > 0.5).to(torch.int8)
 
     print(f"Scores: {scores}")
+
+    print("---- Calculating Metrics ----")
+    labels = torch.from_numpy(df.y.values).unsqueeze(dim=1).to(torch.int8)
+    acc = accuracy(preds, labels)
+    AUROC = auroc(preds = scores, target = labels)
+    print_res(acc, AUROC, eval_data)
+
+    if save_metrics: 
+        print("---- Saving Metrics ----")
+        save_dict = {"Predicted on": eval_data, "Accuracy": acc, "AUROC": AUROC}
+        (pd.DataFrame(save_dict)
+            .to_csv(f"{output_path}{eval_data}_{model_type}_metrics.csv", index=False)
+        )
+    if save_preds:
+        print("---- Saving Predictions ----")
+        (df.assign(
+            y_hat = labels.numpy(), 
+            scores = scores.numpy())
+        .to_csv(f"{output_path}{eval_data}_{model_type}_predictions.csv", index=False)
+        )
 
     ### FINISHING UP ####
     t1 = time.time()
