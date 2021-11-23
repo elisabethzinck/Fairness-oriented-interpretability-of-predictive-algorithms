@@ -44,7 +44,8 @@ if __name__ == '__main__':
     dm = CheXpertDataModule(**{
         "target_disease":"Cardiomegaly", 
         "uncertainty_approach": "U-Zeros",
-        "num_workers": num_workers})
+        "num_workers": num_workers, 
+        "tiny_sample_data": True})
 
     output_path = f"data/CheXpert/predictions/{model_name}/"
     if not os.path.exists(output_path):
@@ -66,13 +67,7 @@ if __name__ == '__main__':
     else:
         raise ValueError("model_type must be 'best' or 'last'")
     
-    model = torch.hub.load(
-        'pytorch/vision:v0.10.0', 
-        'densenet121', 
-        pretrained = True)
-    in_features_classifier = model.classifier.in_features
-    model.classifier = torch.nn.Linear(in_features_classifier, 1)
-    pl_model = BinaryClassificationTaskCheXpert(model = model)
+    pl_model = BinaryClassificationTaskCheXpert()
     pl_trained_model = pl_model.load_from_checkpoint(model_ckpt)
 
     ####  Predictions and Evaluation ######
@@ -81,11 +76,26 @@ if __name__ == '__main__':
         fast_dev_run = False,
         deterministic = True,
         gpus = GPU)
-    
+
+    # Val, Test or train data to predict on
+    if eval_data == 'val':
+        df = dm.val_data.dataset_df[["patient_id", "y"]]
+        dataloader = dm.val_dataloader()
+    elif eval_data == 'test':
+        df = dm.test_data.dataset_df[["patient_id", "y"]]
+        dataloader = dm.test_dataloader()
+    elif eval_data == 'train':
+        df = dm.train_data.dataset_df[["patient_id", "y"]]
+        dataloader = dm.train_dataloader()
+
     print("Running Prediction")
-    out = trainer.predict(pl_trained_model, dataloaders = dm.val_dataloader())
-    print(f"output from prediction:{out}")
-    
+    out_batches = trainer.predict(pl_trained_model, dataloaders = dataloader)
+    print(f"output from prediction:{out_batches}")
+
+    scores = torch.cat(out_batches, dim = 0)
+
+    print(f"Scores: {scores}")
+
     ### FINISHING UP ####
     t1 = time.time()
     print_timing(t0, t1, text = 'Total time to run script:')
