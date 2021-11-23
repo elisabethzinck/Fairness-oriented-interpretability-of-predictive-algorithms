@@ -13,9 +13,12 @@ from src.models.cheXpert_modelling_functions import BinaryClassificationTaskCheX
 from src.models.data_modules import CheXpertDataModule
 from src.models.general_modelling_functions import print_timing
 
-def remove_grad(model):
-    for param in model.parameters():
-        param.requires_grad = False
+def print_res(acc, AUROC, eval_data):
+    print("---- Results ----")
+    print(f"\nPredicting on {eval_data}\n")
+    print(f"Accuracy = {acc}\n")
+    print(f"AUROC = {AUROC}\n")
+    print("------------------")
 
 #### Setup #######
 if __name__ == '__main__':
@@ -36,7 +39,6 @@ if __name__ == '__main__':
     save_preds = True
 
     model_name = "test_model"
-    ckpt_folder_path = f"models/CheXpert/checkpoints_from_trainer/{model_name}/"
     model_type = "last" # "best" or "last"
     eval_data = "val"
     assert eval_data in ['train', 'val', 'test'], "eval_data must be 'train', 'val' or 'test'"
@@ -53,6 +55,7 @@ if __name__ == '__main__':
     # ---- End: Inputs in Script ----
 
     #### Loading Checkpointed Model #######
+    ckpt_folder_path = f"models/CheXpert/checkpoints_from_trainer/{model_name}/"
     if model_type == 'best':
         files = next(os.walk(ckpt_folder_path))[2]
         best_ckpts = [f for f in files if "val_loss" in f]
@@ -71,30 +74,50 @@ if __name__ == '__main__':
     pl_trained_model = pl_model.load_from_checkpoint(model_ckpt)
 
     ####  Predictions and Evaluation ######
-    print("Initializing trainer")
+    print("---- Initializing Training ----")
     trainer = pl.Trainer(
         fast_dev_run = False,
         deterministic = True,
         gpus = GPU)
 
     # Val, Test or train data to predict on
+    cols = ["patient_id", "y"]
     if eval_data == 'val':
-        df = dm.val_data.dataset_df[["patient_id", "y"]]
+        df = dm.val_data.dataset_df[cols]
         dataloader = dm.val_dataloader()
     elif eval_data == 'test':
-        df = dm.test_data.dataset_df[["patient_id", "y"]]
+        df = dm.test_data.dataset_df[cols]
         dataloader = dm.test_dataloader()
     elif eval_data == 'train':
-        df = dm.train_data.dataset_df[["patient_id", "y"]]
+        df = dm.train_data.dataset_df[cols]
         dataloader = dm.train_dataloader()
 
-    print("Running Prediction")
+    print("---- Running Predictions ----")
     out_batches = trainer.predict(pl_trained_model, dataloaders = dataloader)
-    print(f"output from prediction:{out_batches}")
+    scores = torch.sigmoid(torch.cat(out_batches, dim = 0))
+    preds = (scores > 0.5).to(torch.int8)  
 
-    scores = torch.cat(out_batches, dim = 0)
+    print("---- Calculating Metrics ----")
+    labels = torch.from_numpy(df.y.values).unsqueeze(dim=1).to(torch.int8)
+    acc = accuracy(preds, labels)
+    AUROC = auroc(preds = scores, target = labels)
+    print_res(acc, AUROC, eval_data)
 
-    print(f"Scores: {scores}")
+    if save_metrics: 
+        print("---- Saving Metrics ----")
+        save_dict = {"Predicted": eval_data, 
+                     "Accuracy": acc.numpy(), 
+                     "AUROC": AUROC.numpy()}
+        (pd.DataFrame(save_dict, index = [0])
+            .to_csv(f"{output_path}{eval_data}_{model_type}_metrics.csv", index=False)
+        )
+    if save_preds:
+        print("---- Saving Predictions ----")
+        (df.assign(
+            y_hat = labels.numpy(), 
+            scores = scores.numpy())
+        .to_csv(f"{output_path}{eval_data}_{model_type}_predictions.csv", index=False)
+        )
 
     ### FINISHING UP ####
     t1 = time.time()
