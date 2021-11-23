@@ -20,6 +20,9 @@ if __name__ == "__main__":
 
     model_name = 'benchmark'
     model_path = f'models/CheXpert/checkpoints_from_trainer/{model_name}'
+
+    fast_dev_run = True
+    tiny_sample_data = True
     
     # All defined variables below must be included into hyper_dict
     only_feature_extraction = False
@@ -66,35 +69,19 @@ if __name__ == "__main__":
     pl.seed_everything(42)
     t0 = time.time()
 
-    #### Prepare data #######
+    print('--- Initializing model and datamodule ---') 
+
     dm = CheXpertDataModule(**{
         "target_disease": "Cardiomegaly", 
         "uncertainty_approach": "U-Zeros",
-        "num_workers": num_workers})
+        "num_workers": num_workers,
+        'tiny_sample_data': tiny_sample_data})
 
-    print('--- Initializing model ---') 
-
-    model = torch.hub.load(
-        'pytorch/vision:v0.10.0', 
-        'densenet121', 
-        pretrained = True)
-
-    # Setting 'reqiures_grad' to False for all layers
-    set_parameter_requires_grad(
-        model, feature_extracting=only_feature_extraction)
-
-    # Changing last layer to binary classification, this will have requires_grad = True
-    in_features_classifier = model.classifier.in_features
-    model.classifier = torch.nn.Linear(in_features_classifier, 1)
-
-    model = model.double() # To ensure compatibilty with dataset
     pl_model = BinaryClassificationTaskCheXpert(
-        model = model, 
         lr = lr,
         feature_extract = only_feature_extraction,
         reduce_lr_on_plateau = reduce_lr_on_plateau,
         lr_scheduler_patience = lr_scheduler_patience)
-
 
 
     print('--- Setup training ---')
@@ -112,8 +99,7 @@ if __name__ == "__main__":
 
     print('--- Training model ---')
     trainer = pl.Trainer(
-        fast_dev_run = False,
-        log_every_n_steps = 50, # Set this to determine when to log 
+        fast_dev_run = fast_dev_run,
         max_epochs = max_epochs,
         deterministic = True,
         enable_checkpointing = True,

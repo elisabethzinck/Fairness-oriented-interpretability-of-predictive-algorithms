@@ -459,6 +459,7 @@ class CheXpertDataModule(pl.LightningDataModule):
         self.target_disease = kwargs.get('target_disease', 'Cardiomegaly')
         self.augment_images = kwargs.get('augment_images', True)
         self.num_workers = kwargs.get('num_workers', 0)
+        self.tiny_sample_data = kwargs.get('tiny_sample_data', False)
 
         self.batch_size = 32 
         self.image_size = (224, 224)
@@ -476,7 +477,10 @@ class CheXpertDataModule(pl.LightningDataModule):
         self.train_raw = pd.read_csv(self.folder_path + 'CheXpert-v1.0-small/train.csv')
         self.val_raw = pd.read_csv(self.folder_path + 'CheXpert-v1.0-small/valid.csv')
 
-        dataset_df = self.train_raw
+        if self.tiny_sample_data:
+            dataset_df = self.val_raw
+        else:
+            dataset_df = self.train_raw
 
         # Uncertainty approach
         if self.uncertainty_approach == 'U-Ones':

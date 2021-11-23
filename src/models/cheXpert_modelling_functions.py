@@ -36,20 +36,40 @@ def set_parameter_requires_grad(model, feature_extracting):
 class BinaryClassificationTaskCheXpert(pl.LightningModule):
     def __init__(
             self, 
-            model, 
+            model = None,
             lr = 1e-3, 
             feature_extract = True, 
             reduce_lr_on_plateau = False,
             lr_scheduler_patience = None):
+
         super().__init__()
-        self.model = model
         self.lr = lr
         self.feature_extract = feature_extract
         self.reduce_lr_on_plateau = reduce_lr_on_plateau
         self.lr_scheduler_patience = lr_scheduler_patience
+
+        if model is None:
+            self.model = self.initialize_model()
+        else:
+            self.model = model
         self.save_hyperparameters()
         self.train_auroc = AUROC(compute_on_step=False)
         self.val_auroc = AUROC(compute_on_step = False)
+
+    def initialize_model(self):
+        model = torch.hub.load(
+                'pytorch/vision:v0.10.0', 
+                'densenet121', 
+                pretrained = True)
+
+        set_parameter_requires_grad(model, 
+            feature_extracting=self.feature_extract)
+
+        in_features_classifier = model.classifier.in_features
+        model.classifier = torch.nn.Linear(in_features_classifier, 1)
+
+        model = model.double() # To ensure compatibilty with dataset
+        return model
 
     def forward(self, batch): 
         x, y = batch
