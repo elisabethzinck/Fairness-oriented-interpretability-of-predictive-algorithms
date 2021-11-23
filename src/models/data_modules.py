@@ -393,7 +393,7 @@ class TaiwaneseDataModule(pl.LightningDataModule):
         return DataLoader(self.test_data, batch_size=self.batch_size)
 
 class CheXpertDataset(Dataset):
-    def __init__(self, dataset_df, image_size, augment_images = True):
+    def __init__(self, dataset_df, image_size, multi_label, target_disease, augment_images, uncertainty_approach):
         """Dataset for CheXpert data
         
         Args:
@@ -402,21 +402,67 @@ class CheXpertDataset(Dataset):
             augment_images (bool): whether to augment images
         """
         self.dataset_df = dataset_df
-
-        if min(image_size) >= 224:
-            self.image_size = image_size
-        else:
-            raise ValueError('DenseNet in Pytorch requires height and width to be at least 224')
-
         self.augment_images = augment_images
-        self.X_paths = dataset_df.Path
-        self.y = np.expand_dims(dataset_df.y, axis = 1)
+        self.image_size = image_size
+        self.multi_label = multi_label
+        self.target_disease = target_disease
+        self.uncertainty_approach = uncertainty_approach
+
+        if min(self.image_size) < 224:
+            raise ValueError('DenseNet in Pytorch requires height and width to be at least 224')
 
         # same image augmenter as https://github.com/brucechou1983/CheXNet-Keras
         self.augmenter = iaa.Sequential(
             [iaa.Fliplr(0.5),],
             random_order=True,
         )
+        self.labels = [
+            'No Finding', 'Enlarged Cardiomediastinum','Cardiomegaly', 
+            'Lung Opacity', 'Lung Lesion', 'Edema', 'Consolidation', 'Pneumonia', 'Atelectasis', 'Pneumothorax', 'Pleural Effusion', 'Pleural Other', 'Fracture', 'Support Devices']
+
+        self.setup()
+
+    def setup(self):
+        self.N = self.dataset_df.shape[0]
+        self.X_paths = self.dataset_df.Path
+
+        # Uncertainty approach
+        if self.uncertainty_approach == 'U-Ones':
+            target_map = {
+                np.nan: 0,  # unmentioned
+                0.0: 0,     # negative
+                -1.0: 1,    # uncertain
+                1.0: 1      # positive
+                }
+        elif self.uncertainty_approach == 'U-Zeros':
+            target_map = {
+                np.nan: 0,  # unmentioned
+                0.0: 0,     # negative
+                -1.0: 0,    # uncertain
+                1.0: 1      # positive
+                }
+        else:
+            raise ValueError('Only uncertainty approaches U-Ones and U-Zeros are implemented.')
+
+        # Create y matrix
+        if self.multi_label:
+            self.num_classes = len(self.labels)
+            y = np.zeros((self.N, self.num_classes), dtype = int)
+            for i, label in enumerate(self.labels):
+                y[:,i] = self.dataset_df[label].map(target_map)
+            self.y = y
+
+        elif self.target_disease is not None:
+            self.num_classes = 1
+            y = self.dataset_df[self.target_disease].map(target_map)
+            self.y = np.expand_dims(y, axis = 1)
+        else:
+            raise ValueError(
+                'If multi_label is False, target disease must not be None')
+
+        
+        
+
         
     def __getitem__(self, idx):
         image_path = self.X_paths[idx]
@@ -429,7 +475,7 @@ class CheXpertDataset(Dataset):
         return batch_x, batch_y
         
     def __len__ (self):
-        return len(self.X_paths)
+        return self.N
 
     def load_image(self, image_path):
         """Loads image and turns it into array of appropiate size
@@ -456,7 +502,8 @@ class CheXpertDataModule(pl.LightningDataModule):
 
         self.uncertainty_approach = kwargs.get(
             'uncertainty_approach', 'U-Zeros')
-        self.target_disease = kwargs.get('target_disease', 'Cardiomegaly')
+        self.multi_label = kwargs.get('multi_label', False)
+        self.target_disease = kwargs.get('target_disease', None)
         self.augment_images = kwargs.get('augment_images', True)
         self.num_workers = kwargs.get('num_workers', 0)
         self.tiny_sample_data = kwargs.get('tiny_sample_data', False)
@@ -467,11 +514,20 @@ class CheXpertDataModule(pl.LightningDataModule):
         self.val_size = 0.2 # Relative to train_val
         self.seed = 42
 
-        # 
-
         self.setup()
 
-    
+    def create_dataset(self, patient_ids):
+        df = patient_ids.merge(
+                self.dataset_df, how = 'inner', on = 'patient_id')
+        dataset = CheXpertDataset(
+                df, 
+                target_disease = self.target_disease,
+                multi_label = self.multi_label,
+                uncertainty_approach = self.uncertainty_approach,
+                image_size = self.image_size,
+                augment_images = self.augment_images)
+        return dataset
+        
     def setup(self, stage = None):
         
         self.train_raw = pd.read_csv(self.folder_path + 'CheXpert-v1.0-small/train.csv')
@@ -481,36 +537,18 @@ class CheXpertDataModule(pl.LightningDataModule):
             dataset_df = self.val_raw
         else:
             dataset_df = self.train_raw
-
-        # Uncertainty approach
-        if self.uncertainty_approach == 'U-Ones':
-            target_map = {
-                np.nan: 0,  # unmentioned
-                0.0: 0,     # negative
-                -1.0: 1,    # uncertain
-                1.0: 1      # positive
-                }
-        elif self.uncertainty_approach == 'U-Zeros':
-            target_map = {
-                np.nan: 0,  # unmentioned
-                0.0: 0,     # negative
-                -1.0: 0,    # uncertain
-                1.0: 1      # positive
-                }
-        else:
-            raise ValueError('Only uncertainty approaches U-Ones and U-Zeros are implemented.')
-
-        dataset_df = (dataset_df
+        
+        self.dataset_df = (dataset_df
             .assign(
                 patient_id = lambda x: x.Path.str.split('/').str[2],
-                Path = lambda x: self.folder_path + x.Path,
-                y = lambda x: x[self.target_disease].map(target_map))
+                Path = lambda x: self.folder_path + x.Path)
             .loc[lambda x: x['Frontal/Lateral'] == 'Frontal']
             .query('Sex == "Male" or Sex == "Female"')
             )
 
+
         # Make splits based on patients
-        patients = dataset_df[['patient_id']].drop_duplicates()
+        patients = self.dataset_df[['patient_id']].drop_duplicates()
         train_val_patients, test_patients = train_test_split(
             patients, 
             test_size = self.test_size, 
@@ -522,26 +560,11 @@ class CheXpertDataModule(pl.LightningDataModule):
 
 
         if stage in (None, "fit"): 
-            train_df = train_patients.merge(
-                dataset_df, how = 'inner', on = 'patient_id')
-            val_df = val_patients.merge(
-                dataset_df, how = 'inner', on = 'patient_id')
-            self.train_data = CheXpertDataset(
-                train_df, 
-                image_size = self.image_size,
-                augment_images = self.augment_images)
-            self.val_data = CheXpertDataset(
-                val_df, 
-                image_size = self.image_size,
-                augment_images = self.augment_images)
+            self.train_data = self.create_dataset(train_patients)
+            self.val_data = self.create_dataset(val_patients)
         
         if stage in (None, "test"):
-            test_df = test_patients.merge(
-                dataset_df, how = 'inner', on = 'patient_id')
-            self.test_data = CheXpertDataset(
-                test_df, 
-                image_size = self.image_size,
-                augment_images = self.augment_images)
+            self.test_data = self.create_dataset(test_patients)
         
     
     def train_dataloader(self):
@@ -579,10 +602,17 @@ if __name__ == '__main__':
     #dm_german.make_KFold_split(fold = 2)
     #dm_catalan = CatalanDataModule()
     #dm_catalan.make_KFold_split(fold = 1)
-    dm = CheXpertDataModule(**{"target_disease":"Cardiomegaly", "uncertainty_approach": "U-Zeros"})
-    tmp = next(iter(dm.train_dataloader()))
+    kwargs = {
+       # "target_disease":"Cardiomegaly", 
+        "multi_label": True,
+        "uncertainty_approach": "U-Zeros",
+        "tiny_sample_data": True}
+    dm = CheXpertDataModule(**kwargs)
+    X, y = next(iter(dm.train_dataloader()))
+    print(X.shape)
+    print(y.shape)
 
-    dm_t = TaiwaneseDataModule()
-    tmp_t = next(iter(dm_t.train_dataloader()))
+    #dm_t = TaiwaneseDataModule()
+    #tmp_t = next(iter(dm_t.train_dataloader()))
 
 # %%

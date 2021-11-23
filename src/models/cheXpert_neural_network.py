@@ -25,7 +25,7 @@ if __name__ == "__main__":
     tiny_sample_data = True
     
     # All defined variables below must be included into hyper_dict
-    only_feature_extraction = False
+    only_feature_extraction = True
     max_epochs = 5
     lr = 0.001
     reduce_lr_on_plateau = True
@@ -34,6 +34,7 @@ if __name__ == "__main__":
     early_stopping_patience = 3
     resume_from_checkpoint = False
     optimizer = 'Adam' # Options: 'Adam' and 'SGD'
+    multi_label = True
     
     
     hyper_dict = {
@@ -45,7 +46,8 @@ if __name__ == "__main__":
         'early_stopping': early_stopping,
         'early_stopping_patience': early_stopping_patience,
         'resume_from_checkpoint': resume_from_checkpoint,
-        'optimizer': optimizer
+        'optimizer': optimizer,
+        'multi_label': multi_label
         }
 
     model_checkpoint_callback = ModelCheckpoint(
@@ -73,8 +75,14 @@ if __name__ == "__main__":
 
     print('--- Initializing model and datamodule ---') 
 
+    if multi_label:
+        target_disease = None
+    else:
+        target_disease = 'Cardiomegaly'
+
     dm = CheXpertDataModule(**{
-        "target_disease": "Cardiomegaly", 
+        "target_disease": target_disease, 
+        'multi_label': multi_label,
         "uncertainty_approach": "U-Zeros",
         "num_workers": num_workers,
         'tiny_sample_data': tiny_sample_data})
@@ -84,7 +92,8 @@ if __name__ == "__main__":
         feature_extract = only_feature_extraction,
         reduce_lr_on_plateau = reduce_lr_on_plateau,
         lr_scheduler_patience = lr_scheduler_patience,
-        optimizer = optimizer)
+        optimizer = optimizer,
+        num_classes = dm.train_data.num_classes)
 
 
     print('--- Setup training ---')
