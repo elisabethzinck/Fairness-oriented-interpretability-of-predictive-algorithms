@@ -13,10 +13,6 @@ from src.models.cheXpert_modelling_functions import BinaryClassificationTaskCheX
 from src.models.data_modules import CheXpertDataModule
 from src.models.general_modelling_functions import print_timing
 
-def remove_grad(model):
-    for param in model.parameters():
-        param.requires_grad = False
-
 def print_res(acc, AUROC, eval_data):
     print("---- Results ----")
     print(f"\nPredicting on {eval_data}\n")
@@ -43,7 +39,6 @@ if __name__ == '__main__':
     save_preds = True
 
     model_name = "test_model"
-    ckpt_folder_path = f"models/CheXpert/checkpoints_from_trainer/{model_name}/"
     model_type = "last" # "best" or "last"
     eval_data = "val"
     assert eval_data in ['train', 'val', 'test'], "eval_data must be 'train', 'val' or 'test'"
@@ -60,6 +55,7 @@ if __name__ == '__main__':
     # ---- End: Inputs in Script ----
 
     #### Loading Checkpointed Model #######
+    ckpt_folder_path = f"models/CheXpert/checkpoints_from_trainer/{model_name}/"
     if model_type == 'best':
         files = next(os.walk(ckpt_folder_path))[2]
         best_ckpts = [f for f in files if "val_loss" in f]
@@ -98,12 +94,8 @@ if __name__ == '__main__':
 
     print("---- Running Predictions ----")
     out_batches = trainer.predict(pl_trained_model, dataloaders = dataloader)
-    print(f"output from prediction:{out_batches}")
-
     scores = torch.sigmoid(torch.cat(out_batches, dim = 0))
-    preds = (scores > 0.5).to(torch.int8)
-
-    print(f"Scores: {scores}")
+    preds = (scores > 0.5).to(torch.int8)  
 
     print("---- Calculating Metrics ----")
     labels = torch.from_numpy(df.y.values).unsqueeze(dim=1).to(torch.int8)
