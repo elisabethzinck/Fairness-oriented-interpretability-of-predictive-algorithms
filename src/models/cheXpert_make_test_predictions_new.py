@@ -113,8 +113,10 @@ if __name__ == '__main__':
 
     if save_metrics: 
         print("---- Saving Metrics ----")
-        save_dict = {"Predicted on": eval_data, "Accuracy": acc, "AUROC": AUROC}
-        (pd.DataFrame(save_dict)
+        save_dict = {"Predicted": eval_data, 
+                     "Accuracy": acc.numpy(), 
+                     "AUROC": AUROC.numpy()}
+        (pd.DataFrame(save_dict, index = [0])
             .to_csv(f"{output_path}{eval_data}_{model_type}_metrics.csv", index=False)
         )
     if save_preds:
