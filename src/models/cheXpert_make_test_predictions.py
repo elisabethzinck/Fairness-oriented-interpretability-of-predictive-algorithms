@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 import re
 import time
+import pytorch_lightning as pl
 
 from torchmetrics.functional import accuracy, auroc
 from src.models.data_modules import CheXpertDataModule
@@ -12,26 +13,33 @@ from src.models.cheXpert_modelling_functions import BinaryClassificationTaskCheX
 from src.models.data_modules import CheXpertDataModule
 from src.models.general_modelling_functions import print_timing
 
-def remove_grad(model):
-    for param in model.parameters():
-        param.requires_grad = False
+def print_res(acc, AUROC, eval_data):
+    print("---- Results ----")
+    print(f"\nPredicting on {eval_data}\n")
+    print(f"Accuracy = {acc}\n")
+    print(f"AUROC = {AUROC}\n")
+    print("------------------")
 
 #### Setup #######
 if __name__ == '__main__':
     t0 = time.time()
     
+    if torch.cuda.is_available():
+        GPU = 1
+    else:
+        GPU = None
     if platform.system() == 'Linux':
         n_avail_cpus = len(os.sched_getaffinity(0))
         num_workers = min(n_avail_cpus-1, 8)
     else:
         num_workers = 0
+    print(f"Using num_workers = {num_workers}")
     
     # ---- Start: Inputs in script----
     save_metrics = True 
     save_preds = True
 
     model_name = "test_model"
-    ckpt_folder_path = f"models/CheXpert/checkpoints_from_trainer/{model_name}/"
     model_type = "last" # "best" or "last"
     eval_data = "val"
     assert eval_data in ['train', 'val', 'test'], "eval_data must be 'train', 'val' or 'test'"
@@ -39,7 +47,8 @@ if __name__ == '__main__':
     dm = CheXpertDataModule(**{
         "target_disease":"Cardiomegaly", 
         "uncertainty_approach": "U-Zeros",
-        "num_workers": num_workers})
+        "num_workers": num_workers, 
+        "tiny_sample_data": False})
 
     output_path = f"data/CheXpert/predictions/{model_name}/"
     if not os.path.exists(output_path):
@@ -47,6 +56,7 @@ if __name__ == '__main__':
     # ---- End: Inputs in Script ----
 
     #### Loading Checkpointed Model #######
+    ckpt_folder_path = f"models/CheXpert/checkpoints_from_trainer/{model_name}/"
     if model_type == 'best':
         files = next(os.walk(ckpt_folder_path))[2]
         best_ckpts = [f for f in files if "val_loss" in f]
@@ -61,64 +71,55 @@ if __name__ == '__main__':
     else:
         raise ValueError("model_type must be 'best' or 'last'")
     
-    model = torch.hub.load(
-        'pytorch/vision:v0.10.0', 
-        'densenet121', 
-        pretrained = True)
-    in_features_classifier = model.classifier.in_features
-    model.classifier = torch.nn.Linear(in_features_classifier, 1)
-    pl_model = BinaryClassificationTaskCheXpert(model = model)
-    remove_grad(pl_model)
-    #print(f"Bias of ImageNet DenseNet:\n{pl_model.model.classifier.bias}")
+    pl_model = BinaryClassificationTaskCheXpert()
     pl_trained_model = pl_model.load_from_checkpoint(model_ckpt)
-    remove_grad(pl_trained_model)
-    #print(f"Bias of {model_name}:\n{pl_trained_model.model.classifier.bias}")
 
     ####  Predictions and Evaluation ######
+    print("---- Initializing Training ----")
+    trainer = pl.Trainer(
+        fast_dev_run = False,
+        deterministic = True,
+        gpus = GPU, 
+        progress_bar_refresh_rate = 0)
+
+    # Val, Test or train data to predict on
     cols = ["patient_id", "y"]
-    if eval_data == "train":
-        df = dm.train_data.dataset_df[cols]
-        dataloader = dm.train_dataloader()
-    elif eval_data == "val":
+    if eval_data == 'val':
         df = dm.val_data.dataset_df[cols]
         dataloader = dm.val_dataloader()
-    elif eval_data == "test":
+    elif eval_data == 'test':
         df = dm.test_data.dataset_df[cols]
         dataloader = dm.test_dataloader()
+    elif eval_data == 'train':
+        df = dm.train_data.dataset_df[cols]
+        dataloader = dm.train_dataloader()
 
-    labels = torch.unsqueeze(torch.tensor(df.y), 1)
-    scores = torch.ones([df.shape[0],1])*torch.nan
-    
-    pl_trained_model.eval()
-    with torch.no_grad():
-        batch_start_idx = 0
-        for batch in dataloader:
-            #print(f"shape:{batch[0].shape}")
-            nn_prob = (torch.sigmoid(pl_trained_model.model
-                .forward(batch[0])))
-            batch_end_idx = batch_start_idx + batch[0].shape[0]
-            scores[batch_start_idx:batch_end_idx] = nn_prob
-            batch_start_idx = batch_end_idx
+    print("---- Running Predictions ----")
+    out_batches = trainer.predict(pl_trained_model, dataloaders = dataloader)
+    scores = torch.sigmoid(torch.cat(out_batches, dim = 0))
+    preds = (scores > 0.5).to(torch.int8)  
 
-    preds = (scores > 0.5)
-
-    # Accuracy and AUC 
+    print("---- Calculating Metrics ----")
+    labels = torch.from_numpy(df.y.values).unsqueeze(dim=1).to(torch.int8)
     acc = accuracy(preds, labels)
-    auc = auroc(scores, labels, num_classes=2, pos_label=1)
-    print(f'Accuracy: {acc}, AUC: {auc}')
+    AUROC = auroc(preds = scores, target = labels)
+    print_res(acc, AUROC, eval_data)
 
-#### Saving predictions to csv ####
-    save_dict = {"model": model_name, "acc": acc.numpy(), "auc": auc.numpy()}
-    if save_metrics:
-        metric_df = pd.DataFrame(save_dict, index = pd.RangeIndex(1))
-        metric_df.to_csv(f"{output_path}metrics.csv", index=False)
-    if save_preds:
-        preds_df = df.assign(
-            nn_prob = scores.detach().numpy().squeeze(),
-            nn_pred = nn_prob > 0.5
+    if save_metrics: 
+        print("---- Saving Metrics ----")
+        save_dict = {"Predicted": eval_data, 
+                     "Accuracy": acc.numpy(), 
+                     "AUROC": AUROC.numpy()}
+        (pd.DataFrame(save_dict, index = [0])
+            .to_csv(f"{output_path}{eval_data}_{model_type}_metrics.csv", index=False)
         )
-        preds_df.to_csv(f"{output_path}predictions.csv", index=False)
-
+    if save_preds:
+        print("---- Saving Predictions ----")
+        (df.assign(
+            y_hat = labels.numpy(), 
+            scores = scores.numpy())
+        .to_csv(f"{output_path}{eval_data}_{model_type}_predictions.csv", index=False)
+        )
 
     ### FINISHING UP ####
     t1 = time.time()
