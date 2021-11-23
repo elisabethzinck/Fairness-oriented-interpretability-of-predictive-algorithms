@@ -18,7 +18,7 @@ if __name__ == "__main__":
         
     ##### DEFINITIONS #######
 
-    model_name = 'benchmark'
+    model_name = 'tmp'
     model_path = f'models/CheXpert/checkpoints_from_trainer/{model_name}'
 
     fast_dev_run = True
@@ -33,6 +33,7 @@ if __name__ == "__main__":
     early_stopping = False
     early_stopping_patience = 3
     resume_from_checkpoint = False
+    optimizer = 'Adam' # Options: 'Adam' and 'SGD'
     
     
     hyper_dict = {
@@ -43,7 +44,8 @@ if __name__ == "__main__":
         'lr_scheduler_patience': lr_scheduler_patience,
         'early_stopping': early_stopping,
         'early_stopping_patience': early_stopping_patience,
-        'resume_from_checkpoint': resume_from_checkpoint
+        'resume_from_checkpoint': resume_from_checkpoint,
+        'optimizer': optimizer
         }
 
     model_checkpoint_callback = ModelCheckpoint(
@@ -81,7 +83,8 @@ if __name__ == "__main__":
         lr = lr,
         feature_extract = only_feature_extraction,
         reduce_lr_on_plateau = reduce_lr_on_plateau,
-        lr_scheduler_patience = lr_scheduler_patience)
+        lr_scheduler_patience = lr_scheduler_patience,
+        optimizer = optimizer)
 
 
     print('--- Setup training ---')
