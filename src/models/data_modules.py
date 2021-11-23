@@ -476,7 +476,7 @@ class CheXpertDataModule(pl.LightningDataModule):
         self.train_raw = pd.read_csv(self.folder_path + 'CheXpert-v1.0-small/train.csv')
         self.val_raw = pd.read_csv(self.folder_path + 'CheXpert-v1.0-small/valid.csv')
 
-        dataset_df = self.val_raw
+        dataset_df = self.train_raw
 
         # Uncertainty approach
         if self.uncertainty_approach == 'U-Ones':
