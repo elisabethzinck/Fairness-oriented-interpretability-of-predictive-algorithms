@@ -416,17 +416,14 @@ class CheXpertDataset(Dataset):
 
         if extended_image_augmentation: 
             self.augmenter = T.Compose([
-                T.RandomHorizontalFlip(p=0),
+                T.RandomHorizontalFlip(p=0.25),
                 T.RandomApply(transforms=[T.RandomAffine(degrees=15, scale = (0.9, 1.1))], p=0.25),
                 T.RandomApply(transforms=[T.RandomAdjustSharpness(sharpness_factor=2)], p=0.25),
                 T.RandomApply(transforms=[T.RandomRotation(degrees=15)], p = 0.25)
             ])
         else:
-            # same image augmenter as https://github.com/brucechou1983/CheXNet-Keras
-            self.augmenter = iaa.Sequential(
-                [iaa.Fliplr(0.5),],
-                random_order=True,
-            )
+            self.augmenter = T.Compose([
+                T.RandomHorizontalFlip(p=0.5)]) 
 
         self.labels = [
             'No Finding', 'Enlarged Cardiomediastinum','Cardiomegaly', 
@@ -476,11 +473,6 @@ class CheXpertDataset(Dataset):
     def __getitem__(self, idx):
         image_path = self.X_paths[idx]
         batch_x = self.load_image(image_path)
-        
-        # Simple image augmentation 
-        if not self.extended_image_augmentation:
-            batch_x = self.augmenter.augment_image(batch_x).copy() #dim=(H, W, C)
-        
         batch_x = np.moveaxis(batch_x, source=-1, destination=0) #dim=(C, H, W)
         batch_y = self.y[idx]
 

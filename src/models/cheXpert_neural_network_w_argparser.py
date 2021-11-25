@@ -18,12 +18,12 @@ from src.models.data_modules import CheXpertDataModule
 if __name__ == "__main__":
         
     ##### DEFINITIONS #######
-    fast_dev_run = True
-    tiny_sample_data = True
+    fast_dev_run = False
+    tiny_sample_data = False
     
     # All defined variables below must be included into hyper_dict
     only_feature_extraction = True
-    max_epochs = 5
+    max_epochs = 15
     lr = 0.001
     reduce_lr_on_plateau = True
     lr_scheduler_patience = 1 
