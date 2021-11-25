@@ -8,6 +8,8 @@ from sklearn.preprocessing import StandardScaler
 from torch.utils.data.dataloader import DataLoader
 from torch.utils.data import Dataset
 import torch
+import torchvision.transforms as T
+import matplotlib.pyplot as plt
 
 from PIL import Image
 from skimage.transform import resize
@@ -393,29 +395,39 @@ class TaiwaneseDataModule(pl.LightningDataModule):
         return DataLoader(self.test_data, batch_size=self.batch_size)
 
 class CheXpertDataset(Dataset):
-    def __init__(self, dataset_df, image_size, multi_label, target_disease, augment_images, uncertainty_approach):
+    def __init__(self, dataset_df, image_size, multi_label, target_disease,
+     extended_image_augmentation, uncertainty_approach):
         """Dataset for CheXpert data
         
         Args:
             dataset_df (pd.DataFrame): DataFrame containing paths to images and targets. 
             image_size (tuple): image size in a tuple (height, width)
-            augment_images (bool): whether to augment images
+            extended_image_augmentation (bool): whether to augment images in an extended manner
         """
         self.dataset_df = dataset_df
-        self.augment_images = augment_images
         self.image_size = image_size
         self.multi_label = multi_label
         self.target_disease = target_disease
         self.uncertainty_approach = uncertainty_approach
+        self.extended_image_augmentation = extended_image_augmentation
 
         if min(self.image_size) < 224:
             raise ValueError('DenseNet in Pytorch requires height and width to be at least 224')
 
-        # same image augmenter as https://github.com/brucechou1983/CheXNet-Keras
-        self.augmenter = iaa.Sequential(
-            [iaa.Fliplr(0.5),],
-            random_order=True,
-        )
+        if extended_image_augmentation: 
+            self.augmenter = T.Compose([
+                T.RandomHorizontalFlip(p=0),
+                T.RandomApply(transforms=[T.RandomAffine(degrees=15, scale = (0.9, 1.1))], p=0.25),
+                T.RandomApply(transforms=[T.RandomAdjustSharpness(sharpness_factor=2)], p=0.25),
+                T.RandomApply(transforms=[T.RandomRotation(degrees=15)], p = 0.25)
+            ])
+        else:
+            # same image augmenter as https://github.com/brucechou1983/CheXNet-Keras
+            self.augmenter = iaa.Sequential(
+                [iaa.Fliplr(0.5),],
+                random_order=True,
+            )
+
         self.labels = [
             'No Finding', 'Enlarged Cardiomediastinum','Cardiomegaly', 
             'Lung Opacity', 'Lung Lesion', 'Edema', 'Consolidation', 'Pneumonia', 'Atelectasis', 'Pneumothorax', 'Pleural Effusion', 'Pleural Other', 'Fracture', 'Support Devices']
@@ -460,16 +472,16 @@ class CheXpertDataset(Dataset):
             raise ValueError(
                 'If multi_label is False, target disease must not be None')
 
-        
-        
 
-        
     def __getitem__(self, idx):
         image_path = self.X_paths[idx]
         batch_x = self.load_image(image_path)
-        if self.augment_images:
+        
+        # Simple image augmentation 
+        if not self.extended_image_augmentation:
             batch_x = self.augmenter.augment_image(batch_x).copy() #dim=(H, W, C)
-            batch_x = np.moveaxis(batch_x, source=-1, destination=0) #dim=(C, H, W)
+        
+        batch_x = np.moveaxis(batch_x, source=-1, destination=0) #dim=(C, H, W)
         batch_y = self.y[idx]
 
         return batch_x, batch_y
@@ -481,6 +493,11 @@ class CheXpertDataset(Dataset):
         """Loads image and turns it into array of appropiate size
         """
         image = Image.open(image_path)
+        
+        # Extended image augmentation 
+        if self.extended_image_augmentation:
+            image = self.augmenter(image)
+
         image_array = np.asarray(image.convert("RGB"))
         image_array = image_array / 255.
         image_array = resize(image_array, self.image_size)
@@ -504,7 +521,7 @@ class CheXpertDataModule(pl.LightningDataModule):
             'uncertainty_approach', 'U-Zeros')
         self.multi_label = kwargs.get('multi_label', False)
         self.target_disease = kwargs.get('target_disease', None)
-        self.augment_images = kwargs.get('augment_images', True)
+        self.extended_image_augmentation = kwargs.get('extended_image_augmentation', False)
         self.num_workers = kwargs.get('num_workers', 0)
         self.tiny_sample_data = kwargs.get('tiny_sample_data', False)
 
@@ -525,7 +542,7 @@ class CheXpertDataModule(pl.LightningDataModule):
                 multi_label = self.multi_label,
                 uncertainty_approach = self.uncertainty_approach,
                 image_size = self.image_size,
-                augment_images = self.augment_images)
+                extended_image_augmentation = self.extended_image_augmentation)
         return dataset
         
     def setup(self, stage = None):
@@ -606,11 +623,14 @@ if __name__ == '__main__':
        # "target_disease":"Cardiomegaly", 
         "multi_label": True,
         "uncertainty_approach": "U-Zeros",
-        "tiny_sample_data": True}
+        "tiny_sample_data": True, 
+        "extended_image_augmentation": False}
     dm = CheXpertDataModule(**kwargs)
     X, y = next(iter(dm.train_dataloader()))
     print(X.shape)
     print(y.shape)
+
+    plt.imshow(X[0].permute(1, 2, 0))
 
     #dm_t = TaiwaneseDataModule()
     #tmp_t = next(iter(dm_t.train_dataloader()))

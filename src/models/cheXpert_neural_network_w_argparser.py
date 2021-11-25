@@ -38,11 +38,13 @@ if __name__ == "__main__":
     parser.add_argument("model_name", help="Choose model_name", type = str)
     parser.add_argument("weight_decay", help="Choose weight decay", type = float) 
     parser.add_argument("dropout", help="Choose dropout", type = float)  
+    parser.add_argument("do_ext_img_aug", help="Should there be extended im aug?", type = bool)  
     args = parser.parse_args()    
 
     print(f"model_name: {args.model_name}")
     print(f"wd: {args.weight_decay}")
     print(f"dropout: {args.dropout}")
+    print(f"Extended Image Augmentation: {args.do_ext_img_aug}")
 
     model_name = args.model_name
     model_path = f'models/CheXpert/checkpoints_from_trainer/{model_name}'
@@ -59,7 +61,8 @@ if __name__ == "__main__":
         'optimizer': optimizer,
         'multi_label': multi_label,
         'weight_decay': args.weight_decay,
-        'dropout': args.dropout
+        'dropout': args.dropout,
+        'do_ext_img_aug': args.do_ext_img_aug
         }
 
     model_checkpoint_callback = ModelCheckpoint(
@@ -97,7 +100,8 @@ if __name__ == "__main__":
         'multi_label': multi_label,
         "uncertainty_approach": "U-Zeros",
         "num_workers": num_workers,
-        'tiny_sample_data': tiny_sample_data})
+        'tiny_sample_data': tiny_sample_data, 
+        'extended_image_augmentation':args.do_ext_img_aug})
 
     pl_model = BinaryClassificationTaskCheXpert(
         lr = lr,
@@ -106,7 +110,8 @@ if __name__ == "__main__":
         lr_scheduler_patience = lr_scheduler_patience,
         optimizer = optimizer,
         num_classes = dm.train_data.num_classes, 
-        weight_decay = args.weight_decay)
+        weight_decay = args.weight_decay, 
+        dropout = args.dropout)
 
 
     print('--- Setup training ---')

@@ -43,7 +43,8 @@ class BinaryClassificationTaskCheXpert(pl.LightningModule):
             lr_scheduler_patience = None,
             optimizer = 'Adam', 
             num_classes = 1, 
-            weight_decay = 0):
+            weight_decay = 0,
+            dropout = 0):
 
         super().__init__()
         self.lr = lr
@@ -53,6 +54,7 @@ class BinaryClassificationTaskCheXpert(pl.LightningModule):
         self.optimizer = optimizer
         self.num_classes = num_classes
         self.weight_decay = weight_decay
+        self.dropout = dropout
 
         if model is None:
             self.model = self.initialize_model()
@@ -72,7 +74,8 @@ class BinaryClassificationTaskCheXpert(pl.LightningModule):
         model = torch.hub.load(
                 'pytorch/vision:v0.10.0', 
                 'densenet121', 
-                pretrained = True)
+                pretrained = True, 
+                drop_rate = self.dropout)
 
         set_parameter_requires_grad(model, 
             feature_extracting=self.feature_extract)
