@@ -15,7 +15,7 @@
 ### -- job gets killed if it exceeds xGB per core/slot -- 
 #BSUB -M 10GB
 ### -- set walltime limit: hh:mm -- 
-#BSUB -W 02:30
+#BSUB -W 06:00
 ### -- Specify the output and error file. %J is the job-id -- 
 ### -- -o and -e mean append, -oo and -eo mean overwrite -- 
 #BSUB -oo logs/benchmark_adam/%J.out 
