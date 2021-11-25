@@ -41,7 +41,8 @@ class BinaryClassificationTaskCheXpert(pl.LightningModule):
             feature_extract = True, 
             reduce_lr_on_plateau = False,
             lr_scheduler_patience = None,
-            optimizer = 'Adam'):
+            optimizer = 'Adam', 
+            num_classes = 1):
 
         super().__init__()
         self.lr = lr
@@ -49,14 +50,21 @@ class BinaryClassificationTaskCheXpert(pl.LightningModule):
         self.reduce_lr_on_plateau = reduce_lr_on_plateau
         self.lr_scheduler_patience = lr_scheduler_patience
         self.optimizer = optimizer
+        self.num_classes = num_classes
 
         if model is None:
             self.model = self.initialize_model()
         else:
             self.model = model
         self.save_hyperparameters()
-        self.train_auroc = AUROC(compute_on_step=False)
-        self.val_auroc = AUROC(compute_on_step = False)
+        self.train_auroc = AUROC(
+            compute_on_step=False, 
+            num_classes = self.num_classes, 
+            average = 'micro')
+        self.val_auroc = AUROC(
+            compute_on_step = False, 
+            num_classes = self.num_classes,
+            average = 'micro')
 
     def initialize_model(self):
         model = torch.hub.load(
@@ -68,14 +76,14 @@ class BinaryClassificationTaskCheXpert(pl.LightningModule):
             feature_extracting=self.feature_extract)
 
         in_features_classifier = model.classifier.in_features
-        model.classifier = torch.nn.Linear(in_features_classifier, 1)
+        model.classifier = torch.nn.Linear(
+            in_features_classifier, self.num_classes)
 
         model = model.double() # To ensure compatibilty with dataset
         return model
 
     def forward(self, batch): 
         x, y = batch
-        print(f"x dim: {x.size()}")
         forwarded_x = self.model(x.double())
         return forwarded_x
 
