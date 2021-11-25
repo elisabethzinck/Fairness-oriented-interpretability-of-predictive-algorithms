@@ -42,7 +42,8 @@ class BinaryClassificationTaskCheXpert(pl.LightningModule):
             reduce_lr_on_plateau = False,
             lr_scheduler_patience = None,
             optimizer = 'Adam', 
-            num_classes = 1):
+            num_classes = 1, 
+            weight_decay = 0):
 
         super().__init__()
         self.lr = lr
@@ -51,6 +52,7 @@ class BinaryClassificationTaskCheXpert(pl.LightningModule):
         self.lr_scheduler_patience = lr_scheduler_patience
         self.optimizer = optimizer
         self.num_classes = num_classes
+        self.weight_decay = weight_decay
 
         if model is None:
             self.model = self.initialize_model()
@@ -119,9 +121,16 @@ class BinaryClassificationTaskCheXpert(pl.LightningModule):
     def configure_optimizers(self):
         params_to_optimize = get_params_to_update(self.model, feature_extract = self.feature_extract)
         if self.optimizer == 'SGD':
-            optimizer = torch.optim.SGD(params_to_optimize, lr = self.lr)
+            optimizer = torch.optim.SGD(
+                params_to_optimize,
+                lr = self.lr,
+                weight_decay = self.weight_decay)
         elif self.optimizer == 'Adam':
-            optimizer = torch.optim.Adam(params_to_optimize, lr = self.lr)
+            optimizer = torch.optim.Adam(
+                params_to_optimize,
+                lr = self.lr,
+                weight_decay = self.weight_decay
+                )
         else:
             raise ValueError(f'optimizer `{self.optimizer}` not implemented.')
         optimizer_dict = {'optimizer': optimizer}
