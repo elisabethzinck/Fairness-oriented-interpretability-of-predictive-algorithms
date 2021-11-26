@@ -415,6 +415,7 @@ class CheXpertDataset(Dataset):
             raise ValueError('DenseNet in Pytorch requires height and width to be at least 224')
 
         if extended_image_augmentation: 
+            print("---- Initializing Extended Image Augmentation ----")
             self.augmenter = T.Compose([
                 T.RandomHorizontalFlip(p=0.25),
                 T.RandomApply(transforms=[T.RandomAffine(degrees=15, scale = (0.9, 1.1))], p=0.25),

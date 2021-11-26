@@ -22,8 +22,8 @@ if __name__ == "__main__":
     tiny_sample_data = False
     
     # All defined variables below must be included into hyper_dict
-    only_feature_extraction = True
-    max_epochs = 15
+    only_feature_extraction = False
+    max_epochs = 20
     lr = 0.001
     reduce_lr_on_plateau = True
     lr_scheduler_patience = 1 
@@ -31,20 +31,20 @@ if __name__ == "__main__":
     early_stopping_patience = 3
     resume_from_checkpoint = False
     optimizer = 'Adam' # Options: 'Adam' and 'SGD'
-    multi_label = True
+    multi_label = False
 
     # Passed Model_name, weight_decay and dropout with argparser 
     parser = argparse.ArgumentParser(description = "CheXpert NN argparser")
     parser.add_argument("model_name", help="Choose model_name", type = str)
     parser.add_argument("weight_decay", help="Choose weight decay", type = float) 
     parser.add_argument("dropout", help="Choose dropout", type = float)  
-    parser.add_argument("do_ext_img_aug", help="Should there be extended im aug?", type = bool)  
+    parser.add_argument("do_ext_img_aug", help="Should there be extended im aug?", type = int)  
     args = parser.parse_args()    
 
     print(f"model_name: {args.model_name}")
     print(f"wd: {args.weight_decay}")
     print(f"dropout: {args.dropout}")
-    print(f"Extended Image Augmentation: {args.do_ext_img_aug}")
+    print(f"Extended Image Augmentation: {bool(args.do_ext_img_aug)}")
 
     model_name = args.model_name
     model_path = f'models/CheXpert/checkpoints_from_trainer/{model_name}'
@@ -101,7 +101,7 @@ if __name__ == "__main__":
         "uncertainty_approach": "U-Zeros",
         "num_workers": num_workers,
         'tiny_sample_data': tiny_sample_data, 
-        'extended_image_augmentation':args.do_ext_img_aug})
+        'extended_image_augmentation':bool(args.do_ext_img_aug)})
 
     pl_model = BinaryClassificationTaskCheXpert(
         lr = lr,
