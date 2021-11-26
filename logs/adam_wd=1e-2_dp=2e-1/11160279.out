@@ -1,0 +1,130 @@
+Sender: LSF System <lsfadmin@hpc.dtu.dk>
+Subject: Job 11160279: <adam_wd=1e-2_dp=2e-1> in cluster <dcc> Exited
+
+Job <adam_wd=1e-2_dp=2e-1> was submitted from host <n-62-27-23> by user <s164175> in cluster <dcc> at Thu Nov 25 15:31:42 2021
+Job was executed on host(s) <8*n-62-20-14>, in queue <gpuv100>, as user <s164175> in cluster <dcc> at Thu Nov 25 15:31:43 2021
+</zhome/95/1/117606> was used as the home directory.
+</zhome/95/1/117606/Documents/Fairness-oriented-interpretability-of-predictive-algorithms> was used as the working directory.
+Started at Thu Nov 25 15:31:43 2021
+Terminated at Thu Nov 25 15:33:06 2021
+Results reported at Thu Nov 25 15:33:06 2021
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+#!/bin/sh 
+### General options 
+### -- specify queue -- 
+#BSUB -q gpuv100
+### -- set the job Name --  (should be the same as in script)
+#BSUB -J adam_wd=1e-2_dp=2e-1
+### -- ask for number of cores (default: 1) -- 
+#BSUB -n 8 
+### --- ask for gpu ---
+#BSUB -gpu "num=1"
+### -- specify that the cores must be on the same host -- 
+#BSUB -R "span[hosts=1]"
+### -- amount of memory per core/slot -- 
+#BSUB -R "rusage[mem=10GB]"
+### -- job gets killed if it exceeds xGB per core/slot -- 
+#BSUB -M 10GB
+### -- set walltime limit: hh:mm -- 
+#BSUB -W 06:00
+### -- Specify the output and error file. %J is the job-id -- 
+### -- -o and -e mean append, -oo and -eo mean overwrite -- 
+#BSUB -oo logs/adam_wd=1e-2_dp=2e-1/%J.out 
+
+echo "Starting bash script"
+
+### Make logging directory
+mkdir -p logs/adam_wd=1e-2_dp=2e-1/
+
+### Activate environment
+module load python3/3.8.11
+source .venv/bin/activate
+
+### Run python script
+echo "----------------------------"
+echo "--- Output from Python -----"
+echo "----------------------------"
+
+# Running neural network training parsing 
+# model_name, weight_decay, drop_out, extented_image_augmentation
+python3 src/models/cheXpert_neural_network_w_argparser.py adam_wd=1e-2_dp=2e-1 1e-2 2e-1 False
+
+echo "----------------------------"
+echo "---       DONE :)      -----"
+echo "----------------------------"
+
+
+------------------------------------------------------------
+
+TERM_OWNER: job killed by owner.
+Exited with signal termination: 14.
+
+Resource usage summary:
+
+    CPU time :                                   3.34 sec.
+    Max Memory :                                 186 MB
+    Average Memory :                             147.00 MB
+    Total Requested Memory :                     81920.00 MB
+    Delta Memory :                               81734.00 MB
+    Max Swap :                                   -
+    Max Processes :                              4
+    Max Threads :                                5
+    Run time :                                   83 sec.
+    Turnaround time :                            84 sec.
+
+The output (if any) follows:
+
+Starting bash script
+Loaded dependency [python3/3.8.11]: gcc/10.3.0-binutils-2.36.1
+Loaded module: python3/3.8.11
+
+Loading python3/3.8.11
+  Loading requirement: gcc/10.3.0-binutils-2.36.1
+----------------------------
+--- Output from Python -----
+----------------------------
+Traceback (most recent call last):
+  File "src/models/cheXpert_neural_network_w_argparser.py", line 14, in <module>
+    from src.models.general_modelling_functions import print_timing
+  File "/zhome/95/1/117606/Documents/Fairness-oriented-interpretability-of-predictive-algorithms/src/models/general_modelling_functions.py", line 10, in <module>
+    import optuna
+  File "/zhome/95/1/117606/Documents/Fairness-oriented-interpretability-of-predictive-algorithms/.venv/lib64/python3.6/site-packages/optuna/__init__.py", line 11, in <module>
+    from optuna import multi_objective
+  File "/zhome/95/1/117606/Documents/Fairness-oriented-interpretability-of-predictive-algorithms/.venv/lib64/python3.6/site-packages/optuna/multi_objective/__init__.py", line 4, in <module>
+    from optuna.multi_objective import visualization  # NOQA
+  File "/zhome/95/1/117606/Documents/Fairness-oriented-interpretability-of-predictive-algorithms/.venv/lib64/python3.6/site-packages/optuna/multi_objective/visualization/__init__.py", line 1, in <module>
+    from optuna.multi_objective.visualization._pareto_front import plot_pareto_front  # NOQA
+  File "/zhome/95/1/117606/Documents/Fairness-oriented-interpretability-of-predictive-algorithms/.venv/lib64/python3.6/site-packages/optuna/multi_objective/visualization/_pareto_front.py", line 11, in <module>
+    from optuna.visualization._plotly_imports import _imports
+  File "/zhome/95/1/117606/Documents/Fairness-oriented-interpretability-of-predictive-algorithms/.venv/lib64/python3.6/site-packages/optuna/visualization/__init__.py", line 1, in <module>
+    from optuna.visualization import matplotlib
+  File "/zhome/95/1/117606/Documents/Fairness-oriented-interpretability-of-predictive-algorithms/.venv/lib64/python3.6/site-packages/optuna/visualization/matplotlib/__init__.py", line 1, in <module>
+    from optuna.visualization.matplotlib._contour import plot_contour
+  File "/zhome/95/1/117606/Documents/Fairness-oriented-interpretability-of-predictive-algorithms/.venv/lib64/python3.6/site-packages/optuna/visualization/matplotlib/_contour.py", line 18, in <module>
+    from optuna.visualization._utils import _check_plot_args
+  File "/zhome/95/1/117606/Documents/Fairness-oriented-interpretability-of-predictive-algorithms/.venv/lib64/python3.6/site-packages/optuna/visualization/_utils.py", line 12, in <module>
+    from optuna.visualization import _plotly_imports
+  File "/zhome/95/1/117606/Documents/Fairness-oriented-interpretability-of-predictive-algorithms/.venv/lib64/python3.6/site-packages/optuna/visualization/_plotly_imports.py", line 7, in <module>
+    import plotly  # NOQA
+  File "/zhome/95/1/117606/Documents/Fairness-oriented-interpretability-of-predictive-algorithms/.venv/lib64/python3.6/site-packages/plotly/__init__.py", line 34, in <module>
+    from plotly import (
+  File "/zhome/95/1/117606/Documents/Fairness-oriented-interpretability-of-predictive-algorithms/.venv/lib64/python3.6/site-packages/plotly/graph_objs/__init__.py", line 94, in <module>
+    from . import histogram
+  File "/zhome/95/1/117606/Documents/Fairness-oriented-interpretability-of-predictive-algorithms/.venv/lib64/python3.6/site-packages/plotly/graph_objs/histogram/__init__.py", line 19, in <module>
+    from . import unselected
+  File "/zhome/95/1/117606/Documents/Fairness-oriented-interpretability-of-predictive-algorithms/.venv/lib64/python3.6/site-packages/plotly/graph_objs/histogram/unselected/__init__.py", line 4, in <module>
+    from ._marker import Marker
+  File "<frozen importlib._bootstrap>", line 971, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 955, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 665, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 674, in exec_module
+  File "<frozen importlib._bootstrap_external>", line 764, in get_code
+  File "<frozen importlib._bootstrap_external>", line 833, in get_data
+KeyboardInterrupt
+----------------------------
+---       DONE :)      -----
+----------------------------
