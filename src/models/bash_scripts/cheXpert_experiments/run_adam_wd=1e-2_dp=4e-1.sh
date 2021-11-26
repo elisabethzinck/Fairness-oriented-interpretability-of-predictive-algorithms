@@ -15,7 +15,7 @@
 ### -- job gets killed if it exceeds xGB per core/slot -- 
 #BSUB -M 10GB
 ### -- set walltime limit: hh:mm -- 
-#BSUB -W 20:00
+#BSUB -W 24:00
 ### -- Specify the output and error file. %J is the job-id -- 
 ### -- -o and -e mean append, -oo and -eo mean overwrite -- 
 #BSUB -oo logs/adam_wd=1e-2_dp=4e-1/%J.out 
@@ -36,7 +36,7 @@ echo "----------------------------"
 
 # Running neural network training parsing 
 # model_name, weight_decay, drop_out, extented_image_augmentation
-python3 src/models/cheXpert_neural_network_w_argparser.py adam_wd=1e-2_dp=4e-1 1e-2 4e-1 False
+python3 src/models/cheXpert_neural_network_w_argparser.py adam_wd=1e-2_dp=4e-1 1e-2 4e-1 0
 
 echo "----------------------------"
 echo "---       DONE :)      -----"
