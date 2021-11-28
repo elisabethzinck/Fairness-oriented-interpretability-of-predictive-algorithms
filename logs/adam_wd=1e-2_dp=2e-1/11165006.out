@@ -24,9 +24,9 @@ LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
 0         Non-trainable params
 7.0 M     Total params
 27.820    Total estimated model params size (MB)
-model_name: adam_wd=1e-3
-wd: 0.001
-dropout: 0.0
+model_name: adam_wd=1e-2_dp=2e-1
+wd: 0.01
+dropout: 0.2
 Extended Image Augmentation: False
 --- Initializing model and datamodule ---
 --- Setup training ---
@@ -397,22 +397,113 @@ Params to learn:
 	 classifier.weight
 	 classifier.bias
 Global seed set to 42
-Total time to run script: 1246.14 mins
+Traceback (most recent call last):
+  File "src/models/cheXpert_neural_network_w_argparser.py", line 144, in <module>
+    trainer.fit(pl_model, dm)
+  File "/zhome/63/6/117697/Documents/Fairness-oriented-interpretability-of-predictive-algorithms/.venv/lib/python3.8/site-packages/pytorch_lightning/trainer/trainer.py", line 735, in fit
+    self._call_and_handle_interrupt(
+  File "/zhome/63/6/117697/Documents/Fairness-oriented-interpretability-of-predictive-algorithms/.venv/lib/python3.8/site-packages/pytorch_lightning/trainer/trainer.py", line 682, in _call_and_handle_interrupt
+    return trainer_fn(*args, **kwargs)
+  File "/zhome/63/6/117697/Documents/Fairness-oriented-interpretability-of-predictive-algorithms/.venv/lib/python3.8/site-packages/pytorch_lightning/trainer/trainer.py", line 770, in _fit_impl
+    self._run(model, ckpt_path=ckpt_path)
+  File "/zhome/63/6/117697/Documents/Fairness-oriented-interpretability-of-predictive-algorithms/.venv/lib/python3.8/site-packages/pytorch_lightning/trainer/trainer.py", line 1193, in _run
+    self._dispatch()
+  File "/zhome/63/6/117697/Documents/Fairness-oriented-interpretability-of-predictive-algorithms/.venv/lib/python3.8/site-packages/pytorch_lightning/trainer/trainer.py", line 1272, in _dispatch
+    self.training_type_plugin.start_training(self)
+  File "/zhome/63/6/117697/Documents/Fairness-oriented-interpretability-of-predictive-algorithms/.venv/lib/python3.8/site-packages/pytorch_lightning/plugins/training_type/training_type_plugin.py", line 202, in start_training
+    self._results = trainer.run_stage()
+  File "/zhome/63/6/117697/Documents/Fairness-oriented-interpretability-of-predictive-algorithms/.venv/lib/python3.8/site-packages/pytorch_lightning/trainer/trainer.py", line 1282, in run_stage
+    return self._run_train()
+  File "/zhome/63/6/117697/Documents/Fairness-oriented-interpretability-of-predictive-algorithms/.venv/lib/python3.8/site-packages/pytorch_lightning/trainer/trainer.py", line 1312, in _run_train
+    self.fit_loop.run()
+  File "/zhome/63/6/117697/Documents/Fairness-oriented-interpretability-of-predictive-algorithms/.venv/lib/python3.8/site-packages/pytorch_lightning/loops/base.py", line 145, in run
+    self.advance(*args, **kwargs)
+  File "/zhome/63/6/117697/Documents/Fairness-oriented-interpretability-of-predictive-algorithms/.venv/lib/python3.8/site-packages/pytorch_lightning/loops/fit_loop.py", line 234, in advance
+    self.epoch_loop.run(data_fetcher)
+  File "/zhome/63/6/117697/Documents/Fairness-oriented-interpretability-of-predictive-algorithms/.venv/lib/python3.8/site-packages/pytorch_lightning/loops/base.py", line 145, in run
+    self.advance(*args, **kwargs)
+  File "/zhome/63/6/117697/Documents/Fairness-oriented-interpretability-of-predictive-algorithms/.venv/lib/python3.8/site-packages/pytorch_lightning/loops/epoch/training_epoch_loop.py", line 195, in advance
+    batch_output = self.batch_loop.run(batch, batch_idx)
+  File "/zhome/63/6/117697/Documents/Fairness-oriented-interpretability-of-predictive-algorithms/.venv/lib/python3.8/site-packages/pytorch_lightning/loops/base.py", line 145, in run
+    self.advance(*args, **kwargs)
+  File "/zhome/63/6/117697/Documents/Fairness-oriented-interpretability-of-predictive-algorithms/.venv/lib/python3.8/site-packages/pytorch_lightning/loops/batch/training_batch_loop.py", line 88, in advance
+    outputs = self.optimizer_loop.run(split_batch, optimizers, batch_idx)
+  File "/zhome/63/6/117697/Documents/Fairness-oriented-interpretability-of-predictive-algorithms/.venv/lib/python3.8/site-packages/pytorch_lightning/loops/base.py", line 145, in run
+    self.advance(*args, **kwargs)
+  File "/zhome/63/6/117697/Documents/Fairness-oriented-interpretability-of-predictive-algorithms/.venv/lib/python3.8/site-packages/pytorch_lightning/loops/optimization/optimizer_loop.py", line 215, in advance
+    result = self._run_optimization(
+  File "/zhome/63/6/117697/Documents/Fairness-oriented-interpretability-of-predictive-algorithms/.venv/lib/python3.8/site-packages/pytorch_lightning/loops/optimization/optimizer_loop.py", line 266, in _run_optimization
+    self._optimizer_step(optimizer, opt_idx, batch_idx, closure)
+  File "/zhome/63/6/117697/Documents/Fairness-oriented-interpretability-of-predictive-algorithms/.venv/lib/python3.8/site-packages/pytorch_lightning/loops/optimization/optimizer_loop.py", line 378, in _optimizer_step
+    lightning_module.optimizer_step(
+  File "/zhome/63/6/117697/Documents/Fairness-oriented-interpretability-of-predictive-algorithms/.venv/lib/python3.8/site-packages/pytorch_lightning/core/lightning.py", line 1662, in optimizer_step
+    optimizer.step(closure=optimizer_closure)
+  File "/zhome/63/6/117697/Documents/Fairness-oriented-interpretability-of-predictive-algorithms/.venv/lib/python3.8/site-packages/pytorch_lightning/core/optimizer.py", line 164, in step
+    trainer.accelerator.optimizer_step(self._optimizer, self._optimizer_idx, closure, **kwargs)
+  File "/zhome/63/6/117697/Documents/Fairness-oriented-interpretability-of-predictive-algorithms/.venv/lib/python3.8/site-packages/pytorch_lightning/accelerators/accelerator.py", line 336, in optimizer_step
+    self.precision_plugin.optimizer_step(model, optimizer, opt_idx, closure, **kwargs)
+  File "/zhome/63/6/117697/Documents/Fairness-oriented-interpretability-of-predictive-algorithms/.venv/lib/python3.8/site-packages/pytorch_lightning/plugins/precision/precision_plugin.py", line 163, in optimizer_step
+    optimizer.step(closure=closure, **kwargs)
+  File "/zhome/63/6/117697/Documents/Fairness-oriented-interpretability-of-predictive-algorithms/.venv/lib/python3.8/site-packages/torch/optim/optimizer.py", line 88, in wrapper
+    return func(*args, **kwargs)
+  File "/zhome/63/6/117697/Documents/Fairness-oriented-interpretability-of-predictive-algorithms/.venv/lib/python3.8/site-packages/torch/autograd/grad_mode.py", line 28, in decorate_context
+    return func(*args, **kwargs)
+  File "/zhome/63/6/117697/Documents/Fairness-oriented-interpretability-of-predictive-algorithms/.venv/lib/python3.8/site-packages/torch/optim/adam.py", line 92, in step
+    loss = closure()
+  File "/zhome/63/6/117697/Documents/Fairness-oriented-interpretability-of-predictive-algorithms/.venv/lib/python3.8/site-packages/pytorch_lightning/plugins/precision/precision_plugin.py", line 148, in _wrap_closure
+    closure_result = closure()
+  File "/zhome/63/6/117697/Documents/Fairness-oriented-interpretability-of-predictive-algorithms/.venv/lib/python3.8/site-packages/pytorch_lightning/loops/optimization/optimizer_loop.py", line 160, in __call__
+    self._result = self.closure(*args, **kwargs)
+  File "/zhome/63/6/117697/Documents/Fairness-oriented-interpretability-of-predictive-algorithms/.venv/lib/python3.8/site-packages/pytorch_lightning/loops/optimization/optimizer_loop.py", line 142, in closure
+    step_output = self._step_fn()
+  File "/zhome/63/6/117697/Documents/Fairness-oriented-interpretability-of-predictive-algorithms/.venv/lib/python3.8/site-packages/pytorch_lightning/loops/optimization/optimizer_loop.py", line 435, in _training_step
+    training_step_output = self.trainer.accelerator.training_step(step_kwargs)
+  File "/zhome/63/6/117697/Documents/Fairness-oriented-interpretability-of-predictive-algorithms/.venv/lib/python3.8/site-packages/pytorch_lightning/accelerators/accelerator.py", line 216, in training_step
+    return self.training_type_plugin.training_step(*step_kwargs.values())
+  File "/zhome/63/6/117697/Documents/Fairness-oriented-interpretability-of-predictive-algorithms/.venv/lib/python3.8/site-packages/pytorch_lightning/plugins/training_type/training_type_plugin.py", line 213, in training_step
+    return self.model.training_step(*args, **kwargs)
+  File "/zhome/63/6/117697/Documents/Fairness-oriented-interpretability-of-predictive-algorithms/src/models/cheXpert_modelling_functions.py", line 97, in training_step
+    y_hat = torch.sigmoid(self.model(x.double()))
+  File "/zhome/63/6/117697/Documents/Fairness-oriented-interpretability-of-predictive-algorithms/.venv/lib/python3.8/site-packages/torch/nn/modules/module.py", line 1102, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/zhome/63/6/117697/Documents/Fairness-oriented-interpretability-of-predictive-algorithms/.venv/lib/python3.8/site-packages/torchvision/models/densenet.py", line 216, in forward
+    features = self.features(x)
+  File "/zhome/63/6/117697/Documents/Fairness-oriented-interpretability-of-predictive-algorithms/.venv/lib/python3.8/site-packages/torch/nn/modules/module.py", line 1102, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/zhome/63/6/117697/Documents/Fairness-oriented-interpretability-of-predictive-algorithms/.venv/lib/python3.8/site-packages/torch/nn/modules/container.py", line 141, in forward
+    input = module(input)
+  File "/zhome/63/6/117697/Documents/Fairness-oriented-interpretability-of-predictive-algorithms/.venv/lib/python3.8/site-packages/torch/nn/modules/module.py", line 1102, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/zhome/63/6/117697/Documents/Fairness-oriented-interpretability-of-predictive-algorithms/.venv/lib/python3.8/site-packages/torchvision/models/densenet.py", line 127, in forward
+    new_features = layer(features)
+  File "/zhome/63/6/117697/Documents/Fairness-oriented-interpretability-of-predictive-algorithms/.venv/lib/python3.8/site-packages/torch/nn/modules/module.py", line 1102, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/zhome/63/6/117697/Documents/Fairness-oriented-interpretability-of-predictive-algorithms/.venv/lib/python3.8/site-packages/torchvision/models/densenet.py", line 92, in forward
+    bottleneck_output = self.bn_function(prev_features)
+  File "/zhome/63/6/117697/Documents/Fairness-oriented-interpretability-of-predictive-algorithms/.venv/lib/python3.8/site-packages/torchvision/models/densenet.py", line 53, in bn_function
+    bottleneck_output = self.conv1(self.relu1(self.norm1(concated_features)))  # noqa: T484
+  File "/zhome/63/6/117697/Documents/Fairness-oriented-interpretability-of-predictive-algorithms/.venv/lib/python3.8/site-packages/torch/nn/modules/module.py", line 1102, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/zhome/63/6/117697/Documents/Fairness-oriented-interpretability-of-predictive-algorithms/.venv/lib/python3.8/site-packages/torch/nn/modules/conv.py", line 446, in forward
+    return self._conv_forward(input, self.weight, self.bias)
+  File "/zhome/63/6/117697/Documents/Fairness-oriented-interpretability-of-predictive-algorithms/.venv/lib/python3.8/site-packages/torch/nn/modules/conv.py", line 442, in _conv_forward
+    return F.conv2d(input, weight, bias, self.stride,
+RuntimeError: CUDA out of memory. Tried to allocate 20.00 MiB (GPU 0; 31.75 GiB total capacity; 5.88 GiB already allocated; 21.00 MiB free; 5.94 GiB reserved in total by PyTorch) If reserved memory is >> allocated memory try setting max_split_size_mb to avoid fragmentation.  See documentation for Memory Management and PYTORCH_CUDA_ALLOC_CONF
 ----------------------------
 ---       DONE :)      -----
 ----------------------------
 
 ------------------------------------------------------------
 Sender: LSF System <lsfadmin@hpc.dtu.dk>
-Subject: Job 11163413: <adam_wd=1e-3> in cluster <dcc> Done
+Subject: Job 11165006: <adam_wd=1e-2_dp=2e-1> in cluster <dcc> Done
 
-Job <adam_wd=1e-3> was submitted from host <gbarlogin1> by user <s164204> in cluster <dcc> at Fri Nov 26 13:25:25 2021
-Job was executed on host(s) <8*n-62-20-12>, in queue <gpuv100>, as user <s164204> in cluster <dcc> at Fri Nov 26 19:58:07 2021
+Job <adam_wd=1e-2_dp=2e-1> was submitted from host <gbarlogin1> by user <s164204> in cluster <dcc> at Sat Nov 27 13:21:34 2021
+Job was executed on host(s) <8*n-62-20-12>, in queue <gpuv100>, as user <s164204> in cluster <dcc> at Sat Nov 27 13:37:56 2021
 </zhome/63/6/117697> was used as the home directory.
 </zhome/63/6/117697/Documents/Fairness-oriented-interpretability-of-predictive-algorithms> was used as the working directory.
-Started at Fri Nov 26 19:58:07 2021
-Terminated at Sat Nov 27 16:44:54 2021
-Results reported at Sat Nov 27 16:44:54 2021
+Started at Sat Nov 27 13:37:56 2021
+Terminated at Sat Nov 27 13:38:18 2021
+Results reported at Sat Nov 27 13:38:18 2021
 
 Your job looked like:
 
@@ -423,7 +514,7 @@ Your job looked like:
 ### -- specify queue -- 
 #BSUB -q gpuv100
 ### -- set the job Name --  (should be the same as in script)
-#BSUB -J adam_wd=1e-3
+#BSUB -J adam_wd=1e-2_dp=2e-1
 ### -- ask for number of cores (default: 1) -- 
 #BSUB -n 8 
 ### --- ask for gpu ---
@@ -438,12 +529,12 @@ Your job looked like:
 #BSUB -W 24:00
 ### -- Specify the output and error file. %J is the job-id -- 
 ### -- -o and -e mean append, -oo and -eo mean overwrite -- 
-#BSUB -oo logs/adam_wd=1e-3/%J.out 
+#BSUB -oo logs/adam_wd=1e-2_dp=2e-1/%J.out 
 
 echo "Starting bash script"
 
 ### Make logging directory
-mkdir -p logs/adam_wd=1e-3/
+mkdir -p logs/adam_wd=1e-2_dp=2e-1/
 
 ### Activate environment
 module load python3/3.8.11
@@ -456,7 +547,7 @@ echo "----------------------------"
 
 # Running neural network training parsing 
 # model_name, weight_decay, drop_out, extented_image_augmentation
-python3 src/models/cheXpert_neural_network_w_argparser.py adam_wd=1e-3 1e-3 0 0
+python3 src/models/cheXpert_neural_network_w_argparser.py adam_wd=1e-2_dp=2e-1 1e-2 2e-1 0
 
 echo "----------------------------"
 echo "---       DONE :)      -----"
@@ -469,16 +560,16 @@ Successfully completed.
 
 Resource usage summary:
 
-    CPU time :                                   117276.16 sec.
-    Max Memory :                                 17502 MB
-    Average Memory :                             8028.47 MB
+    CPU time :                                   39.39 sec.
+    Max Memory :                                 2006 MB
+    Average Memory :                             2006.00 MB
     Total Requested Memory :                     81920.00 MB
-    Delta Memory :                               64418.00 MB
+    Delta Memory :                               79914.00 MB
     Max Swap :                                   -
-    Max Processes :                              18
-    Max Threads :                                65
-    Run time :                                   74811 sec.
-    Turnaround time :                            98369 sec.
+    Max Processes :                              4
+    Max Threads :                                8
+    Run time :                                   37 sec.
+    Turnaround time :                            1004 sec.
 
 The output (if any) is above this job summary.
 

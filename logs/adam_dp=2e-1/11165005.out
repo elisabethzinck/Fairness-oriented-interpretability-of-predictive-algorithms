@@ -24,9 +24,9 @@ LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
 0         Non-trainable params
 7.0 M     Total params
 27.820    Total estimated model params size (MB)
-model_name: adam_wd=1e-3
-wd: 0.001
-dropout: 0.0
+model_name: adam_dp=2e-1
+wd: 0.0
+dropout: 0.2
 Extended Image Augmentation: False
 --- Initializing model and datamodule ---
 --- Setup training ---
@@ -397,22 +397,22 @@ Params to learn:
 	 classifier.weight
 	 classifier.bias
 Global seed set to 42
-Total time to run script: 1246.14 mins
+Total time to run script: 710.12 mins
 ----------------------------
 ---       DONE :)      -----
 ----------------------------
 
 ------------------------------------------------------------
 Sender: LSF System <lsfadmin@hpc.dtu.dk>
-Subject: Job 11163413: <adam_wd=1e-3> in cluster <dcc> Done
+Subject: Job 11165005: <adam_dp=2e-1> in cluster <dcc> Done
 
-Job <adam_wd=1e-3> was submitted from host <gbarlogin1> by user <s164204> in cluster <dcc> at Fri Nov 26 13:25:25 2021
-Job was executed on host(s) <8*n-62-20-12>, in queue <gpuv100>, as user <s164204> in cluster <dcc> at Fri Nov 26 19:58:07 2021
+Job <adam_dp=2e-1> was submitted from host <gbarlogin1> by user <s164204> in cluster <dcc> at Sat Nov 27 13:21:01 2021
+Job was executed on host(s) <8*n-62-20-3>, in queue <gpuv100>, as user <s164204> in cluster <dcc> at Sat Nov 27 13:21:02 2021
 </zhome/63/6/117697> was used as the home directory.
 </zhome/63/6/117697/Documents/Fairness-oriented-interpretability-of-predictive-algorithms> was used as the working directory.
-Started at Fri Nov 26 19:58:07 2021
-Terminated at Sat Nov 27 16:44:54 2021
-Results reported at Sat Nov 27 16:44:54 2021
+Started at Sat Nov 27 13:21:02 2021
+Terminated at Sun Nov 28 01:11:19 2021
+Results reported at Sun Nov 28 01:11:19 2021
 
 Your job looked like:
 
@@ -423,7 +423,7 @@ Your job looked like:
 ### -- specify queue -- 
 #BSUB -q gpuv100
 ### -- set the job Name --  (should be the same as in script)
-#BSUB -J adam_wd=1e-3
+#BSUB -J adam_dp=2e-1
 ### -- ask for number of cores (default: 1) -- 
 #BSUB -n 8 
 ### --- ask for gpu ---
@@ -438,12 +438,12 @@ Your job looked like:
 #BSUB -W 24:00
 ### -- Specify the output and error file. %J is the job-id -- 
 ### -- -o and -e mean append, -oo and -eo mean overwrite -- 
-#BSUB -oo logs/adam_wd=1e-3/%J.out 
+#BSUB -oo logs/adam_dp=2e-1/%J.out 
 
 echo "Starting bash script"
 
 ### Make logging directory
-mkdir -p logs/adam_wd=1e-3/
+mkdir -p logs/adam_dp=2e-1/
 
 ### Activate environment
 module load python3/3.8.11
@@ -456,7 +456,7 @@ echo "----------------------------"
 
 # Running neural network training parsing 
 # model_name, weight_decay, drop_out, extented_image_augmentation
-python3 src/models/cheXpert_neural_network_w_argparser.py adam_wd=1e-3 1e-3 0 0
+python3 src/models/cheXpert_neural_network_w_argparser.py adam_dp=2e-1 0 2e-1 0
 
 echo "----------------------------"
 echo "---       DONE :)      -----"
@@ -469,16 +469,16 @@ Successfully completed.
 
 Resource usage summary:
 
-    CPU time :                                   117276.16 sec.
-    Max Memory :                                 17502 MB
-    Average Memory :                             8028.47 MB
+    CPU time :                                   82948.21 sec.
+    Max Memory :                                 9301 MB
+    Average Memory :                             7657.60 MB
     Total Requested Memory :                     81920.00 MB
-    Delta Memory :                               64418.00 MB
+    Delta Memory :                               72619.00 MB
     Max Swap :                                   -
     Max Processes :                              18
     Max Threads :                                65
-    Run time :                                   74811 sec.
-    Turnaround time :                            98369 sec.
+    Run time :                                   42639 sec.
+    Turnaround time :                            42618 sec.
 
 The output (if any) is above this job summary.
 
