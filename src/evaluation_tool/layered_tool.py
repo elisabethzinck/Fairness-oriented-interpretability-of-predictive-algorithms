@@ -142,8 +142,9 @@ class FairKit:
             .rename(columns = {'a': 'grp'}))
         l1_data = (pd.merge(relative_wmr, obs_counts)
             .rename(columns = {
+                'rate_val': 'weighted_misclassification_rate',
                 'relative_rate': 'weighted_misclassification_quotient'}))
-        l1_data = l1_data[['grp', 'n', 'weighted_misclassification_quotient']]
+        l1_data = l1_data[['grp', 'n', 'weighted_misclassification_rate','weighted_misclassification_quotient']]
 
         if plot:
             self.plot_level_1(l1_data=l1_data, ax = None)
