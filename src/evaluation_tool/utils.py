@@ -224,7 +224,7 @@ def label_case(snake_case):
     "Replace underscore with spaces and capitalize first letter of string"
     return snake_case.replace("_", ' ').capitalize()
 
-def format_text_layer_1(ax, x, y, text_list, color_list, font_sizes, font_weights):
+def format_text_level_1(ax, x, y, text_list, color_list, font_sizes, font_weights):
     """Plots a list of words with specific colors, sizes and font 
     weights on a provided axis 
     Function inspired by: https://matplotlib.org/2.0.2/examples/text_labels_and_annotations/rainbow_text.html
@@ -273,7 +273,7 @@ def extract_cm_values(df, grp):
     
     Args: 
         df(Dataframe): long format confusion matrix as returned 
-                        by get_confusion_matrix() in layered_tool
+                        by get_confusion_matrix() in FairKit
         grp(str): sensitive group name 
     """
     cm_data = df.query(f"a=='{grp}' & type_obs in ['TP', 'FN', 'FP', 'TN']")

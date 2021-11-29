@@ -26,7 +26,7 @@ from sklearn.metrics import confusion_matrix, roc_curve
 from src.evaluation_tool.utils import (
     cm_matrix_to_dict, custom_palette, abs_percentage_tick, extract_cm_values,
     flatten_list, cm_dict_to_matrix, add_colors_with_stripes, get_alpha_weights, 
-    value_counts_df, desaturate, label_case, format_text_layer_1,
+    value_counts_df, desaturate, label_case, format_text_level_1,
     N_pos, N_neg, frac_pos, frac_neg, wilson_confint, 
     error_bar, flip_dataframe, cm_vals_to_matrix,
     get_BW_fairness_barometer_legend_patches
@@ -39,7 +39,7 @@ def calculate_WMR(cm, grp, w_fp):
     
     Args:
         cm (dataframe): long format confusion matrix as returned 
-                        by get_confusion_matrix() in layered_tool
+                        by get_confusion_matrix() in FairKit
         w_fp (int or float): False positive error weight 
     """
 
@@ -131,7 +131,7 @@ class FairKit:
     #                  LAYER METHODS
     ###############################################################
     
-    def layer_1(self, plot  = True, output_table = True, w_fp = None):
+    def level_1(self, plot  = True, output_table = True, w_fp = None):
         """To do: Documentation"""
         if w_fp is None:
             w_fp = self.w_fp
@@ -142,16 +142,16 @@ class FairKit:
             .rename(columns = {'a': 'grp'}))
         l1_data = (pd.merge(relative_wmr, obs_counts)
             .rename(columns = {
-                'relative_rate': 'weighted_misclassification_ratio'}))
-        l1_data = l1_data[['grp', 'n', 'weighted_misclassification_ratio']]
+                'relative_rate': 'weighted_misclassification_quotient'}))
+        l1_data = l1_data[['grp', 'n', 'weighted_misclassification_quotient']]
 
         if plot:
-            self.plot_layer_1(l1_data=l1_data, ax = None)
+            self.plot_level_1(l1_data=l1_data, ax = None)
 
         if output_table:
             return l1_data
     
-    def layer_2(self, plot = True, output_table = True, w_fp = None, **kwargs):
+    def level_2(self, plot = True, output_table = True, w_fp = None, **kwargs):
         """To do: Documentation"""
         if w_fp is None:
             w_fp = self.w_fp
@@ -187,7 +187,7 @@ class FairKit:
             barometer = self.get_fairness_barometer(w_fp = w_fp)
             return rates.query("rate != 'WMR'"), relative_rates, barometer
         
-    def layer_3(self, method, plot = True, output_table = True, **kwargs):
+    def level_3(self, method, plot = True, output_table = True, **kwargs):
         """To do: Documentation"""
 
         # To do: Split up in getting data and getting plot
@@ -509,7 +509,7 @@ class FairKit:
             .reset_index()
             .rename(columns = {
                 'rate_val': 'weighted_misclassification_rate',
-                'relative_rate': 'weighted_misclassification_ratio'}))
+                'relative_rate': 'weighted_misclassification_quotient'}))
         
         return df
         
@@ -726,7 +726,7 @@ class FairKit:
         fig = plt.figure()
         ax = fig.add_subplot(1, 1, 1)
         if relative:
-            y = 'weighted_misclassification_ratio'
+            y = 'weighted_misclassification_quotient'
         else:
             y = 'weighted_misclassification_rate'
         sns.lineplot(
@@ -745,20 +745,20 @@ class FairKit:
         if relative:
             ax.yaxis.set_major_formatter(mtick.FuncFormatter(abs_percentage_tick))
    
-    def plot_layer_1(self, l1_data, ax = None):
+    def plot_level_1(self, l1_data, ax = None):
         """ Visualize the maximum gap in WMR by text
         
         Args:
-            l1_data (data frame): data frame with data returned in layer_1
+            l1_data (data frame): data frame with data returned in level_1
         """
         if ax is None:
             fig = plt.figure(figsize=(6,1.3))
             ax = fig.add_subplot(1, 1, 1)
 
         p_grey = desaturate((58/255, 58/255, 58/255))
-        max_idx = l1_data.weighted_misclassification_ratio.idxmax() 
+        max_idx = l1_data.weighted_misclassification_quotient.idxmax() 
         max_grp = l1_data.grp[max_idx]
-        max_val = l1_data.weighted_misclassification_ratio[max_idx]
+        max_val = l1_data.weighted_misclassification_quotient[max_idx]
         max_color = desaturate(self.sens_grps_cols[max_grp])
 
         # Creating text lines
@@ -788,9 +788,9 @@ class FairKit:
         ax.set_ylim(0.72,0.85)
         ax.set_axis_off()
         sns.despine(top = True, bottom = True, left = True, right= True)
-        format_text_layer_1(ax, 0.02, 0.8, line_1, color_list_1,
+        format_text_level_1(ax, 0.02, 0.8, line_1, color_list_1,
                             font_sizes_1, font_weights_1)
-        format_text_layer_1(ax, 0.02, 0.74, line_2, color_list_2,
+        format_text_level_1(ax, 0.02, 0.74, line_2, color_list_2,
                             font_sizes_2, font_weights_2)
 
     def plot_roc_curves(self, ax = None, threshold = None):
@@ -972,18 +972,18 @@ if __name__ == "__main__":
         model_name="Example Data")
 #%%
     # l1 check
-    l1 = fair_anym.layer_1()
+    l1 = fair_anym.level_1()
 
     # l2 check
-    l2_rates, l2_relative_rates, l2_barometer = fair_anym.layer_2(
+    l2_rates, l2_relative_rates, l2_barometer = fair_anym.level_2(
         **{"suptitle":True})
 
     # l3 check
-    w_fp_influence = fair_anym.layer_3(method = 'w_fp_influence')
-    conf_mat = fair_anym.layer_3(method = 'confusion_matrix')
+    w_fp_influence = fair_anym.level_3(method = 'w_fp_influence')
+    conf_mat = fair_anym.level_3(method = 'confusion_matrix')
     thresholds = {'A': 0.5, 'B': 0.6, 'C': 0.7}
-    roc = fair_anym.layer_3(method = 'roc_curves', **{'threshold': thresholds})
-    calibration = fair_anym.layer_3(method = 'calibration', **{'n_bins': 5})
-    independence = fair_anym.layer_3('independence_check', **{'orientation':'h'}) 
+    roc = fair_anym.level_3(method = 'roc_curves', **{'threshold': thresholds})
+    calibration = fair_anym.level_3(method = 'calibration', **{'n_bins': 5})
+    independence = fair_anym.level_3('independence_check', **{'orientation':'h'}) 
 
 # %%
