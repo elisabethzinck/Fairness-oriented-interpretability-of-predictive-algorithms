@@ -124,7 +124,7 @@ if __name__ == '__main__':
     if save_preds:
         print("---- Saving Predictions ----")
         (df.assign(
-            y_hat = labels.numpy(), 
+            y_hat = preds.numpy(), 
             scores = scores.numpy())
         .to_csv(f"{output_path}{eval_data}_{model_type}_predictions.csv", index=False)
         )
