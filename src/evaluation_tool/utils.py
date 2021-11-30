@@ -2,6 +2,7 @@ import numpy as np
 import seaborn as sns
 import matplotlib as plt
 import colorsys
+import warnings
 from matplotlib import transforms
 import matplotlib.patches as mpatches
 from statsmodels.stats.proportion import proportion_confint
@@ -93,15 +94,32 @@ def custom_palette(n_colors = 1, specific_col_idx = None):
     """
     colors =  ["f94d50","f3722c","f8961e","f9844a","f9c74f","a1c680","3a9278","7ab8b6","577590","206683"]
 
-
-
-
     max_colors = len(colors)
     assert n_colors < max_colors, "n_colors must be less than 10"    
     
     if specific_col_idx is None:   
-        idx = np.ceil(np.linspace(start=0, stop=max_colors-1, num=n_colors))
-        col_idx = [int(idx[i]) for i in range(n_colors)]
+        if n_colors == 1:
+            col_idx = [0]
+        if n_colors == 2: 
+            col_idx = [0, 9]
+        if n_colors == 3: 
+            col_idx = [0, 5, 9]
+        if n_colors == 4: 
+            col_idx = [0, 2, 6, 9] 
+        if n_colors == 5: 
+            col_idx = [0, 3, 5, 7, 9]
+        if n_colors == 6: 
+            col_idx = [0, 2, 4, 5, 6, 9]
+        if n_colors == 7:
+            col_idx = [0, 2, 4, 5, 6, 7, 9]
+        if n_colors == 8: 
+            col_idx = [0, 2, 4, 5, 6, 7, 8, 9]
+        if n_colors == 9: 
+            warnings.warn(f"With {n_colors} different colors please be careful that some shades might be close to each other")
+            col_idx = [0, 2, 3, 4, 5, 6, 7, 8, 9]
+        if n_colors == 10: 
+            warnings.warn(f"With {n_colors} different colors please be careful that some shades might be close to each other")
+            col_idx = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
     else:
         col_idx = specific_col_idx
         n_colors = len(col_idx)

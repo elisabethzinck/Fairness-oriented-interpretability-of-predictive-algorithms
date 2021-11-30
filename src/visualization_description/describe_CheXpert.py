@@ -87,8 +87,7 @@ desc_race_sex = DescribeData(a_name = "race_and_sex",
                         id_name = 'patient_id', 
                         data = df,
                         data_name=f'CheXpert, target: {disease}', 
-                        **{"decimal":4, 
-                            "specific_col_idx": [0, 2, 4, 5, 6, 9]})
+                        **{"decimal":4})
 
 desc_race_sex.descriptive_table_to_tex(target_tex_name=f'Has {disease}')
 desc_race_sex.plot_positive_rate(title = f'Percentage with {disease}', orientation='h')
