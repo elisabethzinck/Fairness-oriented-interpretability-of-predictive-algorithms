@@ -1,10 +1,7 @@
 #%%
 import pandas as pd
-import numpy as np
 
-import plotly.graph_objects as go
 import matplotlib.pyplot as plt 
-import seaborn as sns
 
 from src.evaluation_tool.descriptive_tool import DescribeData
 from src.models.data_modules import CheXpertDataModule
@@ -39,33 +36,12 @@ if data_set == "test":
 )
 
 #%%
-# Adding Race 
-raw_demo = pd.read_excel('data/CheXpert/raw/chexpertdemodata-2/CHEXPERT DEMO.xlsx')
-demo_df = raw_demo.rename(columns={
-    "PATIENT":"patient_id", 
-    "PRIMARY_RACE": "race",
-    "ETHNICITY": "ethnicity",
-    "GENDER": "gender", 
-    "AGE_AT_CXR": "age_at_CXR"
-    })
-df = meta_dat.join(demo_df.set_index("patient_id"), how = "left", on = "patient_id")
-
-# Processing race as they have done in CheXploration
-# https://github.com/biomedia-mira/chexploration/blob/main/notebooks/chexpert.sample.ipynb 
-mask = (df.race.str.contains("Black", na=False))
-df.loc[mask, "race"] = "Black"
-
-mask = (df.race.str.contains("White", na=False))
-df.loc[mask, "race"] = "White"
-
-mask = (df.race.str.contains("Asian", na=False))
-df.loc[mask, "race"] = "Asian"
-
-# Filtering to only include Black, White and Asian
-df = df[df.ethnicity.isin(["Non-Hispanic/Non-Latino","Not Hispanic"])]
-df = df[df.race.isin(["Black", "White", "Asian"])]
-
-df = df.assign(race_and_sex = [f"{df.Sex.iloc[i]}, {df.race.iloc[i]}" for i in range(df.shape[0])])
+# Adding Race from processed demo data 
+processed_demo = pd.read_csv("data/CheXpert/processed/cheXpert_processed_demo_data.csv")
+df = (meta_dat
+    .join(processed_demo.set_index("patient_id"), how = "left", on = "patient_id")
+    .dropna(axis = 0, subset=processed_demo.columns)
+)
 
 #%%
 # Descriptive plots: 
