@@ -85,15 +85,21 @@ if __name__ == '__main__':
         progress_bar_refresh_rate = 0)
 
     # Val, Test or train data to predict on
-    cols = ["patient_id", "y"]
+    cols = ["patient_id"]
     if eval_data == 'val':
-        df = dm.val_data.dataset_df[cols]
+        df = (dm.val_data.dataset_df[cols].assign(
+                y = dm.val_data.y.squeeze())
+                )
         dataloader = dm.val_dataloader()
     elif eval_data == 'test':
-        df = dm.test_data.dataset_df[cols]
+        df = (dm.test_data.dataset_df[cols].assign(
+                y = dm.test_data.y.squeeze())
+                )
         dataloader = dm.test_dataloader()
     elif eval_data == 'train':
-        df = dm.train_data.dataset_df[cols]
+        df = (dm.train_data.dataset_df[cols].assign(
+                y = dm.train_data.y.squeeze())
+                )
         dataloader = dm.train_dataloader()
 
     print("---- Running Predictions ----")
