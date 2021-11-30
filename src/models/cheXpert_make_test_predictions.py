@@ -39,9 +39,9 @@ if __name__ == '__main__':
     save_metrics = True 
     save_preds = True
 
-    model_name = "test_model"
-    model_type = "last" # "best" or "last"
-    eval_data = "val"
+    model_name = "adam_dp=2e-1"
+    model_type = "best" # "best" or "last"
+    eval_data = "test"
     assert eval_data in ['train', 'val', 'test'], "eval_data must be 'train', 'val' or 'test'"
  
     dm = CheXpertDataModule(**{
@@ -70,6 +70,8 @@ if __name__ == '__main__':
         model_ckpt = f"models/CheXpert/checkpoints_from_trainer/{model_name}/{model_type}.ckpt"
     else:
         raise ValueError("model_type must be 'best' or 'last'")
+    
+    print(f"model checkpoint: {model_ckpt}")
     
     pl_model = BinaryClassificationTaskCheXpert()
     pl_trained_model = pl_model.load_from_checkpoint(model_ckpt)
