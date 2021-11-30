@@ -23,11 +23,11 @@ l3_report_plots = [
 ]
 
 update_figures  = False
-update_report_figures = True # Write new figures to report repository?
-run_all_plots = False
+update_report_figures = False # Write new figures to report repository?
+run_all_plots = True
 run_l2_plots = False
 run_l3_plots = False
-run_anym_plots = True
+run_anym_plots = False
 
 #############################################
 #%% Load data and initialize FairKit
@@ -158,11 +158,11 @@ def get_FairKitDict(include_anym = True, include_ADNI = False):
     return FairKitDict
             
 def get_l1_overview_table(print_latex = True):
-    "Generate layer 1 overview table"
+    "Generate level 1 overview table"
     l1_list = []
-    for mod_name, kit in FairKitDict.items():
-        l1 = kit.layer_1(plot = False)
-        l1max = l1.loc[l1.weighted_misclassification_ratio == max(l1.weighted_misclassification_ratio)]
+    for kit in FairKitDict.values():
+        l1 = kit.level_1(plot = False)
+        l1max = l1.loc[l1.WMQ == max(l1.WMQ)]
         
         acc = np.mean(kit.y == kit.y_hat)*100
         dataset_name, model_name = static_split(kit.model_name, ': ', 2)
@@ -171,7 +171,7 @@ def get_l1_overview_table(print_latex = True):
             'Model': model_name,
             'N': kit.n,
             'w_fp': kit.w_fp,
-            'Max WMQ': round(l1max.weighted_misclassification_ratio.iat[0], 1),
+            'Max WMQ': round(l1max.WMQ.iat[0], 1),
             'Discriminated Group': l1max.grp.iat[0],
             'Accuracy': round(acc, 1)
         }, index = [0])
@@ -196,8 +196,8 @@ def make_all_plots(kit, save_plots = False, plot_path = None, ext = '.png', **kw
         plot_path (str): path to save plots in. Must be supplied if `save_plots` = True
         ext (str): Extension to use. Must begin with '.' (e.g. '.png')
     """
-    # running all layers if nothing is specified in kwargs 
-    if all(key not in kwargs.keys() for key in ["run_layer_1", 'run_layer_2', 'run_layer_3']):
+    # running all levels if nothing is specified in kwargs 
+    if all(key not in kwargs.keys() for key in ["run_level_1", 'run_level_2', 'run_level_3']):
         run_all = True 
     else: 
         run_all = False 
@@ -205,24 +205,24 @@ def make_all_plots(kit, save_plots = False, plot_path = None, ext = '.png', **kw
     if save_plots and plot_path is None:
         raise ValueError('You must supply a `plot_path` when `save_plots` = True')
 
-    if kwargs.get("run_layer_1") or run_all:
-        kit.layer_1(output_table = False)
+    if kwargs.get("run_level_1") or run_all:
+        kit.level_1(output_table = False)
         if save_plots: 
             plt.savefig(plot_path+'l1'+ext, bbox_inches='tight', facecolor = 'w')
             plt.close()
 
-    if kwargs.get("run_layer_2") or run_all:
-        kit.layer_2(output_table = False, **{"suptitle":True})
+    if kwargs.get("run_level_2") or run_all:
+        kit.level_2(output_table = False, **{"suptitle":True})
         if save_plots: 
             plt.savefig(plot_path+'l2'+ext, bbox_inches='tight', facecolor = 'w')
             plt.close()
 
-    if kwargs.get("run_layer_3") or run_all:
+    if kwargs.get("run_level_3") or run_all:
         method_options = [
             'w_fp_influence', 'roc_curves', 'calibration', 
             'confusion_matrix', 'independence_check']
         for method in method_options:
-            kit.layer_3(method = method, output_table = False)
+            kit.level_3(method = method, output_table = False)
             if save_plots: 
                 path = plot_path+'l3_'+method+ext
                 plt.savefig(path, bbox_inches='tight', facecolor = 'w')
@@ -256,11 +256,11 @@ if __name__ == '__main__':
                 save_plots = update_report_figures,
                 plot_path = path,
                 ext = ".pdf",
-                **{"run_layer_2":True})
+                **{"run_level_2":True})
     
     if run_l3_plots:
         for dataset, method in l3_report_plots:
-            FairKitDict[dataset].layer_3(method = method, **{"cm_print_n":True})
+            FairKitDict[dataset].level_3(method = method, **{"cm_print_n":True})
             if update_report_figures:
                 path = fig_path_report_l3 + dataset + '_' + method + '.pdf'
                 print(path)
@@ -273,10 +273,12 @@ if __name__ == '__main__':
             save_plots = update_report_figures,
             plot_path = path,
             ext = ".pdf",
-            **{"run_layer_2":True})
+            **{"run_level_2":True})
         make_all_plots(kit, 
             save_plots = update_report_figures,
             plot_path = path,
             ext = ".pdf",
-            **{"run_layer_3":True})
+            **{"run_level_3":True})
 
+
+# %%
