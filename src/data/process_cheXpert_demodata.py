@@ -46,11 +46,11 @@ df.loc[mask, "race"] = "White"
 mask = (df.race.str.contains("Asian", na=False))
 df.loc[mask, "race"] = "Asian"
 
-# Filtering to only include Black, White and Asian
-df = df[df.ethnicity.isin(["Non-Hispanic/Non-Latino","Not Hispanic"])]
-df = df[df.race.isin(["Black", "White", "Asian"])]
+mask = ~df.race.isin(['Asian', 'Black', 'White'])
+df.loc[mask, "race"] = "Other/Unknown"
 
-df = df.assign(race_and_sex = [f"{df.gender.iloc[i]}_{df.race.iloc[i]}" for i in range(df.shape[0])])
+df['race_gender'] = df.race + '_' + df.gender
+
 # %% Writing processed file to csv 
 save_dir = "data/CheXpert/processed/"
 if not os.path.exists(save_dir):
