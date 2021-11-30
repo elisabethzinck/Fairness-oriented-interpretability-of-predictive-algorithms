@@ -38,13 +38,15 @@ if __name__ == "__main__":
     parser.add_argument("model_name", help="Choose model_name", type = str)
     parser.add_argument("weight_decay", help="Choose weight decay", type = float) 
     parser.add_argument("dropout", help="Choose dropout", type = float)  
-    parser.add_argument("do_ext_img_aug", help="Should there be extended im aug?", type = int)  
+    parser.add_argument("do_ext_img_aug", help="Should there be extended im aug?", type = int) 
+    parser.add_argument("do_simple_img_aug", help="Should there be simple im aug?", type = int)  
     args = parser.parse_args()    
 
     print(f"model_name: {args.model_name}")
     print(f"wd: {args.weight_decay}")
     print(f"dropout: {args.dropout}")
     print(f"Extended Image Augmentation: {bool(args.do_ext_img_aug)}")
+    print(f"Simple Image Augmentation: {bool(args.do_simple_img_aug)}")
 
     model_name = args.model_name
     model_path = f'models/CheXpert/checkpoints_from_trainer/{model_name}'
@@ -63,6 +65,7 @@ if __name__ == "__main__":
         'weight_decay': args.weight_decay,
         'dropout': args.dropout,
         'do_ext_img_aug': args.do_ext_img_aug
+        'do_simple_img_aug': args.do_simple_img_aug
         }
 
     model_checkpoint_callback = ModelCheckpoint(
@@ -101,7 +104,8 @@ if __name__ == "__main__":
         "uncertainty_approach": "U-Zeros",
         "num_workers": num_workers,
         'tiny_sample_data': tiny_sample_data, 
-        'extended_image_augmentation':bool(args.do_ext_img_aug)})
+        'extended_image_augmentation':bool(args.do_ext_img_aug),
+        'simple_image_augmentation':bool(args.do_simple_img_aug)})
 
     pl_model = BinaryClassificationTaskCheXpert(
         lr = lr,
