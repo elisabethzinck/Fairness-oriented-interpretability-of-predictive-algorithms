@@ -1,23 +1,18 @@
 #%% Imports
-import matplotlib
 import pandas as pd
 import numpy as np
 import math
 
 # Widgets
-from ipywidgets import interactive, fixed, interact, FloatSlider
-from IPython.display import display
+from ipywidgets import interact, FloatSlider
 
 # Plots 
 import matplotlib.pyplot as plt
-from matplotlib import gridspec
 import matplotlib.ticker as mtick
 from matplotlib.gridspec import GridSpec
 from matplotlib.lines import Line2D
-import matplotlib.patches as mpatches
 
 import seaborn as sns
-from seaborn.palettes import color_palette
 
 # sklearn 
 from sklearn.metrics import confusion_matrix, roc_curve
@@ -25,7 +20,7 @@ from sklearn.metrics import confusion_matrix, roc_curve
 # dir functions
 from src.evaluation_tool.utils import (
     cm_matrix_to_dict, custom_palette, abs_percentage_tick, extract_cm_values,
-    flatten_list, cm_dict_to_matrix, add_colors_with_stripes, get_alpha_weights, 
+    flatten_list, add_colors_with_stripes, get_alpha_weights, 
     value_counts_df, desaturate, label_case, format_text_level_1,
     N_pos, N_neg, frac_pos, frac_neg, wilson_confint, 
     error_bar, flip_dataframe, cm_vals_to_matrix,
@@ -142,9 +137,9 @@ class FairKit:
             .rename(columns = {'a': 'grp'}))
         l1_data = (pd.merge(relative_wmr, obs_counts)
             .rename(columns = {
-                'rate_val': 'weighted_misclassification_rate',
-                'relative_rate': 'weighted_misclassification_quotient'}))
-        l1_data = l1_data[['grp', 'n', 'weighted_misclassification_rate','weighted_misclassification_quotient']]
+                'rate_val': 'WMR',
+                'relative_rate': 'WMQ'}))
+        l1_data = l1_data[['grp', 'n', 'WMR','WMQ']]
 
         if plot:
             self.plot_level_1(l1_data=l1_data, ax = None)
@@ -501,7 +496,7 @@ class FairKit:
         """Investigate how w_fp influences the wmrr
         
         Args:
-            relative (bool): Plot weighted misclassification rate ratio? If False, weighted misclassification rate is plotted
+            relative (bool): Plot weighted misclassification quotient? If False, weighted misclassification rate is plotted
         """
 
         df = (pd.concat(
@@ -509,8 +504,8 @@ class FairKit:
                 for w_fp in np.linspace(0, 1, num = 100)])
             .reset_index()
             .rename(columns = {
-                'rate_val': 'weighted_misclassification_rate',
-                'relative_rate': 'weighted_misclassification_quotient'}))
+                'rate_val': 'WMR',
+                'relative_rate': 'WMQ'}))
         
         return df
         
@@ -675,7 +670,7 @@ class FairKit:
         ax.set_ylabel('')
         ax.set_xlabel('')
         ax.set_title('Relative rates', fontsize=14, loc = 'left')
-        xmin, xmax = ax.get_xlim()
+        _, xmax = ax.get_xlim()
         ax.set_xlim(left = -0.05*xmax) # To see all of leftmost dots
         ax.set_ylim((.125,1.125))
         ax.xaxis.set_major_formatter(mtick.FuncFormatter(abs_percentage_tick))
@@ -727,9 +722,9 @@ class FairKit:
         fig = plt.figure()
         ax = fig.add_subplot(1, 1, 1)
         if relative:
-            y = 'weighted_misclassification_quotient'
+            y = 'WMQ'
         else:
-            y = 'weighted_misclassification_rate'
+            y = 'WMR'
         sns.lineplot(
             x = 'w_fp', y = y, hue = 'grp', 
             data = plot_df, 
@@ -757,9 +752,9 @@ class FairKit:
             ax = fig.add_subplot(1, 1, 1)
 
         p_grey = desaturate((58/255, 58/255, 58/255))
-        max_idx = l1_data.weighted_misclassification_quotient.idxmax() 
+        max_idx = l1_data.WMQ.idxmax() 
         max_grp = l1_data.grp[max_idx]
-        max_val = l1_data.weighted_misclassification_quotient[max_idx]
+        max_val = l1_data.WMQ[max_idx]
         max_color = desaturate(self.sens_grps_cols[max_grp])
 
         # Creating text lines

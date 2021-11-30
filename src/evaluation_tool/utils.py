@@ -221,8 +221,13 @@ def value_counts_df(df, col_name):
     return count_df
 
 def label_case(snake_case):
-    "Replace underscore with spaces and capitalize first letter of string"
-    return snake_case.replace("_", ' ').capitalize()
+    "Replace underscore with spaces and capitalize first letter of string, but keep WMR and WMQ capitalized"
+    label_case = (snake_case
+        .replace("_", ' ')
+        .capitalize()
+        .replace('Wmr', 'WMR')
+        .replace('Wmq', 'WMQ'))
+    return label_case
 
 def format_text_level_1(ax, x, y, text_list, color_list, font_sizes, font_weights):
     """Plots a list of words with specific colors, sizes and font 
