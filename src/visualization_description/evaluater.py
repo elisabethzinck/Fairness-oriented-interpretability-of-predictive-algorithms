@@ -24,10 +24,11 @@ l3_report_plots = [
 
 update_figures  = False
 update_report_figures = False # Write new figures to report repository?
-run_all_plots = True
+run_all_plots = False
 run_l2_plots = False
 run_l3_plots = False
 run_anym_plots = False
+run_chexpert = True
 
 #############################################
 #%% Load data and initialize FairKit
@@ -280,5 +281,32 @@ if __name__ == '__main__':
             ext = ".pdf",
             **{"run_level_3":True})
 
+
+    if run_chexpert:
+        pred_path = 'data/CheXpert/predictions/adam_dp=2e-1/test_best_predictions.csv'
+        demo_path = 'data/CheXpert/processed/cheXpert_processed_demo_data.csv'
+        preds = pd.read_csv(pred_path)
+        demo_data = pd.read_csv(demo_path)
+        df = preds.join(demo_data.set_index('patient_id'), how = 'left', on = 'patient_id')
+        df.isnull().sum() # 160 without any demographic information and 181 without ethnicity
+        df.dropna(subset = ['gender', 'race'], inplace = True)
+        df.drop(columns = ['ethnicity'], inplace = True)
+        df['y_hat'] = preds.scores >= 0.5 # To do: Fix mistake in prediction script
+        #%%
+        chexpert_kits = {}
+        for sens_grp in ['gender', 'race', 'race_gender']:
+            chexpert_kits[sens_grp] = FairKit(
+                data = df,
+                y_name = 'y',
+                y_hat_name='y_hat',
+                a_name = sens_grp,
+                r_name = 'scores',
+                w_fp = 0.1
+            )
+        #%%
+        for kit in chexpert_kits.values():
+            kit.level_1()
+            kit.level_2()
+            kit.level_3(method = 'w_fp_influence')
 
 # %%
