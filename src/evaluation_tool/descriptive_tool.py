@@ -38,9 +38,15 @@ class DescribeData:
         self.sens_grps = sorted(self.data.a.unique())
         self.n_sens_grps = len(self.sens_grps)
 
-        self.sens_grps_cols = dict(
-            zip(self.sens_grps, custom_palette(n_colors = self.n_sens_grps))
+        if kwargs.get("specific_col_idx"):
+            assert len(kwargs.get("specific_col_idx")) == self.n_sens_grps, "list of indexes should have same length as n_sens_grps"
+            self.sens_grps_cols = dict(
+                zip(self.sens_grps, custom_palette(specific_col_idx=kwargs.get("specific_col_idx")))
             )
+        else:    
+            self.sens_grps_cols = dict(
+                zip(self.sens_grps, custom_palette(n_colors = self.n_sens_grps))
+                )
         self.descriptive_table = self.get_descriptive_table(**kwargs)
 
     def get_descriptive_table(self, **kwargs):
