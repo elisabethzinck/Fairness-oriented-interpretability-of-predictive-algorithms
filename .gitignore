@@ -13,10 +13,6 @@
 /checkpoints
 *.ckpt
 
-# Except chosen model files
-!/models/CheXpert/checkpoints_from_trainer/adam_dp=2e-1/**
-!models/CheXpert/lightning_logs/adam_dp=2e-1/**
-
 # Data containing sensitive information
 /data/ADNI
 /data/CheXpert
