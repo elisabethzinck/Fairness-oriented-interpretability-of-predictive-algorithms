@@ -1,17 +1,27 @@
-
-notebooks/.ipynb_checkpoints/fairml_traffic_stops-checkpoint.ipynb
-data/raw/fairml_traffic_stops/NC_cleaned.csv
-.vscode/settings.json
+# Automatically generated files
 ~$*
 *.pyc
 /src.egg-info
-/lightning_logs
-references/.ipynb_checkpoints/optuna_pytorch_lightning_notebook-checkpoint.ipynb
-/checkpoints
+*-checkpoint.ipynb
 /.venv
-/data/ADNI
-notebooks/.ipynb_checkpoints/FairKit_demonstration-checkpoint.ipynb
-/data/CheXpert
+
+# Personal vscode settings
+.vscode/settings.json
+
+# Large model files
 **/hparams.yaml
+/checkpoints
 *.ckpt
+
+# Except chosen model files
+!/models/CheXpert/checkpoints_from_trainer/adam_dp=2e-1/**
+!models/CheXpert/lightning_logs/adam_dp=2e-1/**
+
+# Data containing sensitive information
+/data/ADNI
+/data/CheXpert
+
+# Temporary files (i.e. delete these in the end and delete these lines)
 /models/CheXpert/lightning_logs/tmp
+data/raw/fairml_traffic_stops/NC_cleaned.csv
+/lightning_logs
