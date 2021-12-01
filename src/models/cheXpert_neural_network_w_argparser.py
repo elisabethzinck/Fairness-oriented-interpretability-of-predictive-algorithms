@@ -64,7 +64,7 @@ if __name__ == "__main__":
         'multi_label': multi_label,
         'weight_decay': args.weight_decay,
         'dropout': args.dropout,
-        'do_ext_img_aug': args.do_ext_img_aug
+        'do_ext_img_aug': args.do_ext_img_aug,
         'do_simple_img_aug': args.do_simple_img_aug
         }
 
