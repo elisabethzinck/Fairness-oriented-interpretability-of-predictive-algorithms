@@ -10,6 +10,7 @@ from src.evaluation_tool.utils import static_split
 figure_path = 'figures/evaluation_plots/'
 fig_path_report_l2 = '../Thesis-report/00_figures/evalL2/'
 fig_path_report_l3 = '../Thesis-report/00_figures/evalL3/'
+fig_path_chexpert = '../Thesis-report/00_figures/cheXpert/'
 
 l3_report_plots = [
     ['german_logreg', 'confusion_matrix'],
@@ -22,8 +23,8 @@ l3_report_plots = [
     ['adni2_nn', 'calibration']
 ]
 
-update_figures  = False
-update_report_figures = False # Write new figures to report repository?
+update_figures  = True
+update_report_figures = True # Write new figures to report repository?
 run_all_plots = False
 run_l2_plots = False
 run_l3_plots = False
@@ -295,18 +296,34 @@ if __name__ == '__main__':
         #%%
         chexpert_kits = {}
         for sens_grp in ['gender', 'race', 'race_gender']:
-            chexpert_kits[sens_grp] = FairKit(
-                data = df,
+            if sens_grp == 'race_gender':
+                kit_df = df.query("race != 'Other/Unknown'")
+            else:
+                kit_df = df
+            mod_name = f'cheXpert_{sens_grp}'
+            chexpert_kits[mod_name] = FairKit(
+                data = kit_df,
                 y_name = 'y',
                 y_hat_name='y_hat',
                 a_name = sens_grp,
                 r_name = 'scores',
                 w_fp = 0.1
             )
-        #%%
-        for kit in chexpert_kits.values():
-            kit.level_1()
-            kit.level_2()
-            kit.level_3(method = 'w_fp_influence')
+
+        for mod_name, kit in chexpert_kits.items():
+            if run_all_plots:
+                path = figure_path + mod_name + '_'
+                make_all_plots(kit, 
+                    save_plots = update_figures,
+                    plot_path = path)
+
+            if update_report_figures:
+                path = fig_path_chexpert + mod_name + '_'
+                make_all_plots(kit, 
+                    save_plots = update_report_figures,
+                    plot_path = path,
+                    ext = ".pdf",
+                    **{"run_level_2":True})
+
 
 # %%
