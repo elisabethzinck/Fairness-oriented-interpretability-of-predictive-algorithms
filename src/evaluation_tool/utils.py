@@ -113,6 +113,7 @@ def custom_palette(n_colors = 1, specific_col_idx = None):
         if n_colors == 7:
             col_idx = [0, 2, 4, 5, 6, 7, 9]
         if n_colors == 8: 
+            warnings.warn(f"With {n_colors} different colors please be careful that some shades might be close to each other")
             col_idx = [0, 2, 4, 5, 6, 7, 8, 9]
         if n_colors == 9: 
             warnings.warn(f"With {n_colors} different colors please be careful that some shades might be close to each other")
