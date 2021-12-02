@@ -297,9 +297,11 @@ if __name__ == '__main__':
         chexpert_kits = {}
         for sens_grp in ['gender', 'race', 'race_gender']:
             if sens_grp == 'race_gender':
-                kit_df = df.query("race != 'Other/Unknown'")
+                kit_df = df#.query("race != 'Other/Unknown'")
+                kwargs = {"specific_col_idx": [0, 4, 5, 6, 10, 11, 7, 9]}
             else:
                 kit_df = df
+                kwargs = {}
             mod_name = f'cheXpert_{sens_grp}'
             chexpert_kits[mod_name] = FairKit(
                 data = kit_df,
@@ -307,7 +309,8 @@ if __name__ == '__main__':
                 y_hat_name='y_hat',
                 a_name = sens_grp,
                 r_name = 'scores',
-                w_fp = 0.1
+                w_fp = 0.1, 
+                **kwargs
             )
 
         for mod_name, kit in chexpert_kits.items():

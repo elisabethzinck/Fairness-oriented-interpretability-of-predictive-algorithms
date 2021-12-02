@@ -84,7 +84,8 @@ def custom_palette(n_colors = 1, specific_col_idx = None):
     
         The color palette have been created using this link: 
         https://coolors.co/f94d50-f3722c-f8961e-f9844a-f9c74f-a1c680-3a9278-7ab8b6-577590-206683
-        
+        and added two colors "english lavender BD7585" and "Salmon Pink F193A1"
+
         Args:
             n_color: The number of desired colors max 10. Defaults to 1.
             specific_col_idx: list of desired color indexes. Defaults to None.
@@ -92,10 +93,11 @@ def custom_palette(n_colors = 1, specific_col_idx = None):
         Returns: 
             A custom seaborn palette of n_colors length 
     """
-    colors =  ["f94d50","f3722c","f8961e","f9844a","f9c74f","a1c680","3a9278","7ab8b6","577590","206683"]
+    colors =  ["f94d50","f3722c","f8961e","f9844a","f9c74f","a1c680",
+    "3a9278","7ab8b6","577590","206683", "F193A1", "B66879"]
 
     max_colors = len(colors)
-    assert n_colors < max_colors, "n_colors must be less than 10"    
+    assert n_colors < max_colors, f"n_colors must be less than {max_colors}"    
     
     if specific_col_idx is None:   
         if n_colors == 1:
@@ -109,7 +111,7 @@ def custom_palette(n_colors = 1, specific_col_idx = None):
         if n_colors == 5: 
             col_idx = [0, 3, 5, 7, 9]
         if n_colors == 6: 
-            col_idx = [0, 2, 4, 5, 6, 9]
+            col_idx = [0, 4, 5, 6, 7, 9]
         if n_colors == 7:
             col_idx = [0, 2, 4, 5, 6, 7, 9]
         if n_colors == 8: 
