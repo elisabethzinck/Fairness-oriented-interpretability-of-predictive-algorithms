@@ -2,6 +2,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
+import sklearn
 
 from src.evaluation_tool.layered_tool import FairKit
 from src.evaluation_tool.utils import static_split
@@ -30,6 +31,8 @@ run_l2_plots = False
 run_l3_plots = False
 run_anym_plots = False
 run_chexpert = True
+
+make_cheXpert_table = True
 
 #############################################
 #%% Load data and initialize FairKit
@@ -154,9 +157,6 @@ def get_FairKitDict(include_anym = True, include_ADNI = False):
                 r_name = 'nn_prob',
                 w_fp = adni_w_fp,
                 model_name = f'ADNI{adni_no}: Neural network')
-            
-
-
     return FairKitDict
             
 def get_l1_overview_table(print_latex = True):
@@ -261,7 +261,7 @@ def get_chexpert_kits():
         else:
             kit_df = df
             kwargs = {}
-        
+
         mod_name = f'cheXpert_{sens_grp}'
         chexpert_kits[mod_name] = FairKit(
             data = kit_df,
@@ -273,6 +273,43 @@ def get_chexpert_kits():
             **kwargs
         )
     return chexpert_kits
+
+def table_fairness_analysis(fairKit_instance, to_latex = False):
+    a_name = fairKit_instance.a_name
+    
+    # helper function
+    def stats_group(df):
+        scores = df.scores
+        y_hat = df.y_hat
+        y = df.y
+        auc_roc = sklearn.metrics.roc_auc_score(y, scores)
+        acc = sklearn.metrics.accuracy_score(y, y_hat)*100
+        return [auc_roc, acc]
+
+    auc_acc_table = (fairKit_instance.data
+        .assign(roc_auc_tuple = lambda x: list(zip(x.y, x.scores)),
+                acc_tuple = lambda x: list(zip(x.y, x.y_hat)))
+        .groupby(a_name)
+            .apply(stats_group)
+        .apply(pd.Series)
+        .reset_index()
+        .rename(columns = {0:"auc_roc", 1:"acc"})
+            )
+
+    return_table = (fairKit_instance.level_1(plot = False)
+        .rename(columns={"grp":a_name})
+        .join(auc_acc_table.set_index(a_name), how = "left", on = a_name)
+        .rename(columns={f"{a_name}":"grp"})
+        .assign(sens_grp = a_name))
+
+    return_table = return_table[["sens_grp","grp","n","WMR","WMQ","auc_roc","acc"]]
+
+    if to_latex:
+        print(return_table.to_latex(index = False, float_format="%.3f"))
+    else:
+        return return_table
+
+        
 #%%
 if __name__ == '__main__':
     FairKitDict = get_FairKitDict() 
@@ -328,6 +365,8 @@ if __name__ == '__main__':
     if run_chexpert:
         chexpert_kits = get_chexpert_kits()
 
+        if make_cheXpert_table:
+            table_list = []
         for mod_name, kit in chexpert_kits.items():
             if run_all_plots:
                 path = figure_path + mod_name + '_'
@@ -342,6 +381,24 @@ if __name__ == '__main__':
                     plot_path = path,
                     ext = ".pdf",
                     **{"run_level_2":True})
+            
+            if make_cheXpert_table:
+                table_list.append(table_fairness_analysis(kit))
+
+        if make_cheXpert_table:
+            total_table = pd.concat(table_list)
+            total_table.rename(
+                {"sens_grp": "Sensitive Group",
+                 "grp": "Subgroup",
+                 "auc_roc": "AUC ROC",
+                 "acc": "Accuracy %"         
+                }
+            ) 
+            print(total_table.to_latex(index= False, float_format="%.3f"))
+            
+
+
+    # %%
 
 
 # %%

@@ -47,7 +47,7 @@ mask = (df.race.str.contains("Asian", na=False))
 df.loc[mask, "race"] = "Asian"
 
 mask = ~df.race.isin(['Asian', 'Black', 'White'])
-df.loc[mask, "race"] = "Other/Unknown"
+df.loc[mask, "race"] = "Other"
 
 df['race_gender'] = df.race + '_' + df.gender
 
