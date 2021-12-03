@@ -71,23 +71,24 @@ desc_race = DescribeData(a_name = "race",
                         **{"decimal":4})
 
 desc_race.descriptive_table_to_tex(target_tex_name=f'Has {disease}')
-desc_race.plot_positive_rate(title = f'Percentage with {disease}', orientation='v')
+desc_race.plot_positive_rate(title = f'Percentage with {disease}', orientation='h')
 if save_figs: 
     plt.savefig(fig_path_report+f"posperc_race_{data_set}.pdf", bbox_inches='tight')
 desc_race.plot_n_target_across_sens_var(
-    orientation='v',
+    orientation='h',
     return_ax=False, 
     **{"class_1_label":disease, "class_0_label": f"No {disease}"})
 if save_figs: 
     plt.savefig(fig_path_report+f"N_race_{data_set}.pdf", bbox_inches='tight')
 
 #%%
-desc_race_sex = DescribeData(a_name = "race_and_sex", 
+desc_race_sex = DescribeData(a_name = "race_gender", 
                         y_name = "y", 
                         id_name = 'patient_id', 
                         data = df,
                         data_name=f'CheXpert, target: {disease}', 
-                        **{"decimal":4})
+                        **{"decimal":4, 
+                        "specific_col_idx": [0, 4, 5, 6, 10, 11, 7, 9]})
 
 desc_race_sex.descriptive_table_to_tex(target_tex_name=f'Has {disease}')
 desc_race_sex.plot_positive_rate(title = f'Percentage with {disease}', orientation='h')
