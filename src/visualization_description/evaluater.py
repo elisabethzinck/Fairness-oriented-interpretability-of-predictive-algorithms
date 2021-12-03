@@ -23,8 +23,8 @@ l3_report_plots = [
     ['adni2_nn', 'calibration']
 ]
 
-update_figures  = True
-update_report_figures = True # Write new figures to report repository?
+update_figures  = False
+update_report_figures = False # Write new figures to report repository?
 run_all_plots = False
 run_l2_plots = False
 run_l3_plots = False
@@ -230,7 +230,49 @@ def make_all_plots(kit, save_plots = False, plot_path = None, ext = '.png', **kw
                 plt.savefig(path, bbox_inches='tight', facecolor = 'w')
                 plt.close()
 
+def get_chexpert_kits():
+    """Creates dictionary of FairKits for CheXpert dataset"""
+    # Load data
+    pred_path = 'data/CheXpert/predictions/adam_dp=2e-1/test_best_predictions.csv'
+    demo_path = 'data/CheXpert/processed/cheXpert_processed_demo_data.csv'
+    preds = pd.read_csv(pred_path)
+    demo_data = pd.read_csv(demo_path)
+
+    # Merge chexpert and demographic data
+    df = preds.join(
+        demo_data.set_index('patient_id'), 
+        how = 'left', 
+        on = 'patient_id')
+    
+    # 160 without any demographic information and 181 without ethnicity dropped
+    assert df.race.isnull().sum() == 160 
+    assert df.ethnicity.isnull().sum() == 181
+    
+    df = (df.dropna(subset = ['gender', 'race'])
+        .drop(columns = ['ethnicity'])
+        .assign(y_hat = lambda x: x.scores >= 0.5)) # Fix mistake in pred
+    
+    # Initialize kits
+    chexpert_kits = {}
+    for sens_grp in ['gender', 'race', 'race_gender']:
+        if sens_grp == 'race_gender':
+            kit_df = df
+            kwargs = {"specific_col_idx": [0, 4, 5, 6, 10, 11, 7, 9]}
+        else:
+            kit_df = df
+            kwargs = {}
         
+        mod_name = f'cheXpert_{sens_grp}'
+        chexpert_kits[mod_name] = FairKit(
+            data = kit_df,
+            y_name = 'y',
+            y_hat_name='y_hat',
+            a_name = sens_grp,
+            r_name = 'scores',
+            w_fp = 0.1, 
+            **kwargs
+        )
+    return chexpert_kits
 #%%
 if __name__ == '__main__':
     FairKitDict = get_FairKitDict() 
@@ -284,34 +326,7 @@ if __name__ == '__main__':
 
 
     if run_chexpert:
-        pred_path = 'data/CheXpert/predictions/adam_dp=2e-1/test_best_predictions.csv'
-        demo_path = 'data/CheXpert/processed/cheXpert_processed_demo_data.csv'
-        preds = pd.read_csv(pred_path)
-        demo_data = pd.read_csv(demo_path)
-        df = preds.join(demo_data.set_index('patient_id'), how = 'left', on = 'patient_id')
-        df.isnull().sum() # 160 without any demographic information and 181 without ethnicity
-        df.dropna(subset = ['gender', 'race'], inplace = True)
-        df.drop(columns = ['ethnicity'], inplace = True)
-        df['y_hat'] = preds.scores >= 0.5 # To do: Fix mistake in prediction script
-        #%%
-        chexpert_kits = {}
-        for sens_grp in ['gender', 'race', 'race_gender']:
-            if sens_grp == 'race_gender':
-                kit_df = df#.query("race != 'Other/Unknown'")
-                kwargs = {"specific_col_idx": [0, 4, 5, 6, 10, 11, 7, 9]}
-            else:
-                kit_df = df
-                kwargs = {}
-            mod_name = f'cheXpert_{sens_grp}'
-            chexpert_kits[mod_name] = FairKit(
-                data = kit_df,
-                y_name = 'y',
-                y_hat_name='y_hat',
-                a_name = sens_grp,
-                r_name = 'scores',
-                w_fp = 0.1, 
-                **kwargs
-            )
+        chexpert_kits = get_chexpert_kits()
 
         for mod_name, kit in chexpert_kits.items():
             if run_all_plots:
