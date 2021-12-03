@@ -56,7 +56,7 @@ def calculate_WMR(cm, grp, w_fp):
     return wmr
 
 class FairKit:
-    def __init__(self, data, y_name, y_hat_name, a_name, r_name, w_fp, model_name = None):
+    def __init__(self, data, y_name, y_hat_name, a_name, r_name, w_fp, model_name = None, **kwargs):
         """Saves and calculates all necessary attributes for FairKit object
         
         Args:
@@ -113,9 +113,16 @@ class FairKit:
         self.WMR_rates = self.get_WMR_rates()
         self.WMR_rel_rates = self.get_relative_rates(self.WMR_rates)
         self.rel_rates = self.get_relative_rates()
-        self.sens_grps_cols = dict(
-            zip(self.sens_grps, custom_palette(n_colors = self.n_sens_grps))
+
+        if kwargs.get("specific_col_idx"):
+            assert len(kwargs.get("specific_col_idx")) == self.n_sens_grps, "list of indexes should have same length as n_sens_grps"
+            self.sens_grps_cols = dict(
+                zip(self.sens_grps, custom_palette(specific_col_idx=kwargs.get("specific_col_idx")))
             )
+        else:    
+            self.sens_grps_cols = dict(
+                zip(self.sens_grps, custom_palette(n_colors = self.n_sens_grps))
+                )
 
         self._tick_size = 12
         self._label_size = 13
@@ -166,7 +173,7 @@ class FairKit:
             f.subplots_adjust(wspace = 0.5, hspace = 0.7)
 
             if "suptitle" in  kwargs.keys():
-                if kwargs["suptitle"]:
+                if kwargs["suptitle"] is not None:
                     f.suptitle(f"{self.model_name}",
                                x=0.35, y = 0.98, 
                                fontweight = 'bold', 
