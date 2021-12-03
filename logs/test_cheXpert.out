@@ -7,8 +7,8 @@ Loading python3/3.8.11
 ----------------------------
 --- Output from Python -----
 ----------------------------
-Using cache found in /zhome/95/1/117606/.cache/torch/hub/pytorch_vision_v0.10.0
-Using cache found in /zhome/95/1/117606/.cache/torch/hub/pytorch_vision_v0.10.0
+Using cache found in /zhome/63/6/117697/.cache/torch/hub/pytorch_vision_v0.10.0
+Using cache found in /zhome/63/6/117697/.cache/torch/hub/pytorch_vision_v0.10.0
 GPU available: True, used: True
 TPU available: False, using: 0 TPU cores
 IPU available: False, using: 0 IPUs
@@ -29,22 +29,22 @@ AUROC = 0.8537643551826477
 ------------------
 ---- Saving Metrics ----
 ---- Saving Predictions ----
-Total time to run script: 3.56 mins
+Total time to run script: 3.69 mins
 ----------------------------
 ---       DONE :)      -----
 ----------------------------
 
 ------------------------------------------------------------
 Sender: LSF System <lsfadmin@hpc.dtu.dk>
-Subject: Job 11192341: <test_cheXpert> in cluster <dcc> Done
+Subject: Job 11193087: <test_cheXpert> in cluster <dcc> Done
 
-Job <test_cheXpert> was submitted from host <n-62-30-6> by user <s164175> in cluster <dcc> at Tue Nov 30 13:01:49 2021
-Job was executed on host(s) <8*n-62-20-7>, in queue <gpuv100>, as user <s164175> in cluster <dcc> at Tue Nov 30 13:01:50 2021
-</zhome/95/1/117606> was used as the home directory.
-</zhome/95/1/117606/Documents/Fairness-oriented-interpretability-of-predictive-algorithms> was used as the working directory.
-Started at Tue Nov 30 13:01:50 2021
-Terminated at Tue Nov 30 13:05:34 2021
-Results reported at Tue Nov 30 13:05:34 2021
+Job <test_cheXpert> was submitted from host <gbarlogin1> by user <s164204> in cluster <dcc> at Tue Nov 30 13:37:11 2021
+Job was executed on host(s) <8*n-62-20-7>, in queue <gpuv100>, as user <s164204> in cluster <dcc> at Tue Nov 30 13:37:13 2021
+</zhome/63/6/117697> was used as the home directory.
+</zhome/63/6/117697/Documents/Fairness-oriented-interpretability-of-predictive-algorithms> was used as the working directory.
+Started at Tue Nov 30 13:37:13 2021
+Terminated at Tue Nov 30 13:42:36 2021
+Results reported at Tue Nov 30 13:42:36 2021
 
 Your job looked like:
 
@@ -67,7 +67,7 @@ Your job looked like:
 ### -- job gets killed if it exceeds xGB per core/slot -- 
 #BSUB -M 10GB
 ### -- set walltime limit: hh:mm -- 
-#BSUB -W 02:00 
+#BSUB -W 01:00 
 ### -- Specify the output and error file. %J is the job-id -- 
 ### -- -o and -e mean append, -oo and -eo mean overwrite -- 
 #BSUB -oo logs/test_cheXpert.out 
@@ -94,16 +94,16 @@ Successfully completed.
 
 Resource usage summary:
 
-    CPU time :                                   767.37 sec.
-    Max Memory :                                 4099 MB
-    Average Memory :                             3216.50 MB
+    CPU time :                                   779.77 sec.
+    Max Memory :                                 4049 MB
+    Average Memory :                             3073.60 MB
     Total Requested Memory :                     81920.00 MB
-    Delta Memory :                               77821.00 MB
+    Delta Memory :                               77871.00 MB
     Max Swap :                                   -
     Max Processes :                              12
     Max Threads :                                40
-    Run time :                                   231 sec.
-    Turnaround time :                            225 sec.
+    Run time :                                   396 sec.
+    Turnaround time :                            325 sec.
 
 The output (if any) is above this job summary.
 
