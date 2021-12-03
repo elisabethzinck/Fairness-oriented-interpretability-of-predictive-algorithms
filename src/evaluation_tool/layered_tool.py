@@ -353,7 +353,7 @@ class FairKit:
             .assign(
                 relative_rate = lambda x: 
                     (x.rate_val-x.min_rate)/x.min_rate*100)
-            .drop(columns = ['min_rate']))
+            .loc[:, ['rate', 'grp', 'rate_val', 'relative_rate']])
 
         return rel_rates
     
