@@ -2,6 +2,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
+import sklearn
 
 from src.evaluation_tool.layered_tool import FairKit
 from src.evaluation_tool.utils import static_split
@@ -23,13 +24,15 @@ l3_report_plots = [
     ['adni2_nn', 'calibration']
 ]
 
-update_figures  = True
-update_report_figures = True # Write new figures to report repository?
+update_figures  = False
+update_report_figures = False # Write new figures to report repository?
 run_all_plots = False
 run_l2_plots = False
 run_l3_plots = False
 run_anym_plots = False
 run_chexpert = True
+
+make_cheXpert_table = True
 
 #############################################
 #%% Load data and initialize FairKit
@@ -154,9 +157,6 @@ def get_FairKitDict(include_anym = True, include_ADNI = False):
                 r_name = 'nn_prob',
                 w_fp = adni_w_fp,
                 model_name = f'ADNI{adni_no}: Neural network')
-            
-
-
     return FairKitDict
             
 def get_l1_overview_table(print_latex = True):
@@ -230,6 +230,85 @@ def make_all_plots(kit, save_plots = False, plot_path = None, ext = '.png', **kw
                 plt.savefig(path, bbox_inches='tight', facecolor = 'w')
                 plt.close()
 
+def get_chexpert_kits():
+    """Creates dictionary of FairKits for CheXpert dataset"""
+    # Load data
+    pred_path = 'data/CheXpert/predictions/adam_dp=2e-1/test_best_predictions.csv'
+    demo_path = 'data/CheXpert/processed/cheXpert_processed_demo_data.csv'
+    preds = pd.read_csv(pred_path)
+    demo_data = pd.read_csv(demo_path)
+
+    # Merge chexpert and demographic data
+    df = preds.join(
+        demo_data.set_index('patient_id'), 
+        how = 'left', 
+        on = 'patient_id')
+    
+    # 160 without any demographic information and 181 without ethnicity dropped
+    assert df.race.isnull().sum() == 160 
+    assert df.ethnicity.isnull().sum() == 181
+    
+    df = (df.dropna(subset = ['gender', 'race'])
+        .drop(columns = ['ethnicity'])
+        .assign(y_hat = lambda x: x.scores >= 0.5)) # Fix mistake in pred
+    
+    # Initialize kits
+    chexpert_kits = {}
+    for sens_grp in ['gender', 'race', 'race_gender']:
+        if sens_grp == 'race_gender':
+            kit_df = df
+            kwargs = {"specific_col_idx": [0, 4, 5, 6, 10, 11, 7, 9]}
+        else:
+            kit_df = df
+            kwargs = {}
+
+        mod_name = f'cheXpert_{sens_grp}'
+        chexpert_kits[mod_name] = FairKit(
+            data = kit_df,
+            y_name = 'y',
+            y_hat_name='y_hat',
+            a_name = sens_grp,
+            r_name = 'scores',
+            w_fp = 0.1, 
+            **kwargs
+        )
+    return chexpert_kits
+
+def table_fairness_analysis(fairKit_instance, to_latex = False):
+    a_name = fairKit_instance.a_name
+    
+    # helper function
+    def stats_group(df):
+        scores = df.scores
+        y_hat = df.y_hat
+        y = df.y
+        auc_roc = sklearn.metrics.roc_auc_score(y, scores)
+        acc = sklearn.metrics.accuracy_score(y, y_hat)*100
+        return [auc_roc, acc]
+
+    auc_acc_table = (fairKit_instance.data
+        .assign(roc_auc_tuple = lambda x: list(zip(x.y, x.scores)),
+                acc_tuple = lambda x: list(zip(x.y, x.y_hat)))
+        .groupby(a_name)
+            .apply(stats_group)
+        .apply(pd.Series)
+        .reset_index()
+        .rename(columns = {0:"auc_roc", 1:"acc"})
+            )
+
+    return_table = (fairKit_instance.level_1(plot = False)
+        .rename(columns={"grp":a_name})
+        .join(auc_acc_table.set_index(a_name), how = "left", on = a_name)
+        .rename(columns={f"{a_name}":"grp"})
+        .assign(sens_grp = a_name))
+
+    return_table = return_table[["sens_grp","grp","n","WMR","WMQ","auc_roc","acc"]]
+
+    if to_latex:
+        print(return_table.to_latex(index = False, float_format="%.3f"))
+    else:
+        return return_table
+
         
 #%%
 if __name__ == '__main__':
@@ -284,35 +363,10 @@ if __name__ == '__main__':
 
 
     if run_chexpert:
-        pred_path = 'data/CheXpert/predictions/adam_dp=2e-1/test_best_predictions.csv'
-        demo_path = 'data/CheXpert/processed/cheXpert_processed_demo_data.csv'
-        preds = pd.read_csv(pred_path)
-        demo_data = pd.read_csv(demo_path)
-        df = preds.join(demo_data.set_index('patient_id'), how = 'left', on = 'patient_id')
-        df.isnull().sum() # 160 without any demographic information and 181 without ethnicity
-        df.dropna(subset = ['gender', 'race'], inplace = True)
-        df.drop(columns = ['ethnicity'], inplace = True)
-        df['y_hat'] = preds.scores >= 0.5 # To do: Fix mistake in prediction script
-        #%%
-        chexpert_kits = {}
-        for sens_grp in ['gender', 'race', 'race_gender']:
-            if sens_grp == 'race_gender':
-                kit_df = df#.query("race != 'Other/Unknown'")
-                kwargs = {"specific_col_idx": [0, 4, 5, 6, 10, 11, 7, 9]}
-            else:
-                kit_df = df
-                kwargs = {}
-            mod_name = f'cheXpert_{sens_grp}'
-            chexpert_kits[mod_name] = FairKit(
-                data = kit_df,
-                y_name = 'y',
-                y_hat_name='y_hat',
-                a_name = sens_grp,
-                r_name = 'scores',
-                w_fp = 0.1, 
-                **kwargs
-            )
+        chexpert_kits = get_chexpert_kits()
 
+        if make_cheXpert_table:
+            table_list = []
         for mod_name, kit in chexpert_kits.items():
             if run_all_plots:
                 path = figure_path + mod_name + '_'
@@ -327,6 +381,24 @@ if __name__ == '__main__':
                     plot_path = path,
                     ext = ".pdf",
                     **{"run_level_2":True})
+            
+            if make_cheXpert_table:
+                table_list.append(table_fairness_analysis(kit))
+
+        if make_cheXpert_table:
+            total_table = pd.concat(table_list)
+            total_table.rename(
+                {"sens_grp": "Sensitive Group",
+                 "grp": "Subgroup",
+                 "auc_roc": "AUC ROC",
+                 "acc": "Accuracy %"         
+                }
+            ) 
+            print(total_table.to_latex(index= False, float_format="%.3f"))
+            
+
+
+    # %%
 
 
 # %%
