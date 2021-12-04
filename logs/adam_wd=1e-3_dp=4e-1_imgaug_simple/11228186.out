@@ -24,9 +24,9 @@ LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
 0         Non-trainable params
 7.0 M     Total params
 27.820    Total estimated model params size (MB)
-model_name: adam_wd=1e-3_dp=2e-1_imgaug_simple
+model_name: adam_wd=1e-3_dp=4e-1_imgaug_simple
 wd: 0.001
-dropout: 0.2
+dropout: 0.4
 Extended Image Augmentation: False
 Simple Image Augmentation: True
 --- Initializing model and datamodule ---
@@ -401,22 +401,22 @@ Params to learn:
 	 classifier.weight
 	 classifier.bias
 Global seed set to 42
-Total time to run script: 1356.93 mins
+Total time to run script: 686.14 mins
 ----------------------------
 ---       DONE :)      -----
 ----------------------------
 
 ------------------------------------------------------------
 Sender: LSF System <lsfadmin@hpc.dtu.dk>
-Subject: Job 11227102: <adam_wd=1e-3_dp=2e-1_imgaug_simple> in cluster <dcc> Done
+Subject: Job 11228186: <adam_wd=1e-3_dp=4e-1_imgaug_simple> in cluster <dcc> Done
 
-Job <adam_wd=1e-3_dp=2e-1_imgaug_simple> was submitted from host <gbarlogin1> by user <s164204> in cluster <dcc> at Fri Dec  3 09:28:32 2021
-Job was executed on host(s) <8*n-62-11-16>, in queue <gpuv100>, as user <s164204> in cluster <dcc> at Fri Dec  3 09:28:33 2021
+Job <adam_wd=1e-3_dp=4e-1_imgaug_simple> was submitted from host <gbarlogin1> by user <s164204> in cluster <dcc> at Fri Dec  3 16:26:30 2021
+Job was executed on host(s) <8*n-62-20-4>, in queue <gpuv100>, as user <s164204> in cluster <dcc> at Fri Dec  3 16:26:31 2021
 </zhome/63/6/117697> was used as the home directory.
 </zhome/63/6/117697/Documents/Fairness-oriented-interpretability-of-predictive-algorithms> was used as the working directory.
-Started at Fri Dec  3 09:28:33 2021
-Terminated at Sat Dec  4 08:06:10 2021
-Results reported at Sat Dec  4 08:06:10 2021
+Started at Fri Dec  3 16:26:31 2021
+Terminated at Sat Dec  4 03:54:22 2021
+Results reported at Sat Dec  4 03:54:22 2021
 
 Your job looked like:
 
@@ -427,7 +427,7 @@ Your job looked like:
 ### -- specify queue -- 
 #BSUB -q gpuv100
 ### -- set the job Name --  (should be the same as in script)
-#BSUB -J adam_wd=1e-3_dp=2e-1_imgaug_simple
+#BSUB -J adam_wd=1e-3_dp=4e-1_imgaug_simple
 ### -- ask for number of cores (default: 1) -- 
 #BSUB -n 8 
 ### --- ask for gpu ---
@@ -442,12 +442,12 @@ Your job looked like:
 #BSUB -W 24:00
 ### -- Specify the output and error file. %J is the job-id -- 
 ### -- -o and -e mean append, -oo and -eo mean overwrite -- 
-#BSUB -oo logs/adam_wd=1e-3_dp=2e-1_imgaug_simple/%J.out 
+#BSUB -oo logs/adam_wd=1e-3_dp=4e-1_imgaug_simple/%J.out 
 
 echo "Starting bash script"
 
 ### Make logging directory
-mkdir -p logs/adam_wd=1e-3_dp=2e-1_imgaug_simple/
+mkdir -p logs/adam_wd=1e-3_dp=4e-1_imgaug_simple/
 
 ### Activate environment
 module load python3/3.8.11
@@ -460,7 +460,7 @@ echo "----------------------------"
 
 # Running neural network training parsing 
 # model_name, weight_decay, drop_out, extented_image_augmentation, simple_image_augmentation
-python3 src/models/cheXpert_neural_network_w_argparser.py adam_wd=1e-3_dp=2e-1_imgaug_simple 1e-3 2e-1 0 1
+python3 src/models/cheXpert_neural_network_w_argparser.py adam_wd=1e-3_dp=4e-1_imgaug_simple 1e-3 4e-1 0 1
 
 echo "----------------------------"
 echo "---       DONE :)      -----"
@@ -473,16 +473,16 @@ Successfully completed.
 
 Resource usage summary:
 
-    CPU time :                                   120444.30 sec.
-    Max Memory :                                 12254 MB
-    Average Memory :                             7940.40 MB
+    CPU time :                                   82261.15 sec.
+    Max Memory :                                 9205 MB
+    Average Memory :                             7625.90 MB
     Total Requested Memory :                     81920.00 MB
-    Delta Memory :                               69666.00 MB
+    Delta Memory :                               72715.00 MB
     Max Swap :                                   -
     Max Processes :                              18
-    Max Threads :                                82
-    Run time :                                   81457 sec.
-    Turnaround time :                            81458 sec.
+    Max Threads :                                65
+    Run time :                                   41289 sec.
+    Turnaround time :                            41272 sec.
 
 The output (if any) is above this job summary.
 
