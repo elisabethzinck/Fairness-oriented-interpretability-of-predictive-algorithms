@@ -5,7 +5,9 @@ import numpy as np
 import sklearn
 
 from src.evaluation_tool.layered_tool import FairKit
-from src.evaluation_tool.utils import static_split
+from src.evaluation_tool.utils import static_split, label_case
+
+from sklearn.metrics import roc_curve
 
 #%% Initialize parameters
 figure_path = 'figures/evaluation_plots/'
@@ -24,13 +26,14 @@ l3_report_plots = [
     ['adni2_nn', 'calibration']
 ]
 
-update_figures  = False
-update_report_figures = False # Write new figures to report repository?
+update_figures  = True
+update_report_figures = True # Write new figures to report repository?
 run_all_plots = False
 run_l2_plots = False
 run_l3_plots = False
 run_anym_plots = False
 run_chexpert = True
+run_all_chexpert_plots = True
 
 make_cheXpert_table = True
 
@@ -214,7 +217,8 @@ def make_all_plots(kit, save_plots = False, plot_path = None, ext = '.png', **kw
             plt.close()
 
     if kwargs.get("run_level_2") or run_all:
-        kit.level_2(output_table = False, **{"suptitle":True})
+        suptitle = kwargs.get('suptitle', True)
+        kit.level_2(output_table = False, **{"suptitle": suptitle})
         if save_plots: 
             plt.savefig(plot_path+'l2'+ext, bbox_inches='tight', facecolor = 'w')
             plt.close()
@@ -230,8 +234,8 @@ def make_all_plots(kit, save_plots = False, plot_path = None, ext = '.png', **kw
                 plt.savefig(path, bbox_inches='tight', facecolor = 'w')
                 plt.close()
 
-def get_chexpert_kits():
-    """Creates dictionary of FairKits for CheXpert dataset"""
+def get_chexpert_prediction_data(threshold = 'fpr_based'):
+    """Merges predictions with demodata and finds threshold"""
     # Load data
     pred_path = 'data/CheXpert/predictions/adam_dp=2e-1/test_best_predictions.csv'
     demo_path = 'data/CheXpert/processed/cheXpert_processed_demo_data.csv'
@@ -248,28 +252,50 @@ def get_chexpert_kits():
     assert df.race.isnull().sum() == 160 
     assert df.ethnicity.isnull().sum() == 181
     
-    df = (df.dropna(subset = ['gender', 'race'])
-        .drop(columns = ['ethnicity'])
-        .assign(y_hat = lambda x: x.scores >= 0.5)) # Fix mistake in pred
+    df = (df.dropna(subset = ['sex', 'race'])
+        .drop(columns = ['ethnicity']))
+
+    if threshold == 'standard':
+        tau = 0.5
+    elif threshold == 'fpr_based':
+        fpr_target = 0.2
+        fpr, tpr, threshold = roc_curve(
+                y_true = df.y, 
+                y_score = df.scores)
+        roc = pd.DataFrame({'fpr': fpr, 'tpr': tpr, 'threshold': threshold})
+        roc = (roc[roc.fpr < fpr_target]
+            .sort_values('fpr', ascending = False)
+            .reset_index(drop = True))
+        tau = roc.threshold[0]
+    else:
+        raise ValueError('Whoops. Threshold option not found')
+
+    df = df.assign(y_hat = lambda x: x.scores >= tau)
+    
+    return df
+
+
+def get_chexpert_kits(pred_data):
+    """Creates dictionary of FairKits for CheXpert dataset"""
     
     # Initialize kits
     chexpert_kits = {}
-    for sens_grp in ['gender', 'race', 'race_gender']:
-        if sens_grp == 'race_gender':
-            kit_df = df
+    for sens_grp in ['sex', 'race', 'race_sex']:
+        if sens_grp == 'race_sex':
             kwargs = {"specific_col_idx": [0, 4, 5, 6, 10, 11, 7, 9]}
         else:
-            kit_df = df
             kwargs = {}
 
-        mod_name = f'cheXpert_{sens_grp}'
-        chexpert_kits[mod_name] = FairKit(
-            data = kit_df,
+        key_name = f'cheXpert_{sens_grp}'
+        mod_name = f'CheXpert: {sens_grp}'
+        chexpert_kits[key_name] = FairKit(
+            data = pred_data,
             y_name = 'y',
             y_hat_name='y_hat',
             a_name = sens_grp,
             r_name = 'scores',
             w_fp = 0.1, 
+            model_name = mod_name,
             **kwargs
         )
     return chexpert_kits
@@ -363,16 +389,18 @@ if __name__ == '__main__':
 
 
     if run_chexpert:
-        chexpert_kits = get_chexpert_kits()
+        chexpert_df = get_chexpert_prediction_data(threshold = 'fpr_based')
+        chexpert_kits = get_chexpert_kits(chexpert_df)
 
         if make_cheXpert_table:
             table_list = []
         for mod_name, kit in chexpert_kits.items():
-            if run_all_plots:
+            if run_all_chexpert_plots:
                 path = figure_path + mod_name + '_'
                 make_all_plots(kit, 
                     save_plots = update_figures,
-                    plot_path = path)
+                    plot_path = path, 
+                    **{'suptitle': False})
 
             if update_report_figures:
                 path = fig_path_chexpert + mod_name + '_'
@@ -380,7 +408,7 @@ if __name__ == '__main__':
                     save_plots = update_report_figures,
                     plot_path = path,
                     ext = ".pdf",
-                    **{"run_level_2":True})
+                    **{"run_level_2": True, 'suptitle': False})
             
             if make_cheXpert_table:
                 table_list.append(table_fairness_analysis(kit))
@@ -402,3 +430,5 @@ if __name__ == '__main__':
 
 
 # %%
+
+
