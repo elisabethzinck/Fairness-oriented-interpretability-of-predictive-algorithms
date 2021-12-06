@@ -102,7 +102,7 @@ class FairKit:
             'y': self.y, 
             'a': self.a, 
             'y_hat': self.y_hat, 
-            'r': self.r})
+            'r': self.r}).reset_index(drop = True)
         self.sens_grps = np.sort(self.a.unique())
         self.n_sens_grps = len(self.sens_grps)
         self.n = data.shape[0]
