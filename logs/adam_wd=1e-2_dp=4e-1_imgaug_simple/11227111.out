@@ -401,3 +401,88 @@ Params to learn:
 	 classifier.weight
 	 classifier.bias
 Global seed set to 42
+Total time to run script: 1357.60 mins
+----------------------------
+---       DONE :)      -----
+----------------------------
+
+------------------------------------------------------------
+Sender: LSF System <lsfadmin@hpc.dtu.dk>
+Subject: Job 11227111: <adam_wd=1e-2_dp=4e-1_imgaug_simple> in cluster <dcc> Done
+
+Job <adam_wd=1e-2_dp=4e-1_imgaug_simple> was submitted from host <gbarlogin1> by user <s164175> in cluster <dcc> at Fri Dec  3 09:30:07 2021
+Job was executed on host(s) <8*n-62-11-16>, in queue <gpuv100>, as user <s164175> in cluster <dcc> at Fri Dec  3 09:30:07 2021
+</zhome/95/1/117606> was used as the home directory.
+</zhome/95/1/117606/Documents/Fairness-oriented-interpretability-of-predictive-algorithms> was used as the working directory.
+Started at Fri Dec  3 09:30:07 2021
+Terminated at Sat Dec  4 08:08:36 2021
+Results reported at Sat Dec  4 08:08:36 2021
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+#!/bin/sh 
+### General options 
+### -- specify queue -- 
+#BSUB -q gpuv100
+### -- set the job Name --  (should be the same as in script)
+#BSUB -J adam_wd=1e-2_dp=4e-1_imgaug_simple
+### -- ask for number of cores (default: 1) -- 
+#BSUB -n 8 
+### --- ask for gpu ---
+#BSUB -gpu "num=1"
+### -- specify that the cores must be on the same host -- 
+#BSUB -R "span[hosts=1]"
+### -- amount of memory per core/slot -- 
+#BSUB -R "rusage[mem=10GB]"
+### -- job gets killed if it exceeds xGB per core/slot -- 
+#BSUB -M 10GB
+### -- set walltime limit: hh:mm -- 
+#BSUB -W 24:00
+### -- Specify the output and error file. %J is the job-id -- 
+### -- -o and -e mean append, -oo and -eo mean overwrite -- 
+#BSUB -oo logs/adam_wd=1e-2_dp=4e-1_imgaug_simple/%J.out 
+
+echo "Starting bash script"
+
+### Make logging directory
+mkdir -p logs/adam_wd=1e-2_dp=4e-1_imgaug_simple/
+
+### Activate environment
+module load python3/3.8.11
+source .venv/bin/activate
+
+### Run python script
+echo "----------------------------"
+echo "--- Output from Python -----"
+echo "----------------------------"
+
+# Running neural network training parsing 
+# model_name, weight_decay, drop_out, extented_image_augmentation, simple_image_augmentation
+python3 src/models/cheXpert_neural_network_w_argparser.py adam_wd=1e-2_dp=4e-1_imgaug_simple 1e-2 4e-1 0 1
+
+echo "----------------------------"
+echo "---       DONE :)      -----"
+echo "----------------------------"
+
+
+------------------------------------------------------------
+
+Successfully completed.
+
+Resource usage summary:
+
+    CPU time :                                   119578.96 sec.
+    Max Memory :                                 10285 MB
+    Average Memory :                             8329.42 MB
+    Total Requested Memory :                     81920.00 MB
+    Delta Memory :                               71635.00 MB
+    Max Swap :                                   -
+    Max Processes :                              18
+    Max Threads :                                65
+    Run time :                                   81509 sec.
+    Turnaround time :                            81509 sec.
+
+The output (if any) is above this job summary.
+
