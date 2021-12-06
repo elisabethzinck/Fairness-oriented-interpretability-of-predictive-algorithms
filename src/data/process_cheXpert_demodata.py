@@ -13,7 +13,7 @@ dm = CheXpertDataModule(**{
     'tiny_sample_data': False, 
     'extended_image_augmentation':False})
 
-meta_dat = dm.dataset_df
+meta_dat = dm.dataset_df.rename(columns = str.lower)
 
 #%%
 # Adding Race 
@@ -27,10 +27,9 @@ demo_df = raw_demo.rename(columns={
     })
 df = (meta_dat
     .join(demo_df.set_index("patient_id"), how = "left", on = "patient_id")
-    .assign(age_diff = lambda x: x.Age-x.age_at_CXR,
-            sex_diff = lambda x: x.Sex != x.gender)
-    .query("age_diff <= 15 and age_diff >= -15 and sex_diff == False")
-    .filter(items = ["patient_id", "age_at_cxr", "gender", "race", "ethnicity"])
+    .assign(age_diff = lambda x: x.age-x.age_at_CXR)
+    .query("age_diff <= 15 and age_diff >= -15")
+    .filter(items = ["patient_id", "age_at_cxr", "sex", "race", "ethnicity"])
     .drop_duplicates()
 )
 
@@ -49,7 +48,7 @@ df.loc[mask, "race"] = "Asian"
 mask = ~df.race.isin(['Asian', 'Black', 'White'])
 df.loc[mask, "race"] = "Other"
 
-df['race_gender'] = df.race + '_' + df.gender
+df['race_sex'] = df.race + '_' + df.sex
 
 # %% Writing processed file to csv 
 save_dir = "data/CheXpert/processed/"
