@@ -172,12 +172,12 @@ class FairKit:
 
             f.subplots_adjust(wspace = 0.5, hspace = 0.7)
 
-            if "suptitle" in  kwargs.keys():
-                if kwargs["suptitle"] is not None:
-                    f.suptitle(f"{self.model_name}",
-                               x=0.35, y = 0.98, 
-                               fontweight = 'bold', 
-                               fontsize = self._title_size+1)
+            suptitle = kwargs.get('suptitle', False)
+            if suptitle:
+                f.suptitle(f"{self.model_name}",
+                            x=0.35, y = 0.98, 
+                            fontweight = 'bold', 
+                            fontsize = self._title_size+1)
 
         if output_table:
             rates = (pd.concat(
