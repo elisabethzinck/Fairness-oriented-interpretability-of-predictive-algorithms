@@ -610,7 +610,7 @@ class FairKit:
             data = plot_df,
             order = rate_names,
             ax = ax)
-        ax.legend(loc = 'upper right', frameon = False)
+        ax.legend(loc = 'best', frameon = False)
         ax.set_xlabel('')
         ax.set_ylabel('')
         ax.set_title('Group rates', fontsize=14, loc = 'left')
