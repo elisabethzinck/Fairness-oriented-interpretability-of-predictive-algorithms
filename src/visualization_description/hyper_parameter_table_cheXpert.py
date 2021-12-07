@@ -67,37 +67,50 @@ def get_dropout(model_name):
 
 def get_imgaug(model_name):
     "Extract image augmentation from model name"
-    match = re.findall('imgaug', model_name)
-    if len(match) == 0:
-        return False
+    imgaug_match = re.search('imgaug', model_name)
+    simple_match = re.search('simple', model_name)
+    if simple_match or model_name == 'benchmark_adam':
+        return 'Simple'
+    elif imgaug_match:
+        return 'Extensive'
     else:
-        return True
+        return 'None'
 
 
 
 # %%
 if __name__ == '__main__':
     folder_path = 'models/CheXpert/lightning_logs/'
-    model_paths = [
-        'adam_dp=2e-1',
-        'adam_dp=2e-1_imgaug',
-        'adam_dp=4e-1',
-        'adam_dp=4e-1_imgaug',
-        'adam_imgaug',
-        'adam_wd=1e-2',
-        'adam_wd=1e-2_dp=2e-1',
-        'adam_wd=1e-2_dp=2e-1_imgaug',
-        'adam_wd=1e-2_dp=4e-1',
-        'adam_wd=1e-2_dp=4e-1_imgaug',
-        'adam_wd=1e-2_imgaug',
-        'adam_wd=1e-3',
-        'adam_wd=1e-3_dp=2e-1',
-        'adam_wd=1e-3_dp=2e-1_imgaug',
-        'adam_wd=1e-3_dp=4e-1',
-        'adam_wd=1e-3_dp=4e-1_imgaug',
-        'adam_wd=1e-3_imgaug',
-        'benchmark_adam'
-        ]
+    model_paths =  [
+        "adam",
+        "adam_wd=1e-2",
+        "adam_wd=1e-3",
+        "adam_dp=2e-1",
+        "adam_wd=1e-2_dp=2e-1",
+        "adam_wd=1e-3_dp=2e-1",
+        "adam_dp=4e-1",
+        "adam_wd=1e-2_dp=4e-1",
+        "adam_wd=1e-3_dp=4e-1",
+        "adam_imgaug",
+        "adam_wd=1e-2_imgaug",
+        "adam_wd=1e-3_imgaug",
+        "adam_dp=2e-1_imgaug",
+        "adam_wd=1e-2_dp=2e-1_imgaug",
+        "adam_wd=1e-3_dp=2e-1_imgaug",
+        "adam_dp=4e-1_imgaug",
+        "adam_wd=1e-2_dp=4e-1_imgaug",
+        "adam_wd=1e-3_dp=4e-1_imgaug",
+        "adam_imgaug_simple",
+        "adam_wd=1e-2_imgaug_simple",
+        "adam_wd=1e-3_imgaug_simple",
+        "adam_dp=2e-1_imgaug_simple",
+        "adam_wd=1e-2_dp=2e-1_imgaug_simple",
+        "adam_wd=1e-3_dp=2e-1_imgaug_simple",
+        "adam_dp=4e-1_imgaug_simple",
+        "adam_wd=1e-2_dp=4e-1_imgaug_simple",
+        "adam_wd=1e-3_dp=4e-1_imgaug_simple"]
+
+    print(f'Number of models: {len(model_paths)}')
 
     df_rows = []
     for mod_path in model_paths:
@@ -119,5 +132,7 @@ if __name__ == '__main__':
         .sort_values(by = 'val_auroc', ascending = False))
 
     print(df.to_latex(index = False))
+
+# %%
 
 # %%
