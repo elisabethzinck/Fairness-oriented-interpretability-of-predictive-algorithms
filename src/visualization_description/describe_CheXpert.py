@@ -1,6 +1,6 @@
 #%%
 import pandas as pd
-
+import numpy as np
 import matplotlib.pyplot as plt 
 
 from src.evaluation_tool.descriptive_tool import DescribeData
@@ -11,7 +11,7 @@ save_figs = True
 
 #%%
 # Choose dataset: test, train or val
-data_set = "train"
+data_set = "all"
 
 # Loading CheXpert
 disease = 'Cardiomegaly'
@@ -34,6 +34,25 @@ if data_set == "test":
     meta_dat = dm.test_data.dataset_df.assign(
         y = dm.test_data.y.squeeze()
 )
+if data_set == "all":
+     # Uncertainty approach
+    if dm.uncertainty_approach == 'U-Ones':
+        target_map = {
+            np.nan: 0,  # unmentioned
+            0.0: 0,     # negative
+            -1.0: 1,    # uncertain
+            1.0: 1      # positive
+            }
+    elif dm.uncertainty_approach == 'U-Zeros':
+        target_map = {
+            np.nan: 0,  # unmentioned
+            0.0: 0,     # negative
+            -1.0: 0,    # uncertain
+            1.0: 1      # positive
+            }
+    meta_dat = dm.dataset_df.assign(
+        y = lambda x: x[dm.target_disease].map(target_map)
+    )
 
 #%%
 # Adding Race from processed demo data 
@@ -82,7 +101,7 @@ if save_figs:
     plt.savefig(fig_path_report+f"N_race_{data_set}.pdf", bbox_inches='tight')
 
 #%%
-desc_race_sex = DescribeData(a_name = "race_gender", 
+desc_race_sex = DescribeData(a_name = "race_sex", 
                         y_name = "y", 
                         id_name = 'patient_id', 
                         data = df,
@@ -100,6 +119,7 @@ desc_race_sex.plot_n_target_across_sens_var(
     **{"class_1_label":disease, "class_0_label": f"No {disease}"})
 if save_figs: 
     plt.savefig(fig_path_report+f"N_race_sex_{data_set}.pdf", bbox_inches='tight')
+
 
 
 # %%

@@ -17,10 +17,10 @@ l3_report_plots_chexpert = [
     ['cheXpert_race', 'roc_curves'],
     ['cheXpert_race', 'calibration']] # Add more here later
 
-update_figures  = True
-update_report_figures = True # Write new figures to report repository?
-run_all_plots = True
-run_l3_plots = True
+update_figures  = False
+update_report_figures = False # Write new figures to report repository?
+run_all_plots = False
+run_l3_plots = False
 make_table = True
 
 #############################################
@@ -180,14 +180,17 @@ if __name__ == '__main__':
 
     if make_table:
         total_table = pd.concat(table_list)
-        total_table.rename(
+        round_dict = {"WMR": 3, "WMQ": 1, "auc_roc": 3, "acc": 1}
+        total_table = total_table.round(round_dict)
+        total_table = total_table.rename(columns =
             {"sens_grp": "Sensitive Group",
                 "grp": "Subgroup",
+                "WMQ": "WMQ %",
                 "auc_roc": "AUC ROC",
                 "acc": "Accuracy %"         
             }
         ) 
-        print(total_table.to_latex(index= False, float_format="%.3f"))
+        print(total_table.to_latex(index= False))
        
     if run_l3_plots:
         kwargs = {"threshold": threshold, "n_bins": 10}
