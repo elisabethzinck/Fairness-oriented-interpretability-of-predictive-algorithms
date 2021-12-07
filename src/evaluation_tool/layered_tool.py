@@ -842,11 +842,12 @@ class FairKit:
         # Get legend
         patches = []
         for grp, col in self.sens_grps_cols.items():
+            tau = round(t_dict[grp], 3)
             patch = Line2D(
                 [], [], 
                 color = col, marker = 'o', markersize = 10,
                 markeredgecolor = 'white',
-                label = f'{grp} ($\\tau$ = {t_dict[grp]:.3f})')
+                label = f'{grp} ($\\tau$ = {tau})')
             patches.append(patch)
         ax.legend(
             handles = patches,
