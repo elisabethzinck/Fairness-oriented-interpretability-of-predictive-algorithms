@@ -846,7 +846,7 @@ class FairKit:
                 [], [], 
                 color = col, marker = 'o', markersize = 10,
                 markeredgecolor = 'white',
-                label = f'{grp} ($\\tau$ = {t_dict[grp]})')
+                label = f'{grp} ($\\tau$ = {t_dict[grp]:.3f})')
             patches.append(patch)
         ax.legend(
             handles = patches,
