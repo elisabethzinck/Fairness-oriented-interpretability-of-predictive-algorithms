@@ -1,0 +1,95 @@
+Sender: LSF System <lsfadmin@hpc.dtu.dk>
+Subject: Job 11239973: <adam> in cluster <dcc> Done
+
+Job <adam> was submitted from host <gbarlogin1> by user <s164204> in cluster <dcc> at Mon Dec  6 16:11:10 2021
+Job was executed on host(s) <8*n-62-20-2>, in queue <gpuv100>, as user <s164204> in cluster <dcc> at Mon Dec  6 16:11:12 2021
+</zhome/63/6/117697> was used as the home directory.
+</zhome/63/6/117697/Documents/Fairness-oriented-interpretability-of-predictive-algorithms> was used as the working directory.
+Started at Mon Dec  6 16:11:12 2021
+Terminated at Mon Dec  6 16:12:23 2021
+Results reported at Mon Dec  6 16:12:23 2021
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+#!/bin/sh 
+### General options 
+### -- specify queue -- 
+#BSUB -q gpuv100
+### -- set the job Name --  (should be the same as in script)
+#BSUB -J adam
+### -- ask for number of cores (default: 1) -- 
+#BSUB -n 8 
+### --- ask for gpu ---
+#BSUB -gpu "num=1"
+### -- specify that the cores must be on the same host -- 
+#BSUB -R "span[hosts=1]"
+### -- amount of memory per core/slot -- 
+#BSUB -R "rusage[mem=10GB]"
+### -- job gets killed if it exceeds xGB per core/slot -- 
+#BSUB -M 10GB
+### -- set walltime limit: hh:mm -- 
+#BSUB -W 24:00
+### -- Specify the output and error file. %J is the job-id -- 
+### -- -o and -e mean append, -oo and -eo mean overwrite -- 
+#BSUB -oo logs/adam/%J.out 
+
+echo "Starting bash script"
+
+### Make logging directory
+mkdir -p logs/adam/
+
+### Activate environment
+module load python3/3.8.11
+source .venv/bin/activate
+
+### Run python script
+echo "----------------------------"
+echo "--- Output from Python -----"
+echo "----------------------------"
+
+# Running neural network training parsing 
+# model_name, weight_decay, drop_out, extented_image_augmentation
+python3 src/models/cheXpert_neural_network_w_argparser.py adam 0 0 0
+
+echo "----------------------------"
+echo "---       DONE :)      -----"
+echo "----------------------------"
+
+
+------------------------------------------------------------
+
+Successfully completed.
+
+Resource usage summary:
+
+    CPU time :                                   7.25 sec.
+    Max Memory :                                 79 MB
+    Average Memory :                             79.00 MB
+    Total Requested Memory :                     81920.00 MB
+    Delta Memory :                               81841.00 MB
+    Max Swap :                                   -
+    Max Processes :                              4
+    Max Threads :                                5
+    Run time :                                   133 sec.
+    Turnaround time :                            73 sec.
+
+The output (if any) follows:
+
+Starting bash script
+Loaded dependency [python3/3.8.11]: gcc/10.3.0-binutils-2.36.1
+Loaded module: python3/3.8.11
+
+Loading python3/3.8.11
+  Loading requirement: gcc/10.3.0-binutils-2.36.1
+----------------------------
+--- Output from Python -----
+----------------------------
+usage: cheXpert_neural_network_w_argparser.py [-h]
+                                              model_name weight_decay dropout
+                                              do_ext_img_aug do_simple_img_aug
+cheXpert_neural_network_w_argparser.py: error: the following arguments are required: do_simple_img_aug
+----------------------------
+---       DONE :)      -----
+----------------------------
