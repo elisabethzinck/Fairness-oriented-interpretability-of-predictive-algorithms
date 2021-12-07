@@ -2,12 +2,9 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
-import sklearn
 
 from src.evaluation_tool.layered_tool import FairKit
-from src.evaluation_tool.utils import static_split, label_case
-
-from sklearn.metrics import roc_curve
+from src.evaluation_tool.utils import static_split
 
 #%% Initialize parameters
 figure_path = 'figures/evaluation_plots/'
@@ -217,8 +214,7 @@ def make_all_plots(kit, save_plots = False, plot_path = None, ext = '.png', **kw
             plt.close()
 
     if kwargs.get("run_level_2") or run_all:
-        suptitle = kwargs.get('suptitle', True)
-        kit.level_2(output_table = False, **{"suptitle": suptitle})
+        kit.level_2(output_table = False, **kwargs)
         if save_plots: 
             plt.savefig(plot_path+'l2'+ext, bbox_inches='tight', facecolor = 'w')
             plt.close()
@@ -228,112 +224,11 @@ def make_all_plots(kit, save_plots = False, plot_path = None, ext = '.png', **kw
             'w_fp_influence', 'roc_curves', 'calibration', 
             'confusion_matrix', 'independence_check']
         for method in method_options:
-            kit.level_3(method = method, output_table = False)
+            kit.level_3(method = method, output_table = False, **kwargs)
             if save_plots: 
                 path = plot_path+'l3_'+method+ext
                 plt.savefig(path, bbox_inches='tight', facecolor = 'w')
                 plt.close()
-
-def get_chexpert_prediction_data(threshold = 'fpr_based'):
-    """Merges predictions with demodata and finds threshold"""
-    # Load data
-    pred_path = 'data/CheXpert/predictions/adam_dp=2e-1/test_best_predictions.csv'
-    demo_path = 'data/CheXpert/processed/cheXpert_processed_demo_data.csv'
-    preds = pd.read_csv(pred_path)
-    demo_data = pd.read_csv(demo_path)
-
-    # Merge chexpert and demographic data
-    df = preds.join(
-        demo_data.set_index('patient_id'), 
-        how = 'left', 
-        on = 'patient_id')
-    
-    # 160 without any demographic information and 181 without ethnicity dropped
-    assert df.race.isnull().sum() == 160 
-    assert df.ethnicity.isnull().sum() == 181
-    
-    df = (df.dropna(subset = ['sex', 'race'])
-        .drop(columns = ['ethnicity']))
-
-    if threshold == 'standard':
-        tau = 0.5
-    elif threshold == 'fpr_based':
-        fpr_target = 0.2
-        fpr, tpr, threshold = roc_curve(
-                y_true = df.y, 
-                y_score = df.scores)
-        roc = pd.DataFrame({'fpr': fpr, 'tpr': tpr, 'threshold': threshold})
-        roc = (roc[roc.fpr < fpr_target]
-            .sort_values('fpr', ascending = False)
-            .reset_index(drop = True))
-        tau = roc.threshold[0]
-    else:
-        raise ValueError('Whoops. Threshold option not found')
-
-    df = df.assign(y_hat = lambda x: x.scores >= tau)
-    
-    return df
-
-
-def get_chexpert_kits(pred_data):
-    """Creates dictionary of FairKits for CheXpert dataset"""
-    
-    # Initialize kits
-    chexpert_kits = {}
-    for sens_grp in ['sex', 'race', 'race_sex']:
-        if sens_grp == 'race_sex':
-            kwargs = {"specific_col_idx": [0, 4, 5, 6, 10, 11, 7, 9]}
-        else:
-            kwargs = {}
-
-        key_name = f'cheXpert_{sens_grp}'
-        mod_name = f'CheXpert: {sens_grp}'
-        chexpert_kits[key_name] = FairKit(
-            data = pred_data,
-            y_name = 'y',
-            y_hat_name='y_hat',
-            a_name = sens_grp,
-            r_name = 'scores',
-            w_fp = 0.1, 
-            model_name = mod_name,
-            **kwargs
-        )
-    return chexpert_kits
-
-def table_fairness_analysis(fairKit_instance, to_latex = False):
-    a_name = fairKit_instance.a_name
-    
-    # helper function
-    def stats_group(df):
-        scores = df.scores
-        y_hat = df.y_hat
-        y = df.y
-        auc_roc = sklearn.metrics.roc_auc_score(y, scores)
-        acc = sklearn.metrics.accuracy_score(y, y_hat)*100
-        return [auc_roc, acc]
-
-    auc_acc_table = (fairKit_instance.data
-        .assign(roc_auc_tuple = lambda x: list(zip(x.y, x.scores)),
-                acc_tuple = lambda x: list(zip(x.y, x.y_hat)))
-        .groupby(a_name)
-            .apply(stats_group)
-        .apply(pd.Series)
-        .reset_index()
-        .rename(columns = {0:"auc_roc", 1:"acc"})
-            )
-
-    return_table = (fairKit_instance.level_1(plot = False)
-        .rename(columns={"grp":a_name})
-        .join(auc_acc_table.set_index(a_name), how = "left", on = a_name)
-        .rename(columns={f"{a_name}":"grp"})
-        .assign(sens_grp = a_name))
-
-    return_table = return_table[["sens_grp","grp","n","WMR","WMQ","auc_roc","acc"]]
-
-    if to_latex:
-        print(return_table.to_latex(index = False, float_format="%.3f"))
-    else:
-        return return_table
 
         
 #%%
@@ -386,49 +281,4 @@ if __name__ == '__main__':
             plot_path = path,
             ext = ".pdf",
             **{"run_level_3":True})
-
-
-    if run_chexpert:
-        chexpert_df = get_chexpert_prediction_data(threshold = 'fpr_based')
-        chexpert_kits = get_chexpert_kits(chexpert_df)
-
-        if make_cheXpert_table:
-            table_list = []
-        for mod_name, kit in chexpert_kits.items():
-            if run_all_chexpert_plots:
-                path = figure_path + mod_name + '_'
-                make_all_plots(kit, 
-                    save_plots = update_figures,
-                    plot_path = path, 
-                    **{'suptitle': False})
-
-            if update_report_figures:
-                path = fig_path_chexpert + mod_name + '_'
-                make_all_plots(kit, 
-                    save_plots = update_report_figures,
-                    plot_path = path,
-                    ext = ".pdf",
-                    **{"run_level_2": True, 'suptitle': False})
-            
-            if make_cheXpert_table:
-                table_list.append(table_fairness_analysis(kit))
-
-        if make_cheXpert_table:
-            total_table = pd.concat(table_list)
-            total_table.rename(
-                {"sens_grp": "Sensitive Group",
-                 "grp": "Subgroup",
-                 "auc_roc": "AUC ROC",
-                 "acc": "Accuracy %"         
-                }
-            ) 
-            print(total_table.to_latex(index= False, float_format="%.3f"))
-            
-
-
-    # %%
-
-
-# %%
-
 
