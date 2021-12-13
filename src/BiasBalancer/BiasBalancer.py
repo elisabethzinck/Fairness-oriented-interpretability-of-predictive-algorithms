@@ -1,31 +1,13 @@
 #%% Imports
 import pandas as pd
 import numpy as np
-import math
-
-# Widgets
-from ipywidgets import interact, FloatSlider
-
-# Plots 
-import matplotlib.pyplot as plt
-import matplotlib.ticker as mtick
-from matplotlib.gridspec import GridSpec
-from matplotlib.lines import Line2D
-
-import seaborn as sns
 
 # sklearn 
 from sklearn.metrics import confusion_matrix, roc_curve
 
 # dir functions
-from src.evaluation_tool.utils import (
-    cm_matrix_to_dict, custom_palette, abs_percentage_tick, extract_cm_values,
-    flatten_list, add_colors_with_stripes, get_alpha_weights, 
-    value_counts_df, desaturate, label_case, format_text_level_1,
-    N_pos, N_neg, frac_pos, frac_neg, wilson_confint, 
-    error_bar, flip_dataframe, cm_vals_to_matrix,
-    get_BW_fairness_barometer_legend_patches
-    )
+import src.BiasBalancer.utils as utils
+from src.BiasBalancer.BiasBalancerPlots import BiasBalancerPlots
 
 #%%
 
@@ -34,7 +16,7 @@ def calculate_WMR(cm, grp, w_fp):
     
     Args:
         cm (dataframe): long format confusion matrix as returned 
-                        by get_confusion_matrix() in FairKit
+                        by get_confusion_matrix() in BiasBalancer
         w_fp (int or float): False positive error weight 
     """
 
@@ -50,14 +32,14 @@ def calculate_WMR(cm, grp, w_fp):
     else:
         c = 1/w_fp
 
-    TP, FN, FP, TN = extract_cm_values(cm, grp)
+    TP, FN, FP, TN = utils.extract_cm_values(cm, grp)
     n = sum([TP, TN, FN, FP])
     wmr = c*(w_fp*FP + (1-w_fp)*FN)/n
     return wmr
 
 class BiasBalancer:
     def __init__(self, data, y_name, y_hat_name, a_name, r_name, w_fp, model_name = None, **kwargs):
-        """Saves and calculates all necessary attributes for FairKit object
+        """Saves and calculates all necessary attributes for BiasBalancer object
         
         Args:
             data (pd.DataFrame): DataFrame containing data used for evaluation
@@ -69,6 +51,7 @@ class BiasBalancer:
             model_name (str): Name of the model or dataset used. Is used for plot titles. 
         """
 
+        # Input checks
         if not isinstance(data, pd.DataFrame):
             raise ValueError(f'`data` must be a dataframe. You supplied a {type(data)}')
         
@@ -110,37 +93,22 @@ class BiasBalancer:
 
         self.cm = self.get_confusion_matrix()
         self.rates = self.get_rates()
-        self.WMR_rates = self.get_WMR_rates()
-        self.WMR_rel_rates = self.get_relative_rates(self.WMR_rates)
+        self.WMR_rates = self.get_WMR_rates(w_fp = self.w_fp)
         self.rel_rates = self.get_relative_rates()
+        self.WMR_rel_rates = self.get_relative_rates(self.WMR_rates)
 
-        if kwargs.get("specific_col_idx"):
-            assert len(kwargs.get("specific_col_idx")) == self.n_sens_grps, "list of indexes should have same length as n_sens_grps"
-            self.sens_grps_cols = dict(
-                zip(self.sens_grps, custom_palette(specific_col_idx=kwargs.get("specific_col_idx")))
-            )
-        else:    
-            self.sens_grps_cols = dict(
-                zip(self.sens_grps, custom_palette(n_colors = self.n_sens_grps))
-                )
+        self.BBplot = BiasBalancerPlots(self)
 
-        self._tick_size = 12
-        self._label_size = 13
-        self._title_size = 13
-        self._legend_size = 12
     
     ###############################################################
     #                  LAYER METHODS
     ###############################################################
     
-    def level_1(self, plot  = True, output_table = True, w_fp = None):
+    def level_1(self, plot  = True, output_table = True):
         """To do: Documentation"""
-        if w_fp is None:
-            w_fp = self.w_fp
 
-        wmr = self.get_WMR_rates(w_fp = w_fp)
-        relative_wmr = self.get_relative_rates(wmr)
-        obs_counts = (value_counts_df(self.classifier, 'a')
+        relative_wmr = self.get_relative_rates(self.WMR_rates)
+        obs_counts = (utils.value_counts_df(self.classifier, 'a')
             .rename(columns = {'a': 'grp'}))
         l1_data = (pd.merge(relative_wmr, obs_counts)
             .rename(columns = {
@@ -149,51 +117,30 @@ class BiasBalancer:
         l1_data = l1_data[['grp', 'n', 'WMR','WMQ']]
 
         if plot:
-            self.plot_level_1(l1_data=l1_data, ax = None)
+            self.BBplot.plot_level_1(l1_data=l1_data, ax = None)
 
         if output_table:
             return l1_data
     
-    def level_2(self, plot = True, output_table = True, w_fp = None, **kwargs):
+    def level_2(self, plot = True, output_table = True, **kwargs):
         """To do: Documentation"""
-        if w_fp is None:
-            w_fp = self.w_fp
-    
-        if plot:
-            gs = GridSpec(nrows = 10, ncols = 3)
-            f = plt.figure(figsize=(22,6))
-            ax0 = f.add_subplot(gs[:, 0])
-            ax2 = f.add_subplot(gs[5:,1:2])
-            ax1 = f.add_subplot(gs[0:4,1:2], sharex = ax2)
-            
-            self.plot_rates(ax = ax0, w_fp = w_fp)
-            self.plot_relative_rates(ax = ax1, w_fp = w_fp)
-            self.plot_fairness_barometer(ax = ax2, w_fp = w_fp)
-
-            f.subplots_adjust(wspace = 0.5, hspace = 0.7)
-
-            suptitle = kwargs.get('suptitle', False)
-            if suptitle:
-                f.suptitle(f"{self.model_name}",
-                            x=0.35, y = 0.98, 
-                            fontweight = 'bold', 
-                            fontsize = self._title_size+1)
-
-        if output_table:
-            rates = (pd.concat(
-                [self.rates, self.get_WMR_rates(w_fp = w_fp)]
+        rates = (pd.concat(
+                [self.rates, self.WMR_rates]
                 )
                 .query("rate in ['FPR', 'FNR', 'FDR', 'FOR', 'WMR']")
                 .sort_values(['rate', 'grp'])
                 .reset_index(drop = True))
-            relative_rates = self.get_relative_rates(rates = rates)
-            barometer = self.get_fairness_barometer(w_fp = w_fp)
+        relative_rates = self.get_relative_rates(rates = rates)
+        barometer = self.get_fairness_barometer()
+    
+        if plot:
+            self.BBplot.plot_level_2(rates, relative_rates, barometer, **kwargs)
+
+        if output_table:
             return rates.query("rate != 'WMR'"), relative_rates, barometer
         
     def level_3(self, method, plot = True, output_table = True, **kwargs):
         """To do: Documentation"""
-
-        # To do: Split up in getting data and getting plot
 
         method_options = [
             'w_fp_influence', 
@@ -209,73 +156,69 @@ class BiasBalancer:
             raise ValueError(f'`method` must be one of the following: {method_options}. You supplied `method` = {method}')
 
         if method == 'w_fp_influence':
-            plot_df = self.get_w_fp_influence()
-            if plot:
-                self.plot_w_fp_influence(
-                    plot_df = plot_df, 
-                    palette = self.sens_grps_cols)
+            w_fp_influence = self.get_w_fp_influence(plot = plot)
             if output_table:
-                return plot_df
+                return w_fp_influence
             else:
                 return None
 
         if method == 'roc_curves':
-            # To do: Fix that get_roc_curves is called twice
-            roc = self.get_roc_curves()
-            if plot:
-                threshold = kwargs.get('threshold')
-                self.plot_roc_curves(threshold = threshold)
+            threshold = kwargs.get('threshold', None)
+            roc = self.get_roc_curves(plot = plot, threshold = threshold)
             if output_table:
                 return roc
+            else:
+                return None
 
         if method == 'calibration':
-            if plot:
-                self.plot_calibration(**kwargs)
+            n_bins = kwargs.get('n_bins', 5)
+            calibration = self.get_calibration(plot = plot, n_bins = n_bins)
             if output_table:
-                calibration = self.get_calibration()
                 return calibration
+            else:
+                return None
 
         if method == 'confusion_matrix':
-            self.plot_confusion_matrix(**kwargs)
+            cm = self.get_confusion_matrix(plot = plot, **kwargs)
             if output_table:
-                conf = self.get_confusion_matrix()
-                return conf
+                return cm
             else:
                 return None
         
         if method == 'independence_check':
-            if plot: 
-                self.plot_independence_check(**kwargs)
+            independence_check = self.get_independence_check(plot = plot, **kwargs)
             if output_table:
-                w_fp = kwargs.get('w_fp')
-                return self.get_independence_check(w_fp = w_fp)
+                return independence_check
+            else:
+                return None
 
 
     ###############################################################
     #                  CALCULATION METHODS
     ###############################################################
     
-    def get_confusion_matrix(self):
+    def get_confusion_matrix(self, plot = False, **kwargs):
         """Calculate the confusion matrix for sensitive groups"""
+        # To do: Make code below more readable
         cm = {}
         for grp in self.sens_grps:
             df_group = self.classifier[self.classifier.a == grp]
             cm_sklearn = confusion_matrix(
                 y_true = df_group.y, 
                 y_pred = df_group.y_hat)
-            cm[grp] = cm_matrix_to_dict(cm_sklearn)
+            cm[grp] = utils.cm_matrix_to_dict(cm_sklearn)
         
         # Making into a data frame of long format 
         data = pd.DataFrame({'a':self.a, 'y': self.y, 'y_hat':self.y_hat})
         agg_df = (data.groupby('a')
-            .agg(P = ("y", N_pos), 
-                    N = ("y", N_neg),
-                    PP = ("y_hat", N_pos),
-                    PN = ("y_hat", N_neg),
-            )    
+            .agg(
+                P = ("y", utils.N_pos), 
+                N = ("y", utils.N_neg),
+                PP = ("y_hat", utils.N_pos),
+                PN = ("y_hat", utils.N_neg))    
             .reset_index()     
         )
-        cm_df=(flip_dataframe(pd.DataFrame(cm).reset_index())
+        cm_df=(utils.flip_dataframe(pd.DataFrame(cm).reset_index())
             .rename(columns={'index':'a'})
             .set_index('a')
             .join(agg_df.set_index('a'))
@@ -292,15 +235,16 @@ class BiasBalancer:
 
         df.reset_index(inplace=True, drop=True)
 
+        if plot:
+            self.BBplot.plot_confusion_matrix(df, **kwargs)
+
         return df
 
-    def get_rates(self, w_fp = None):
-        """Calculate rates by sensitive group"""
-        if w_fp is None:
-            w_fp = self.w_fp
+    def get_rates(self, plot = False):
+        """To do: Documentation"""
         rates = []   
         for grp in self.sens_grps:
-            TP, FN, FP, TN = extract_cm_values(self.cm, grp)
+            TP, FN, FP, TN = utils.extract_cm_values(self.cm, grp)
             rates_grp = (pd.DataFrame(
                 [['FNR', FN, (TP + FN)], 
                 ['FPR', FP, (TN + FP)],
@@ -312,9 +256,9 @@ class BiasBalancer:
                 .assign(
                     grp = grp,
                     rate_val = lambda x: x.numerator/x.denominator,
-                    rate_val_lwr = lambda x: wilson_confint(
+                    rate_val_lwr = lambda x: utils.wilson_confint(
                         x.numerator, x.denominator, 'lwr'),
-                    rate_val_upr = lambda x: wilson_confint(
+                    rate_val_upr = lambda x: utils.wilson_confint(
                         x.numerator, x.denominator, 'upr'))
                 )
             rates.append(rates_grp)
@@ -322,10 +266,13 @@ class BiasBalancer:
         rates = (pd.concat(rates)
             .reset_index(drop = True)
             .drop(columns = ['numerator', 'denominator']))
+
+        if plot:
+            self.BBplot.plot_rates(rates)
         
         return rates
 
-    def get_relative_rates(self, rates = None, rate_names = None):
+    def get_relative_rates(self, rates = None, rate_names = None, plot = False):
         """Calculate relative difference in rates between group rate 
         and minimum rate.
 
@@ -353,35 +300,30 @@ class BiasBalancer:
             .assign(
                 relative_rate = lambda x: 
                     (x.rate_val-x.min_rate)/x.min_rate*100)
-            .loc[:, ['rate', 'grp', 'rate_val', 'relative_rate']])
+            .loc[:, ['rate', 'grp', 'rate_val', 'relative_rate']]
+            .reset_index(drop = True))
+
+        if plot:
+            self.BBplot.plot_relative_rates(rel_rates)
 
         return rel_rates
     
     def get_WMR_rates(self, w_fp = None):
         if w_fp is None:
             w_fp = self.w_fp
+
         WMR = pd.DataFrame({
             'grp': self.sens_grps,
             'rate': 'WMR'})
         WMR['rate_val'] = [calculate_WMR(self.cm, grp, w_fp) for grp in WMR.grp]
         return WMR
 
-    def get_relative_WMR(self, w_fp = None):
-        if w_fp == self.w_fp or w_fp is None:
-            res = self.WMR_rel_rates
-        else:
-            WMR_rates = self.get_WMR_rates(w_fp)
-            res = self.get_relative_rates(WMR_rates)
-        return res
-
-    def get_fairness_barometer(self, w_fp = None):
-        if w_fp is None:
-            w_fp = self.w_fp
+    def get_fairness_barometer(self, plot = False):
 
         # Decide unfavorable outcome used for independence measure
-        if w_fp > 0.5:
+        if self.w_fp > 0.5:
             independence_measure = 'PP/n'
-        elif w_fp < 0.5:
+        elif self.w_fp < 0.5:
             independence_measure = 'PN/n'
         else:
             # Independence not measured if w=0.5
@@ -400,10 +342,9 @@ class BiasBalancer:
             ['WMR balance', 'WMR']],
             columns = ['criterion', 'rate']).dropna()
         
-        rel_WMR = self.get_relative_WMR(w_fp = w_fp)
         rel_independence = self.get_relative_rates(
             rate_names = [independence_measure])
-        all_data = (pd.concat([rel_WMR, self.rel_rates, rel_independence])
+        all_data = (pd.concat([self.WMR_rel_rates, self.rel_rates, rel_independence])
             .merge(fairness_crit))
         idx_discrim = (all_data
             .groupby(by = ['rate', 'criterion'], as_index = False)
@@ -416,9 +357,13 @@ class BiasBalancer:
                 'grp': lambda x: list(pd.unique(x))})
             .rename(columns = {'grp': 'discriminated_grp'})
             .sort_values('relative_rate', ascending = False))
+
+        if plot:
+            self.BBplot.plot_fairness_barometer(fairness_barometer)
+
         return fairness_barometer
 
-    def get_roc_curves(self):
+    def get_roc_curves(self, threshold = None, plot = False):
         # To do: Documentation
         roc_list = []
         for grp in self.sens_grps:
@@ -433,26 +378,27 @@ class BiasBalancer:
                     'threshold': thresholds,
                     'sens_grp': grp}))
             roc_list.append(roc_grp)
-        roc = pd.concat(roc_list).reset_index(drop = True)  
+        roc = pd.concat(roc_list).reset_index(drop = True) 
+
+        if plot:
+            self.BBplot.plot_roc_curves(roc, threshold = threshold) 
         return roc  
 
-    def get_independence_check(self, w_fp = None):
+    def get_independence_check(self, plot = False, **kwargs):
         """Predicted Positive rates and Confidence Intervals per 
         sensitive group"""
-        if w_fp is None:
-            w_fp = self.w_fp
         
-        if w_fp >= 0.5:
+        if self.w_fp >= 0.5:
             df = (self.classifier
                 .groupby("a", as_index = False)
                 .agg(
                     N = ("y_hat", "count"),
-                    N_predicted_label = ("y_hat", N_pos),
-                    frac_predicted_label = ("y_hat", frac_pos))
+                    N_predicted_label = ("y_hat", utils.N_pos),
+                    frac_predicted_label = ("y_hat", utils.frac_pos))
                 .assign(
-                    conf_lwr = lambda x: wilson_confint(
+                    conf_lwr = lambda x: utils.wilson_confint(
                         x.N_predicted_label, x.N, 'lwr'),
-                    conf_upr = lambda x: wilson_confint(
+                    conf_upr = lambda x: utils.wilson_confint(
                         x.N_predicted_label, x.N, 'upr'),
                     label = 'positive'))
         else:
@@ -460,18 +406,22 @@ class BiasBalancer:
                 .groupby("a", as_index = False)
                 .agg(
                     N = ("y_hat", "count"),
-                    N_predicted_label = ("y_hat", N_neg),
-                    frac_predicted_label = ("y_hat", frac_neg))
+                    N_predicted_label = ("y_hat", utils.N_neg),
+                    frac_predicted_label = ("y_hat", utils.frac_neg))
                 .assign(
-                    conf_lwr = lambda x: wilson_confint(
+                    conf_lwr = lambda x: utils.wilson_confint(
                         x.N_predicted_label, x.N, 'lwr'),
-                    conf_upr = lambda x: wilson_confint(
+                    conf_upr = lambda x: utils.wilson_confint(
                         x.N_predicted_label, x.N, 'upr'),
                     label = 'negative'))
 
+        if plot:
+            orientation = kwargs.get('orientation', 'h')
+            self.BBplot.plot_independence_check(df, orientation = orientation)
+
         return df
 
-    def get_calibration(self, n_bins = 5):
+    def get_calibration(self, n_bins = 5, plot = False):
         """ Calculate calibration by group
 
         Args:
@@ -497,476 +447,44 @@ class BiasBalancer:
                 y_bin_upr = lambda x: x['y_bin_mean']+x['y_bin_se'])
             .reset_index()
             )
+
+        if plot:
+            self.BBplot.plot_calibration(calibration_df)
         return calibration_df
 
-    def get_w_fp_influence(self):
+    def get_w_fp_influence(self, plot = False, **kwargs):
         """Investigate how w_fp influences the wmrr
         
         Args:
             relative (bool): Plot weighted misclassification quotient? If False, weighted misclassification rate is plotted
         """
+        n_values = 100
+        w_fp_values = np.linspace(0, 1, num = n_values)
+        relative_wmrs = []
+        for w_fp in w_fp_values:
+            wmr = self.get_WMR_rates(w_fp = w_fp)
+            rel_wmr = self.get_relative_rates(wmr).assign(w_fp = w_fp)
+            relative_wmrs.append(rel_wmr)
 
-        df = (pd.concat(
-                [self.get_relative_WMR(w_fp = w_fp).assign(w_fp = w_fp) 
-                for w_fp in np.linspace(0, 1, num = 100)])
+        relative_wmrs = (pd.concat(relative_wmrs)
             .reset_index()
             .rename(columns = {
                 'rate_val': 'WMR',
                 'relative_rate': 'WMQ'}))
         
-        return df
+        if plot:
+            self.BBplot.plot_w_fp_influence(relative_wmrs, **kwargs)
         
-    ###############################################################
-    #                  VISUALIZATION METHODS
-    ###############################################################
-
-    def plot_confusion_matrix(self, **kwargs):
-        n_grps = len(self.sens_grps)
-
-        # make gridspec for groups
-        ncols = min(n_grps, 3)
-        nrows = math.ceil(n_grps/ncols)
-        gs = GridSpec(nrows = nrows, ncols = ncols)
-        f = plt.figure(figsize = (4*ncols,4*nrows))
-
-        # One plot for each sensitive group
-        for i, grp in enumerate(self.sens_grps):
-            TP, FN, FP, TN = extract_cm_values(self.cm, grp)
-            n_obs = sum([TP, FN, FP, TN])
-            grp_cm = cm_vals_to_matrix(TP, FN, FP, TN)
-
-            N, P, PN, PP = (self.cm
-            .query(f'a == "{grp}" & type_obs in ["PP", "PN", "P", "N"]')
-            .sort_values(by = 'type_obs')
-            .fraction_obs*100
-            )
-
-            cmap = sns.light_palette('#007EA7', as_cmap=True)
-
-            # Specifying axis for heatmap
-            row_idx = math.floor(i/3)
-            col_idx = i%3
-            ax = f.add_subplot(gs[row_idx, col_idx])
-
-            sns.heatmap(
-                grp_cm/n_obs*100, 
-                annot = True, 
-                cmap = cmap, 
-                vmin = 0, vmax = 100,
-                cbar = False,
-                xticklabels=[f'Predicted\nPositive ({PP:.0f}%) ',
-                             f' Predicted\n Negative ({PN:.0f}%)'],
-                yticklabels=[f'  Actual Positive\n({P:.0f}%)\n',
-                             f'Actual Negative  \n({N:.0f}%)\n'], 
-                annot_kws={'size':15})
-
-            # Adjust figure labels
-            names = ['TP', 'FN', 'FP', 'TN']
-            vals = [TP, FN, FP, TN]
-            coords = [(0.25,0.7), (1.25,0.7), (0.25,1.7), (1.25,1.7)]#coords for text 
-            for name, val, coord, a in zip(names, vals, coords, ax.texts): 
-                old_text = a.get_text()
-                new_text = f"{name}: {old_text}%"
-                a.set_text(new_text)
-                if "cm_print_n" in kwargs.keys() and kwargs["cm_print_n"]:
-                    ax.text(x=coord[0],
-                            y=coord[1],
-                            s=f"(n={val})",
-                            **{"c":a.get_c(), "fontsize":11})
-                
-            # Centering tick labels on y axis
-            for label in ax.get_yticklabels():
-                label.set_ha('center')
-            # Titles and font size 
-            ax.tick_params(axis='both',labelsize = 11)
-            plt.ylabel(None)
-            plt.xlabel(None)
-            plt.title(f'{str.title(grp)} (N = {n_obs})', size=self._title_size)
-            f.subplots_adjust(wspace = 0.4, hspace = 0.4)
-            if self.model_name != None:
-                f.suptitle(f"{self.model_name}",
-                    fontsize = self._title_size, horizontalalignment='center',
-                    y = 1.05)
-            
-    def plot_rates(self, ax = None, w_fp = None):
-        """Plot FPR, FNR, FDR, FOR for each group"""
-        rate_names = ['FPR', 'FNR', 'FDR', 'FOR']
-        if w_fp is None:
-            w_fp = self.w_fp
-        plot_df = (
-            self.rates[self.rates.rate.isin(rate_names)]
-            .assign(
-                conf_lwr = lambda x: x.rate_val_lwr,
-                conf_upr = lambda x: x.rate_val_upr))
-
-        alpha_weights = get_alpha_weights(w_fp)
-
-        if ax is None:
-            fig = plt.figure()
-            ax = fig.add_subplot(1, 1, 1)
-        sns.barplot(
-            x = 'rate', y = 'rate_val', 
-            hue = 'grp', palette = self.sens_grps_cols,
-            data = plot_df,
-            order = rate_names,
-            ax = ax)
-        ax.legend(loc = 'best', frameon = False)
-        ax.set_xlabel('')
-        ax.set_ylabel('')
-        ax.set_title('Group rates', fontsize=14, loc = 'left')
-        ax.set_ylim(0,1)
-        sns.despine(ax = ax, bottom = True, top = True, right = True)
-        ax.tick_params(labelsize=12)
-
-        # Set alpha values and error bars manually
-        containers = flatten_list(ax.containers) # order = from left to right by group
-        rates = rate_names*self.n_sens_grps
-        groups = flatten_list([[grp]*4 for grp in self.sens_grps])
-        for bar, rate, grp in zip(containers, rates, groups):
-            alpha = alpha_weights[rate]
-            bar.set_alpha(alpha)
-
-            error_df = plot_df[(plot_df.grp == grp) & (plot_df.rate == rate)]
-            ax.vlines(
-                x = bar.get_x() + bar.get_width()/2, 
-                ymin = error_df.conf_lwr, 
-                ymax = error_df.conf_upr, 
-                colors = '#6C757D',
-                alpha = alpha)
-
-        return ax
-
-    def plot_relative_rates(self, ax = None, w_fp = None):
-        """Plot the rate ratio for each sensitive groups
+        return relative_wmrs
         
-        Args:
-            w_fp (float): False positive error weight
-        
-        """
-        if w_fp is None:
-            w_fp = self.w_fp
-        rate_positions = {'WMR': 1, 'FPR': 0.8, 'FNR': 0.6, 'FDR': 0.4, 'FOR': 0.2}
-        alpha_weights = get_alpha_weights(w_fp)
-        plot_df = (pd.concat([
-                self.rel_rates, 
-                self.get_relative_WMR(w_fp = w_fp)
-            ])
-            .assign(
-                rate_position = lambda x: x.rate.map(rate_positions),
-                alpha = lambda x: x.rate.map(alpha_weights)))
-        
-        if ax is None:
-            fig = plt.figure()
-            ax = fig.add_subplot(1, 1, 1)
-        ax.hlines(
-            y= 'rate_position', xmin = 0, xmax = 'relative_rate',
-            data = plot_df,
-            color = 'lightgrey', linewidth = 1,
-            zorder = 1)
-        for _, alpha in enumerate(plot_df.alpha.unique()):
-            sns.scatterplot(
-                data = plot_df[plot_df['alpha'] == alpha], 
-                x = 'relative_rate', y='rate_position', hue='grp',
-                palette = self.sens_grps_cols, 
-                legend = False,
-                ax = ax,
-                marker = 'o', alpha = alpha, s = 150,
-                zorder = 2)
-        ax.set_yticks(list(rate_positions.values()))
-        ax.set_yticklabels(list(rate_positions.keys()))
-        ax.set_ylabel('')
-        ax.set_xlabel('')
-        ax.set_title('Relative rates', fontsize=14, loc = 'left')
-        _, xmax = ax.get_xlim()
-        ax.set_xlim(left = -0.05*xmax) # To see all of leftmost dots
-        ax.set_ylim((.125,1.125))
-        ax.xaxis.set_major_formatter(mtick.FuncFormatter(abs_percentage_tick))
-        sns.despine(ax = ax, left = True, top = True, right = True)
-        ax.tick_params(left=False, labelsize=12)
-        
-    def plot_fairness_barometer(self, w_fp = None, ax = None):
-        plot_df = self.get_fairness_barometer(w_fp = w_fp)
-        plot_df['grey_bar'] = [rr if rr <= 20 else 20 for rr in plot_df['relative_rate']]
-        if ax is None:
-            fig = plt.figure(figsize=(6,3))
-            ax = fig.add_subplot(1, 1, 1)
-        sns.barplot(
-            x = 'relative_rate', y = 'criterion', 
-            data = plot_df,
-            ax = ax, zorder = 1)
-        ax.axvline(x = 20, color = 'grey', zorder = 2, linewidth = 0.5)
-        sns.barplot(
-            x = 'grey_bar', y = 'criterion', 
-            data = plot_df,
-            ax = ax, zorder = 2, color = "#EBEBEB", edgecolor="#EBEBEB")
-        ax.set_xlabel('')
-        ax.set_ylabel('')
-        _, xmax = ax.get_xlim()
-        max_rr = self.rel_rates.relative_rate.max()
-        ax.set_xlim(left=-0.05*xmax, right=max_rr + 0.25*max_rr)
-        ax.set_title('Unfairness barometer', fontsize=14, loc = 'left')
-        sns.despine(ax = ax, left = True, top = True, right = True)
-        ax.tick_params(left=False, labelsize=12)
-        ax.xaxis.set_major_formatter(mtick.FuncFormatter(abs_percentage_tick))
-        add_colors_with_stripes(
-            ax = ax, 
-            color_dict = self.sens_grps_cols, 
-            color_variable = plot_df.discriminated_grp)
-        # Legend
-        patches = get_BW_fairness_barometer_legend_patches( 
-            plot_df = plot_df)
-        leg = ax.legend(
-            handles=patches, loc = 'lower right', 
-            title = '',  prop={'size':self._legend_size-3},
-            bbox_to_anchor=(1.05,0),
-            frameon=True)
-        leg._legend_box.align = "left"
-        
-    def l2_interactive_plot(self):
-       return interact(self.l2_plot, w_fp=FloatSlider(min=0,max=1,atep=0.1,value=0.8))
-
-    def plot_w_fp_influence(self, plot_df, palette, relative = True):
-        fig = plt.figure()
-        ax = fig.add_subplot(1, 1, 1)
-        if relative:
-            y = 'WMQ'
-        else:
-            y = 'WMR'
-        sns.lineplot(
-            x = 'w_fp', y = y, hue = 'grp', 
-            data = plot_df, 
-            ax = ax, 
-            palette = palette)
-        ax.axhline(y = 20, color = 'grey', linewidth = 0.5)
-        sns.despine(ax = ax, top = True, right = True)
-        ax.set_xlabel('$w_{fp}$', fontsize=self._label_size)
-        ax.set_xlim((0,1))
-        ax.set_ylabel(label_case(y), fontsize=self._label_size)
-        ax.set_title("False Positive Weight Influence", size=self._title_size)
-        ax.legend(frameon = False, prop={'size':self._legend_size})
-        ax.tick_params(labelsize=self._tick_size)
-        if relative:
-            ax.yaxis.set_major_formatter(mtick.FuncFormatter(abs_percentage_tick))
-   
-    def plot_level_1(self, l1_data, ax = None):
-        """ Visualize the maximum gap in WMR by text
-        
-        Args:
-            l1_data (data frame): data frame with data returned in level_1
-        """
-        if ax is None:
-            fig = plt.figure(figsize=(6,1.3))
-            ax = fig.add_subplot(1, 1, 1)
-
-        p_grey = desaturate((58/255, 58/255, 58/255))
-        max_idx = l1_data.WMQ.idxmax() 
-        max_grp = l1_data.grp[max_idx]
-        max_val = l1_data.WMQ[max_idx]
-        max_color = desaturate(self.sens_grps_cols[max_grp])
-
-        # Creating text lines
-        line_1 = (f"The WMR of sensitive group").split()
-        line_2 = (f"is {max_val:.0f}% larger than the minimum WMR").split()
-
-        # customizing lines with group
-        line_1 = line_1 + [f"'{max_grp.title()}'"]
-        n_words_1 = len(line_1)
-        color_list_1 = [p_grey]*n_words_1
-        font_sizes_1 = [20]*n_words_1
-        font_weights_1 = ['normal']*n_words_1
-        color_list_1[-1] = max_color # coloring group
-        font_sizes_1[-1] = 30 # making group bigger
-        font_weights_1[-1] = 'bold' 
-
-        # Costumizing lines with max_val 
-        n_words_2 = len(line_2)
-        color_list_2 = [p_grey]*n_words_2
-        font_sizes_2 = [20]*n_words_2
-        font_weights_2 = ['normal']*n_words_2
-        font_weights_2[1:2] = ['bold', 'bold'] 
-        font_sizes_2[1:2] = [30, 30]
-
-        # Plotting text on axis
-        ax.set_xlim(0,1.1)
-        ax.set_ylim(0.72,0.85)
-        ax.set_axis_off()
-        sns.despine(top = True, bottom = True, left = True, right= True)
-        format_text_level_1(ax, 0.02, 0.8, line_1, color_list_1,
-                            font_sizes_1, font_weights_1)
-        format_text_level_1(ax, 0.02, 0.74, line_2, color_list_2,
-                            font_sizes_2, font_weights_2)
-
-    def plot_roc_curves(self, ax = None, threshold = None):
-
-        roc = self.get_roc_curves()
-
-        # Make thresholds into dict
-        if threshold is None: threshold = 0.5
-        if isinstance(threshold, int) or isinstance(threshold, float):
-            t_dict = {grp:threshold for grp in self.sens_grps}
-        elif isinstance(threshold, dict):
-            t_dict = threshold
-        
-        # Select points corresponding to thresholds
-        # To do: Put error bars on this
-        threshold_points = []
-        for grp in self.sens_grps:
-            t = t_dict[grp]
-            tmp = roc[(t < roc.threshold) & (roc.sens_grp == grp)]
-            point = tmp.loc[tmp.groupby('sens_grp').threshold.idxmin()]
-            threshold_points.append(point)
-        threshold_points = pd.concat(threshold_points)
-
-        if ax is None: 
-            fig = plt.figure()
-            ax = fig.add_subplot(1, 1, 1)
-        sns.lineplot(
-            x = 'fpr', y = 'tpr', hue = 'sens_grp', 
-            data = roc, ax = ax,
-            estimator = None, alpha = 0.8,
-            palette = self.sens_grps_cols,
-            zorder = 1)
-        sns.scatterplot(
-            x = 'fpr', y = 'tpr', 
-            data = threshold_points, ax = ax,
-            hue = 'sens_grp', s = 100,
-            palette = self.sens_grps_cols,
-            zorder = 2, legend = False)
-        ax.plot([0,1], [0,1], color = 'grey', linewidth = 0.5)
-        ax.set_xlabel('False positive rate', size=self._label_size)
-        ax.set_ylabel('True positive rate', size=self._label_size)
-        ax.set_title('ROC Curves (Analysis of Separation)', size=self._title_size)
-        sns.despine(ax = ax, top = True, right = True)
-        ax.tick_params(labelsize=self._tick_size)
-
-        # Get legend
-        patches = []
-        for grp, col in self.sens_grps_cols.items():
-            tau = round(t_dict[grp], 3)
-            patch = Line2D(
-                [], [], 
-                color = col, marker = 'o', markersize = 10,
-                markeredgecolor = 'white',
-                label = f'{grp} ($\\tau$ = {tau})')
-            patches.append(patch)
-        ax.legend(
-            handles = patches,
-            frameon = False, loc = 'lower right', 
-            prop={'size':self._legend_size},
-            markerfirst = False)
-
-    def plot_independence_check(self, ax=None, orientation = 'h', w_fp = None, **kwargs):
-        """ Bar plot of the percentage of predicted positives per
-        sensitive group including a Wilson 95% CI 
-        """
-        assert orientation in ["v", "h"], "Choose orientation 'v' or 'h'"
-
-        if ax is None:
-            fig = plt.figure()
-            ax = fig.add_subplot(1,1,1)
-
-        if w_fp is None:
-            w_fp = self.w_fp
-
-        df = self.get_independence_check(w_fp = w_fp)
-
-        # Convert into percentage 
-        plot_data = (df
-            .assign(perc = lambda x: x.frac_predicted_label*100,
-                    conf_lwr = lambda x: x.conf_lwr*100,
-                    conf_upr = lambda x: x.conf_upr*100)
-        )
-        
-        perc_label = f'Predicted {df.label[0]} (%)'
-
-        for grp in self.sens_grps:
-            plot_df = plot_data.query(f'a == "{grp}"')
-            assert plot_df.shape[0] == 1
-            bar_mid = plot_df.index[0]
-            if orientation == 'v':
-                sns.barplot(y="perc",
-                        x = "a",
-                        ax = ax,
-                        data = plot_df,
-                        color = self.sens_grps_cols[grp], 
-                        order = self.sens_grps,
-                        alpha = 0.95)
-                ax.set_ylim((0,100))
-                ax.set_xticklabels([grp.title() for grp in self.sens_grps])
-                ax.yaxis.set_major_formatter(mtick.FuncFormatter(abs_percentage_tick))
-                ax.set_ylabel(perc_label, fontsize=self._label_size)
-                ax.set_xlabel(None)
-            else:
-                sns.barplot(x="perc",
-                        y = "a",
-                        ax = ax,
-                        data = plot_df,
-                        color = self.sens_grps_cols[grp], 
-                        order = self.sens_grps, 
-                        alpha = 0.95)
-                ax.set_xlim((0,100))
-                ax.set_yticklabels([grp.title() for grp in self.sens_grps])
-                ax.xaxis.set_major_formatter(mtick.FuncFormatter(abs_percentage_tick))
-                ax.set_xlabel(perc_label, fontsize=self._label_size)
-                ax.set_ylabel(None)
-            error_bar(ax, plot_df, bar_mid, orientation=orientation)
-        
-        # Finishing up 
-        sns.despine(ax = ax, top = True, right = True)
-        ax.tick_params(left=True, labelsize=self._tick_size)
-        ax.set_title('Independence Check', size=self._title_size)
-
-    def plot_calibration(self, n_bins = 5, ax = None, **kwargs):
-        """Plot calibration by sensitive groups
-        
-        Args:
-            n_bins (int): Number of bins
-            ax (matplotlib.axes): Axes object to plot on. Optional. 
-        """
-        # To do: Documentation
-        muted_colors = {k:desaturate(col) for (k,col) in self.sens_grps_cols.items()}
-        calibration_df = (
-            self.get_calibration(n_bins = n_bins)
-            .assign(color = lambda x: x.a.map(muted_colors))
-            .sort_values(['bin_center', 'a'])
-            .reset_index())
-        jitter = list(np.linspace(-0.004, 0.004, self.n_sens_grps))*n_bins
-        calibration_df['bin_center_jitter'] = calibration_df['bin_center'] + jitter
-
-        if ax is None: 
-            fig = plt.figure()
-            ax = fig.add_subplot(1, 1, 1)
-        sns.lineplot(
-            x = 'bin_center', y = 'y_bin_mean', hue = 'a', 
-            data = calibration_df, ax = ax,
-            palette = self.sens_grps_cols)
-        sns.scatterplot(
-            x = 'bin_center_jitter', y = 'y_bin_mean', hue = 'a', 
-            data = calibration_df, ax = ax,
-            palette = self.sens_grps_cols, legend = False)
-        ax.vlines(
-            x = calibration_df.bin_center_jitter,
-            ymin = calibration_df.y_bin_lwr, 
-            ymax = calibration_df.y_bin_upr, 
-            colors = calibration_df.color, linewidth = 0.5)
-        ax.plot([0,1], [0,1], color = 'grey', linewidth = 0.5)
-        ax.set_xlabel('Predicted probability', fontsize=self._label_size)
-        ax.set_ylabel('True probability $\pm$ SE', fontsize=self._label_size)
-        ax.set_xlim((0,1))
-        ax.set_title('Calibration (Analysis of Sufficiency)', size=self._title_size)
-        sns.despine(ax = ax, top = True, right = True)
-        ax.legend(frameon = False,
-            loc = 'upper left',
-            prop={"size":self._legend_size}) 
-        ax.tick_params(labelsize=self._tick_size)
 
 #%% Main
 if __name__ == "__main__":
-    file_path = 'data\\processed\\anonymous_data.csv'
+    file_path = 'data/processed/anonymous_data.csv'
     df = pd.read_csv(file_path)
     df.head()
 
-    fair_anym = FairKit(
+    fair_anym = BiasBalancer(
         data = df,
         y_name = 'y',
         y_hat_name = 'yhat', 
@@ -974,20 +492,27 @@ if __name__ == "__main__":
         r_name = 'phat',
         w_fp = 0.8,
         model_name="Example Data")
-#%%
+
     # l1 check
     l1 = fair_anym.level_1()
 
     # l2 check
-    l2_rates, l2_relative_rates, l2_barometer = fair_anym.level_2(
-        **{"suptitle":True})
+    fair_anym.get_rates(plot = True)
+    fair_anym.get_relative_rates(plot = True)
+    fair_anym.get_fairness_barometer(plot = True)
+    res = fair_anym.level_2(**{"suptitle":True})
 
     # l3 check
+    w_fp_influence = fair_anym.get_w_fp_influence()
+    w_fp_influence = fair_anym.get_w_fp_influence(plot = True, **{'relative': False})
     w_fp_influence = fair_anym.level_3(method = 'w_fp_influence')
-    conf_mat = fair_anym.level_3(method = 'confusion_matrix')
-    thresholds = {'A': 0.5, 'B': 0.6, 'C': 0.7}
-    roc = fair_anym.level_3(method = 'roc_curves', **{'threshold': thresholds})
-    calibration = fair_anym.level_3(method = 'calibration', **{'n_bins': 5})
+    threshold_list = [{'A': 0.5, 'B': 0.6, 'C': 0.7}, 0.5]
+    for threshold in threshold_list:
+        roc = fair_anym.level_3(method = 'roc_curves', **{'threshold': threshold})
+        roc = fair_anym.get_roc_curves(threshold = threshold, plot = True)
+    calibration = fair_anym.level_3(method = 'calibration', **{'n_bins': 3})
     independence = fair_anym.level_3('independence_check', **{'orientation':'h'}) 
+    conf_mat = fair_anym.level_3(method = 'confusion_matrix')
+    conf_mat = fair_anym.level_3(method = 'confusion_matrix', **{'cm_print_n': True})
 
 # %%

@@ -1,10 +1,5 @@
 import numpy as np
-import seaborn as sns
-import matplotlib as plt
-import colorsys
-import warnings
-from matplotlib import transforms
-import matplotlib.patches as mpatches
+
 from statsmodels.stats.proportion import proportion_confint
 
 ##############################################
@@ -63,9 +58,6 @@ def cm_matrix_to_dict(cm_matrix):
     cm_dict = {'TP': TP, 'FN': FN, 'FP': FP, 'TN': TN}
     return cm_dict
 
-def abs_percentage_tick(x, pos):
-    """Return absolute percentage value w/ % as string"""
-    return str(round(abs(x))) + '%'
 
 def round_func(x, base = 5):
     """Costum round function, which rounds to the nearest base. Default base = 5"""
@@ -78,149 +70,6 @@ def flip_dataframe(df, new_colname = 'index'):
     df.columns = colnames
     df = df.iloc[1:, :]
     return df
-
-def custom_palette(n_colors = 1, specific_col_idx = None):
-    """Returns a custom palette of n_colors (max 10 colors)
-    
-        The color palette have been created using this link: 
-        https://coolors.co/f94d50-f3722c-f8961e-f9844a-f9c74f-a1c680-3a9278-7ab8b6-577590-206683
-        and added two colors "english lavender BD7585" and "Salmon Pink F193A1"
-
-        Args:
-            n_color: The number of desired colors max 10. Defaults to 1.
-            specific_col_idx: list of desired color indexes. Defaults to None.
-            
-        Returns: 
-            A custom seaborn palette of n_colors length 
-    """
-    colors =  ["f94d50","f3722c","f8961e","f9844a","f9c74f","a1c680",
-    "3a9278","7ab8b6","577590","206683", "F193A1", "B66879"]
-
-    max_colors = len(colors)
-    assert n_colors < max_colors, f"n_colors must be less than {max_colors}"    
-    
-    if specific_col_idx is None:   
-        if n_colors == 1:
-            col_idx = [0]
-        if n_colors == 2: 
-            col_idx = [0, 9]
-        if n_colors == 3: 
-            col_idx = [0, 5, 9]
-        if n_colors == 4: 
-            col_idx = [0, 2, 6, 9] 
-        if n_colors == 5: 
-            col_idx = [0, 3, 5, 7, 9]
-        if n_colors == 6: 
-            col_idx = [0, 4, 5, 6, 7, 9]
-        if n_colors == 7:
-            col_idx = [0, 2, 4, 5, 6, 7, 9]
-        if n_colors == 8: 
-            warnings.warn(f"With {n_colors} different colors please be careful that some shades might be close to each other")
-            col_idx = [0, 2, 4, 5, 6, 7, 8, 9]
-        if n_colors == 9: 
-            warnings.warn(f"With {n_colors} different colors please be careful that some shades might be close to each other")
-            col_idx = [0, 2, 3, 4, 5, 6, 7, 8, 9]
-        if n_colors == 10: 
-            warnings.warn(f"With {n_colors} different colors please be careful that some shades might be close to each other")
-            col_idx = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-    else:
-        col_idx = specific_col_idx
-        n_colors = len(col_idx)
-    
-    hex_colors = [f'#{colors[col_idx[i]]}' for i in range(n_colors)]
-
-    return sns.color_palette(hex_colors)
-
-def add_colors_with_stripes(ax, color_dict, color_variable):
-    """Add colors to barplot including striped colors.
-    
-    Args:
-        ax (AxesSubplot): ax of plot to color
-        color_dict (dict): Dict of colors with keys as color group
-        color_variable (pd.Series): Series of color groups used in bars. 
-            Each item in series is a list. 
-    """
-    # Adjust colors to match other seaborn plots
-    def desaturate(color, prop = 0.75):
-        """Desaturate color just like in default seaborn plot"""
-        h,l,s = colorsys.rgb_to_hls(*color)
-        s *= prop
-        new_color = colorsys.hls_to_rgb(h, l, s)
-        return new_color
-    muted_colors = {k:desaturate(col) for (k,col) in color_dict.items()}
-    bar_colors = [[muted_colors[grp] for grp in grp_list] for grp_list in color_variable]
-
-    # Set colors of bars.
-    plt.rcParams['hatch.linewidth'] = 8 # Controls thickness of stripes
-    for bar, var in zip(ax.containers[0], color_variable):
-        if len(var) == 1:
-            col = muted_colors[var[0]]
-            bar.set_facecolor(col)
-        elif len(var) == 2:
-            col0 = muted_colors[var[0]]
-            col1 = muted_colors[var[1]]
-            bar.set_facecolor(col0)
-            bar.set_edgecolor(col1)
-            bar.set_hatch('/')
-            bar.set_linewidth(0) # No outline around bar when striped
-        else:
-            raise IndexError('Cannot use > 2 colors for stripes in barplot')
-
-def get_alpha_weights(w_fp):
-    """Return alpha weight for each rate"""
-    c = 0.2 # Factor added to make colors stronger
-    if w_fp == 0.5:
-        alpha_weights = {'FPR': 1, 'FNR': 1, 'FDR': 1, 'FOR': 1, 'WMR': 1}
-    elif w_fp > 0.5:
-        alpha_weights = {'FPR': 1, 'FNR': 1+c-w_fp, 'FDR':1, 'FOR':1+c-w_fp, 'WMR': 1}
-    else: 
-        alpha_weights = {'FPR': c+w_fp, 'FNR': 1, 'FDR':c+w_fp, 'FOR':1, 'WMR': 1}
-    return alpha_weights
-
-def error_bar(ax, plot_df, bar_mid, orientation = "v"):
-    """Draws error bars on ax with barplot.
-    
-    Args: 
-        ax(matplotlib.axes): ax with barplot 
-        plot_df(pandas data frame): must include columns "conf_lwr" and "conf_upr"
-        bar_mid(float): mid point of bar to put error bar on 
-        orientation: 'v' or 'h' for vertical or horizontal 
-    """
-    # input check
-    assert orientation in ["v", "h"], "Choose orientation 'v' or 'h'"
-    assert "conf_lwr" in plot_df.columns, 'column "conf_lwr" must be in data' 
-    assert "conf_upr" in plot_df.columns, 'column "conf_upr" must be in data'
-
-    if orientation == 'v':
-        ax.vlines(x=bar_mid, 
-                ymin=plot_df.conf_lwr,
-                ymax=plot_df.conf_upr,
-                colors = (58/255, 58/255, 58/255),
-                linewidth = 2)
-        ax.hlines(y=[plot_df.conf_lwr, plot_df.conf_upr], 
-                xmin=bar_mid-0.15,
-                xmax=bar_mid+0.15,
-                colors = (58/255, 58/255, 58/255),
-                linewidth = 2)
-                
-    elif orientation == 'h':
-        ax.hlines(y=bar_mid, 
-                xmin=plot_df.conf_lwr,
-                xmax=plot_df.conf_upr,
-                colors = (58/255, 58/255, 58/255),
-                linewidth = 2)
-        ax.vlines(x=[plot_df.conf_lwr, plot_df.conf_upr], 
-                ymin=bar_mid-0.15,
-                ymax=bar_mid+0.15,
-                colors = (58/255, 58/255, 58/255),
-                linewidth = 2)
-
-def desaturate(color, prop = 0.75):
-        """Desaturate color just like in default seaborn plot"""
-        h,l,s = colorsys.rgb_to_hls(*color)
-        s *= prop
-        new_color = colorsys.hls_to_rgb(h, l, s)
-        return new_color
 
 def value_counts_df(df, col_name):
     """pd.value_counts() for dataframes
@@ -249,29 +98,6 @@ def label_case(snake_case):
         .replace('Wmr', 'WMR')
         .replace('Wmq', 'WMQ'))
     return label_case
-
-def format_text_level_1(ax, x, y, text_list, color_list, font_sizes, font_weights):
-    """Plots a list of words with specific colors, sizes and font 
-    weights on a provided axis 
-    Function inspired by: https://matplotlib.org/2.0.2/examples/text_labels_and_annotations/rainbow_text.html
-    Args:
-        ax(matplotlib axis): axis to plot text on 
-        x(float): x-coordinate of text start
-        y(float): y-coordinate of text start
-        text_list(list of strings): List with words to plot 
-        color_list(list): List of colors for each word in text_list
-        font_sizes(list): List of font sizes for each word in text_list
-        font_sizes(list): List of font weigths for each word in text_list
-    """
-    t = ax.transData
-    canvas = ax.figure.canvas
-    
-    for s, c, f, w in zip(text_list, color_list, font_sizes, font_weights):
-        text = ax.text(x, y, s + " ", color=c, 
-                       fontsize = f, weight = w, transform=t)
-        text.draw(canvas.get_renderer())
-        ex = text.get_window_extent()
-        t = transforms.offset_copy(text._transform, x=ex.width, units='dots')
 
 def wilson_confint(n_successes, n, side):
     """Calculate Wilson proportion CI
@@ -314,44 +140,6 @@ def static_split(string, pattern, n_elem):
     out = tmp + [None]*n_remaining
     return out
 
-def get_BW_fairness_barometer_legend_patches(plot_df):
-    """Create patches in black and white for legend in fairness barometer
-
-    Args: 
-        plot_df (dataframe): Data frame used to create fairness barometer plot
-
-    Returns: 
-        patches (list): List of matplotlib patches to put in legend handles 
-    """ 
-    plot_df = plot_df.query("relative_rate > 20")
-    discrims = np.unique(plot_df.discriminated_grp)
-    n_cols = np.unique([len(discrims[i]) for i in range(len(discrims))])
-    patches = []
-    if 1 in n_cols:
-        col = '#6C757D' 
-        patch_1 = mpatches.Patch(color=col,
-                                    label=f'One Discriminated Group')
-        # Change Label if only one discrim group
-        if 2 not in n_cols:
-            patch_1.set_label('Discriminated Group')
-        patches.append(patch_1)
-    if 2 in n_cols:
-        col0 = '#6C757D' 
-        col1 = '#ADB5BD' 
-        patch_2 = (mpatches.Patch(
-                 label=f'Two Discriminated Groups', 
-                 facecolor = col0,
-                 edgecolor = col1, 
-                 hatch = '/', 
-                 fill = True,
-                 linewidth = 0
-                ))
-        patches.append(patch_2)
-
-    patches.append(mpatches.Patch(color='#EBEBEB', label='Unfairness <20%'))
-
-    return patches
-    
 ################################################
 #             lambda functions
 ################################################
@@ -359,9 +147,3 @@ N_pos = lambda x: np.count_nonzero(x)
 N_neg = lambda x: len(x)-np.count_nonzero(x)
 frac_pos = lambda x: (np.count_nonzero(x)/len(x))
 frac_neg = lambda x: (len(x)-np.count_nonzero(x))/len(x)
-
-
-
-if __name__ == '__main__':
-    n_colors = 3
-    cp = custom_palette(n_colors = n_colors)
