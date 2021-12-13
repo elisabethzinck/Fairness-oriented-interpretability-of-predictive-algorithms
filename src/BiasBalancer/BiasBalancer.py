@@ -55,7 +55,7 @@ def calculate_WMR(cm, grp, w_fp):
     wmr = c*(w_fp*FP + (1-w_fp)*FN)/n
     return wmr
 
-class FairKit:
+class BiasBalancer:
     def __init__(self, data, y_name, y_hat_name, a_name, r_name, w_fp, model_name = None, **kwargs):
         """Saves and calculates all necessary attributes for FairKit object
         
