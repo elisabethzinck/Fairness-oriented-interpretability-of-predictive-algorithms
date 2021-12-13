@@ -15,13 +15,14 @@ fig_path_chexpert = '../Thesis-report/00_figures/cheXpert/'
 
 l3_report_plots_chexpert = [
     ['cheXpert_race', 'roc_curves'],
-    ['cheXpert_race', 'calibration']] # Add more here later
+    ['cheXpert_race', 'calibration'],
+    ['cheXpert_race', 'confusion_matrix']] # Add more here later
 
-update_figures  = False
+update_figures  = True
 update_report_figures = False # Write new figures to report repository?
-run_all_plots = False
+run_all_plots = True
 run_l3_plots = False
-make_table = True
+make_table = False
 
 #############################################
 #%% Functions
@@ -164,7 +165,7 @@ if __name__ == '__main__':
             make_all_plots(kit, 
                 save_plots = update_figures,
                 plot_path = path, 
-                **{'suptitle': False, 'threshold': threshold})
+                **{'suptitle': False, 'threshold': threshold, "cm_print_n":True})
 
         # Get plots for report
         if update_report_figures:
@@ -193,7 +194,7 @@ if __name__ == '__main__':
         print(total_table.to_latex(index= False))
        
     if run_l3_plots:
-        kwargs = {"threshold": threshold, "n_bins": 10}
+        kwargs = {"threshold": threshold, "n_bins": 10, "cm_print_n":True}
         for dataset, method in l3_report_plots_chexpert:
             chexpert_kits[dataset].level_3(
                 method = method, 
