@@ -18,10 +18,10 @@ l3_report_plots_chexpert = [
     ['cheXpert_race', 'calibration'],
     ['cheXpert_race', 'confusion_matrix']] # Add more here later
 
-update_figures  = True
-update_report_figures = False # Write new figures to report repository?
-run_all_plots = True
-run_l3_plots = False
+update_figures  = False
+update_report_figures = True # Write new figures to report repository?
+run_all_plots = False
+run_l3_plots = True
 make_table = False
 
 #############################################
@@ -200,7 +200,7 @@ if __name__ == '__main__':
                 method = method, 
                 **kwargs)
             if update_report_figures:
-                path = fig_path_chexpert + dataset + '_' + method + '.pdf'
+                path = fig_path_chexpert + dataset + '_l3_' + method + '.pdf'
                 plt.savefig(path, bbox_inches='tight', facecolor = 'w')
 
 
