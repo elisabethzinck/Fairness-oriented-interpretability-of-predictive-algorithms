@@ -97,7 +97,7 @@ class BiasBalancer:
         self.rel_rates = self.get_relative_rates()
         self.WMR_rel_rates = self.get_relative_rates(self.WMR_rates)
 
-        self.BBplot = BiasBalancerPlots(self)
+        self.BBplot = BiasBalancerPlots(self, **kwargs)
 
     
     ###############################################################
@@ -453,7 +453,7 @@ class BiasBalancer:
         return calibration_df
 
     def get_w_fp_influence(self, plot = False, **kwargs):
-        """Investigate how w_fp influences the wmrr
+        """Investigate how w_fp influences WMQ or WMR
         
         Args:
             relative (bool): Plot weighted misclassification quotient? If False, weighted misclassification rate is plotted

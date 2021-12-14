@@ -289,6 +289,7 @@ class BiasBalancerPlots():
     def plot_confusion_matrix(self, cm, **kwargs):
         n_grps = len(self.sens_grps)
 
+        # To Do: Fix grid, when we have e.g. 4 groups 
         # make gridspec for groups
         ncols = min(n_grps, 3)
         nrows = ceil(n_grps/ncols)
@@ -390,7 +391,6 @@ class BiasBalancerPlots():
             t_dict = threshold
         
         # Select points corresponding to thresholds
-        # To do: Put error bars on this
         threshold_points = []
         for grp in self.sens_grps:
             t = t_dict[grp]
@@ -399,21 +399,49 @@ class BiasBalancerPlots():
             threshold_points.append(point)
         threshold_points = pd.concat(threshold_points)
 
+        denominators_fpr = []
+        denominators_tpr = []
+        for grp in self.sens_grps:
+            TP, FN, FP, TN = utils.extract_cm_values(self.BiasBalancer.cm, grp)
+            denominators_fpr.append(TN+FP)
+            denominators_tpr.append(TP+FN)    
+        threshold_points = threshold_points.assign(
+            n_pos = denominators_tpr,
+            n_neg = denominators_fpr,
+        	fpr_lwr = lambda x: utils.wilson_confint(x.fpr*x.n_neg, x.n_neg, "lwr"), 
+	        fpr_upr = lambda x: utils.wilson_confint(x.fpr*x.n_neg, x.n_neg, "upr"),
+	        tpr_lwr = lambda x: utils.wilson_confint(x.tpr*x.n_pos, x.n_pos, "lwr"),
+	        tpr_upr = lambda x: utils.wilson_confint(x.tpr*x.n_pos, x.n_pos, "upr")   
+        )
+
         if ax is None: 
             fig = plt.figure()
             ax = fig.add_subplot(1, 1, 1)
         sns.lineplot(
             x = 'fpr', y = 'tpr', hue = 'sens_grp', 
             data = roc_df, ax = ax,
-            estimator = None, alpha = 0.8,
+            estimator = None, alpha = 0.45,
             palette = self.sens_grps_cols,
             zorder = 1)
         sns.scatterplot(
             x = 'fpr', y = 'tpr', 
             data = threshold_points, ax = ax,
-            hue = 'sens_grp', s = 100,
-            palette = self.sens_grps_cols,
-            zorder = 2, legend = False)
+            hue = 'sens_grp', s = 35,
+            palette = self.sens_grps_cols, 
+            linewidth=0,
+            zorder = 3, legend = False),
+        ax.vlines(
+            x = threshold_points.fpr,
+            ymin = threshold_points.tpr_lwr, 
+            ymax = threshold_points.tpr_upr, 
+            colors = self.sens_grps_cols.values(), linewidth = 0.5, 
+            zorder = 2)
+        ax.hlines(
+            y = threshold_points.tpr,
+            xmin = threshold_points.fpr_lwr, 
+            xmax = threshold_points.fpr_upr, 
+            colors = self.sens_grps_cols.values(), linewidth = 0.5,
+            zorder = 2)
         ax.plot([0,1], [0,1], color = 'grey', linewidth = 0.5)
         ax.set_xlabel('False positive rate', size=self._label_size)
         ax.set_ylabel('True positive rate', size=self._label_size)
@@ -520,7 +548,7 @@ class BiasBalancerPlots():
             palette = self.sens_grps_cols)
         sns.scatterplot(
             x = 'bin_center_jitter', y = 'y_bin_mean', hue = 'a', 
-            data = calibration_df, ax = ax,
+            data = calibration_df, ax = ax, linewidth = 0,
             palette = self.sens_grps_cols, legend = False)
         ax.vlines(
             x = calibration_df.bin_center_jitter,
@@ -554,7 +582,8 @@ def get_alpha_weights(w_fp):
     return alpha_weights
 
 def custom_palette(n_colors = 1, specific_col_idx = None):
-
+    # To do: This is the old color palette.
+    # Perhaps change idx for 8 colors to match cheXpert
     """Returns a custom palette of n_colors (max 10 colors)
     
         The color palette have been created using this link: 
@@ -615,13 +644,6 @@ def add_colors_with_stripes(ax, color_dict, color_variable):
         color_variable (pd.Series): Series of color groups used in bars. 
             Each item in series is a list. 
     """
-    # Adjust colors to match other seaborn plots
-    def desaturate(color, prop = 0.75):
-        """Desaturate color just like in default seaborn plot"""
-        h,l,s = colorsys.rgb_to_hls(*color)
-        s *= prop
-        new_color = colorsys.hls_to_rgb(h, l, s)
-        return new_color
     muted_colors = {k:desaturate(col) for (k,col) in color_dict.items()}
     bar_colors = [[muted_colors[grp] for grp in grp_list] for grp_list in color_variable]
 
@@ -679,9 +701,12 @@ def error_bar(ax, plot_df, bar_mid, orientation = "v"):
                 colors = (58/255, 58/255, 58/255),
                 linewidth = 2)
 
-
 def desaturate(color, prop = 0.75):
-        """Desaturate color just like in default seaborn plot"""
+        """Desaturate color like in default seaborn plot
+        
+        Args: 
+            prop (float): To do: is prop proportion?? 
+        """
         h,l,s = colorsys.rgb_to_hls(*color)
         s *= prop
         new_color = colorsys.hls_to_rgb(h, l, s)
