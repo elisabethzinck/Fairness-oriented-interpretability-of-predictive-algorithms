@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import sklearn
 
-from src.evaluation_tool.layered_tool import FairKit
+from src.BiasBalancer.BiasBalancer import BiasBalancer
 from src.visualization_description.evaluater import make_all_plots
 
 from sklearn.metrics import roc_curve
@@ -18,10 +18,10 @@ l3_report_plots_chexpert = [
     ['cheXpert_race', 'calibration']] # Add more here later
 
 update_figures  = False
-update_report_figures = False # Write new figures to report repository?
+update_report_figures = True # Write new figures to report repository?
 run_all_plots = False
-run_l3_plots = False
-make_table = True
+run_l3_plots = True
+make_table = False
 
 #############################################
 #%% Functions
@@ -80,15 +80,15 @@ def get_chexpert_prediction_data(threshold = 0.5):
     
     return df
 
-def get_chexpert_kits(pred_data):
-    """Creates dictionary of FairKits for CheXpert dataset
+def get_chexpert_biasbalancers(pred_data):
+    """Creates dictionary of BiasBalancers for CheXpert dataset
     
     Params:
         pred_data (pd.DataFrame): Dataframe as returned by get_chexpert_prediction_data()
     """
     
-    # Initialize kits
-    chexpert_kits = {}
+    # Initialize balancers
+    chexpert_biasbalancers = {}
     for sens_grp in ['sex', 'race', 'race_sex']:
         if sens_grp == 'race_sex':
             kwargs = {"specific_col_idx": [0, 4, 5, 6, 10, 11, 7, 9]}
@@ -97,7 +97,7 @@ def get_chexpert_kits(pred_data):
 
         key_name = f'cheXpert_{sens_grp}'
         mod_name = f'CheXpert: {sens_grp}'
-        chexpert_kits[key_name] = FairKit(
+        chexpert_biasbalancers[key_name] = BiasBalancer(
             data = pred_data,
             y_name = 'y',
             y_hat_name='y_hat',
@@ -107,10 +107,10 @@ def get_chexpert_kits(pred_data):
             model_name = mod_name,
             **kwargs
         )
-    return chexpert_kits
+    return chexpert_biasbalancers
 
-def table_fairness_analysis(fairKit_instance, to_latex = False):
-    a_name = fairKit_instance.a_name
+def table_fairness_analysis(biasbalancer_instance, to_latex = False):
+    a_name = biasbalancer_instance.a_name
     
     # helper function
     def stats_group(df):
@@ -121,7 +121,7 @@ def table_fairness_analysis(fairKit_instance, to_latex = False):
         acc = sklearn.metrics.accuracy_score(y, y_hat)*100
         return [auc_roc, acc]
 
-    auc_acc_table = (fairKit_instance.data
+    auc_acc_table = (biasbalancer_instance.data
         .assign(roc_auc_tuple = lambda x: list(zip(x.y, x.scores)),
                 acc_tuple = lambda x: list(zip(x.y, x.y_hat)))
         .groupby(a_name)
@@ -131,7 +131,7 @@ def table_fairness_analysis(fairKit_instance, to_latex = False):
         .rename(columns = {0:"auc_roc", 1:"acc"})
             )
 
-    return_table = (fairKit_instance.level_1(plot = False)
+    return_table = (biasbalancer_instance.level_1(plot = False)
         .rename(columns={"grp":a_name})
         .join(auc_acc_table.set_index(a_name), how = "left", on = a_name)
         .rename(columns={f"{a_name}":"grp"})
@@ -148,20 +148,20 @@ def table_fairness_analysis(fairKit_instance, to_latex = False):
 #%%
 if __name__ == '__main__':
 
-    # initialize fairkits
+    # initialize Bias Balancers 
     threshold = get_fpr_based_threshold()
     chexpert_df = get_chexpert_prediction_data(
         threshold = threshold)
-    chexpert_kits = get_chexpert_kits(chexpert_df)
+    chexpert_biasbalancers = get_chexpert_biasbalancers(chexpert_df)
 
     if make_table:
         table_list = []
-    for mod_name, kit in chexpert_kits.items():
+    for mod_name, balancer in chexpert_biasbalancers.items():
 
         # Get all plots in png
         if run_all_plots:
             path = figure_path + mod_name + '_'
-            make_all_plots(kit, 
+            make_all_plots(balancer, 
                 save_plots = update_figures,
                 plot_path = path, 
                 **{'suptitle': False, 'threshold': threshold})
@@ -169,14 +169,14 @@ if __name__ == '__main__':
         # Get plots for report
         if update_report_figures:
             path = fig_path_chexpert + mod_name + '_'
-            make_all_plots(kit, 
+            make_all_plots(balancer, 
                 save_plots = update_report_figures,
                 plot_path = path,
                 ext = ".pdf",
                 **{"run_level_2": True, 'suptitle': False})
         
         if make_table:
-            table_list.append(table_fairness_analysis(kit))
+            table_list.append(table_fairness_analysis(balancer))
 
     if make_table:
         total_table = pd.concat(table_list)
@@ -195,11 +195,11 @@ if __name__ == '__main__':
     if run_l3_plots:
         kwargs = {"threshold": threshold, "n_bins": 10}
         for dataset, method in l3_report_plots_chexpert:
-            chexpert_kits[dataset].level_3(
+            chexpert_biasbalancers[dataset].level_3(
                 method = method, 
                 **kwargs)
             if update_report_figures:
-                path = fig_path_chexpert + dataset + '_' + method + '.pdf'
+                path = fig_path_chexpert + dataset + '_l3_' + method + '.pdf'
                 plt.savefig(path, bbox_inches='tight', facecolor = 'w')
 
 
