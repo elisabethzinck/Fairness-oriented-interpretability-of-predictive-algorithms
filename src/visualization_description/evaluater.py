@@ -18,16 +18,15 @@ l3_report_plots = [
     ['taiwanese_nn', 'roc_curves'],
     ['catalan_logreg', 'roc_curves'],
     ['catalan_logreg', 'independence_check'],
-    ['catalan_logreg', 'w_fp_influence'],
-    ['adni2_nn', 'calibration']
+    ['catalan_logreg', 'w_fp_influence']
 ]
 
 update_figures  = False
-update_report_figures = False # Write new figures to report repository?
-run_all_plots = True
+update_report_figures = True # Write new figures to report repository?
+run_all_plots = False
 run_l2_plots = False
 run_l3_plots = False
-run_anym_plots = False
+run_anym_plots = True
 
 #############################################
 #%% Load data and initialize BiasBalancer
@@ -51,7 +50,7 @@ def get_BiasBalancerDict(include_anym = True, include_ADNI = False):
             a_name = 'grp', 
             r_name = 'phat',
             w_fp = anym_w_fp,
-            model_name = 'Anonymous Data')
+            model_name = 'Example Data')
 
     # German logistic regression
     german_log_reg = pd.read_csv('data/predictions/german_credit_log_reg.csv')
