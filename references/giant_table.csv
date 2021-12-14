@@ -1,0 +1,14 @@
+﻿Fairness Criterion;Synomyms/Other names ;Formula;Enforces;Reference;Relaxation of…
+Independence;Statistical Parity;$P_a(\Yhat = 1) = P_b(\Yhat = 1)$;Equal acceptance rate across sensitive subgroups.;\cite[p.~46]{fairmlbook};
+;Demographic Parity;;;;
+;Group Fairness;;;;
+Sufficiency ;Conditional use accuracy equality                                           ;$P_a(Y = i \mid \Yhat = i) = P_b(Y = i \mid \Yhat = i), \quad i \in \{0,1\}$;Equal false omission rates ($FOR=\frac{FN}{PN}$) and false discovery rates ($FDR=\frac{FP}{PP}$) across sensitive subgroups;\cite[p.~50]{fairmlbook};
+;Predictive Rate Parity;;;;
+Predictive Parity;Outcome Test;$P_a(Y = 1 \mid \Yhat = 1) = P_b(Y = 1 \mid \Yhat = 1)$;Equal false discovery rate across sensitive subgroups.;\cite{Verma2018};Sufficiency
+Separation;Equalized Odds;$P_a\left(\Yhat = 1 \mid Y = i\right) = P_b\left(\Yhat = 1 \mid Y = i\right), \hspace{3mm} i\in \{0,1\}$;Equal false positive rates ($FPR=\frac{FP}{FP+TN}$) and false negative rates ($FNR=\frac{FN}{FN+TP}$) across sensitive subgroups.;\cite{Hardt2016}, \cite[p.~50]{fairmlbook};
+;Positive rate parity;;;;
+;Conditional procedure accuracy equality;;;;
+;Disparate mistreatment;;;;
+"False Positive Error Rate Balance
+(FPR-balance)";Predictive Equality;$P_0(\Yhat = 1 \mid Y = 0) = P_1(\Yhat = 1 \mid Y = 0)$;Equal false positive rates across sensitive subgroups.;\cite{Verma2018};Separation
+Equal Opportunity;False negative error rate balance (FNR-balance);$P_0(\Yhat = 0 \mid Y = 1) = P_1(\Yhat = 0 \mid Y = 1)$;Equal false negative rates across sensitive subgroups.;\cite{Hardt2016}, \cite[p.~50]{fairmlbook};Separation
