@@ -16,7 +16,9 @@ fig_path_chexpert = '../Thesis-report/00_figures/cheXpert/'
 l3_report_plots_chexpert = [
     ['cheXpert_race', 'roc_curves'],
     ['cheXpert_race', 'calibration'],
-    ['cheXpert_race', 'confusion_matrix']] # Add more here later
+    ['cheXpert_race', 'confusion_matrix'], 
+    ['cheXpert_race', 'w_fp_influence'], 
+    ['cheXpert_race', 'independence_check']] # Add more here later
 
 update_figures  = False
 update_report_figures = True # Write new figures to report repository?
