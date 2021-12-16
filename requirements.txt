@@ -21,3 +21,5 @@ pandoc
 imgaug==0.2.5
 opencv-python
 openpyxl
+sphinx
+sphinx-rtd-theme
