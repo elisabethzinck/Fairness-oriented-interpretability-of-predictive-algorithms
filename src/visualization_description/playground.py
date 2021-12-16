@@ -5,7 +5,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-from src.evaluation_tool.utils import (
+from src.BiasBalancer.utils import (
     cm_matrix_to_dict, cm_dict_to_matrix, abs_percentage_tick, round_func)
 #%%
 def plot_confusion_matrix(TP, FN, FP, TN):

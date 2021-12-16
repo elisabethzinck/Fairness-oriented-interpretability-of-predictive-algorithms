@@ -59,22 +59,22 @@ def viz_wfp(fig, ax, w_fp, col_bar = True):
     return im
 
 
-# %%
-# Defining axes
-fig = plt.figure(figsize = (10,7))
-gs = GridSpec(nrows = 1, ncols = 3)
+if __name__ == "__main__":
+    # Defining axes
+    fig = plt.figure(figsize = (10,7))
+    gs = GridSpec(nrows = 1, ncols = 3)
 
-weights = [0, 0.5, 1]
+    weights = [0, 0.5, 1]
 
-for i, w_fp in enumerate(weights):
-    ax = fig.add_subplot(gs[0,i])
-    im = viz_wfp(fig = fig, ax = ax, w_fp = w_fp, col_bar=False)
+    for i, w_fp in enumerate(weights):
+        ax = fig.add_subplot(gs[0,i])
+        im = viz_wfp(fig = fig, ax = ax, w_fp = w_fp, col_bar=False)
 
-# adjustments 
-fig.subplots_adjust(wspace = 0.5, hspace = 0.7, right = 0.8)
-cbar_ax = fig.add_axes([0.85, 0.378, 0.03, 0.25])
-cbar_ax.set_title('$WMR$', fontsize = 14)
-fig.colorbar(im, cax=cbar_ax)
-plt.savefig(fig_path_report+'WMR_triangles.pdf', bbox_inches='tight')
+    # adjustments 
+    fig.subplots_adjust(wspace = 0.5, hspace = 0.7, right = 0.8)
+    cbar_ax = fig.add_axes([0.85, 0.378, 0.03, 0.25])
+    cbar_ax.set_title('$WMR$', fontsize = 14)
+    fig.colorbar(im, cax=cbar_ax)
+    plt.savefig(fig_path_report+'WMR_triangles.pdf', bbox_inches='tight')
 
 # %%
