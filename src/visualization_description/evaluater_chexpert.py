@@ -3,7 +3,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import sklearn
 
-from biasbalancer.biasbalancer import BiasBalancer
+from biasbalancer.balancer import BiasBalancer
 from src.visualization_description.evaluater import make_all_plots
 
 from sklearn.metrics import roc_curve

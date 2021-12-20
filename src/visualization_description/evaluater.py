@@ -3,7 +3,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 
-from biasbalancer.biasbalancer import BiasBalancer
+from biasbalancer.balancer import BiasBalancer
 
 #%% Initialize parameters
 figure_path = 'figures/evaluation_plots/'
