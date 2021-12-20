@@ -4,18 +4,18 @@ biasbalancer package
 Submodules
 ----------
 
-biasbalancer.BiasBalancer module
---------------------------------
+biasbalancer.balancer module
+----------------------------
 
-.. automodule:: biasbalancer.BiasBalancer
+.. automodule:: biasbalancer.balancer
    :members:
    :undoc-members:
    :show-inheritance:
 
-biasbalancer.BiasBalancerPlots module
+biasbalancer.biasbalancerplots module
 -------------------------------------
 
-.. automodule:: biasbalancer.BiasBalancerPlots
+.. automodule:: biasbalancer.biasbalancerplots
    :members:
    :undoc-members:
    :show-inheritance:

@@ -5,4 +5,3 @@ src_biasbalancer
    :maxdepth: 4
 
    biasbalancer
-   setup
