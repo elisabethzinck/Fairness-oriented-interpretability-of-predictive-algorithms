@@ -1,5 +1,7 @@
 import numpy as np
+import pandas as pd
 
+from sklearn.preprocessing import OneHotEncoder
 from statsmodels.stats.proportion import proportion_confint
 
 ##############################################
@@ -133,12 +135,23 @@ def extract_cm_values(df, grp):
 
     return TP, FN, FP, TN
 
-def static_split(string, pattern, n_elem):
-    "Same as str.split() except `n_elem`elements are always returned"
-    tmp = string.split(pattern, maxsplit = n_elem-1) # n_elem = n_split + 1
-    n_remaining = n_elem - len(tmp)
-    out = tmp + [None]*n_remaining
-    return out
+def one_hot_encode_mixed_data(X):
+    """ To do: Documentation """
+    # splitting into categorical and numerical columns 
+    X_cat = X.loc[:, (X.dtypes=='object').values]
+    X_num = X.drop(columns = X_cat.columns)
+    
+    enc = OneHotEncoder(drop='if_binary', sparse = False)
+    X_cat_one_hot_fit = enc.fit_transform(X_cat)
+    X_cat_one_hot = pd.DataFrame(
+        X_cat_one_hot_fit, 
+        columns=enc.get_feature_names(X_cat.columns), 
+        index = X_cat.index)
+        
+    # Concatenating into a final data frame 
+    X_final = pd.concat([X_num, X_cat_one_hot], axis = 1)
+
+    return X_final 
 
 ################################################
 #             lambda functions

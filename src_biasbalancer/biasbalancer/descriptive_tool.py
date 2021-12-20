@@ -1,5 +1,4 @@
 #%%
-from operator import index
 import pandas as pd
 import numpy as np
 
@@ -12,10 +11,12 @@ import matplotlib.ticker as mtick
 from sklearn.preprocessing import StandardScaler
 from sklearn.manifold import TSNE
 
-from src.data.general_preprocess_functions import one_hot_encode_mixed_data
-from src.evaluation_tool.utils import (
-    custom_palette, error_bar, 
-    N_pos, frac_pos, wilson_confint, error_bar, abs_percentage_tick)
+# To do: Clean up in this below to only import relevant things
+#from utils import (
+#    custom_palette, error_bar, 
+#    N_pos, frac_pos, wilson_confint, error_bar, abs_percentage_tick)
+from biasbalancer.utils import *
+from biasbalancer.plots import *
 #%% 
 class DescribeData:
     def __init__(self, y_name, a_name, id_name = None, data = None, data_name = None, **kwargs):
@@ -199,7 +200,7 @@ class DescribeData:
         else:
             cols_to_drop = ['y', 'a']
         X = self.data.drop(columns=cols_to_drop)
-        X = one_hot_encode_mixed_data(X)
+        X = utils.one_hot_encode_mixed_data(X)
         scaler = StandardScaler()
         X_scaled = scaler.fit_transform(X)
 

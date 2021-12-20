@@ -1,13 +1,13 @@
 #%% Imports
-import pandas as pd
 import numpy as np
+import pandas as pd
 
 # sklearn 
 from sklearn.metrics import confusion_matrix, roc_curve
 
 # dir functions
-import src.BiasBalancer.utils as utils
-from src.BiasBalancer.BiasBalancerPlots import BiasBalancerPlots
+import biasbalancer.utils as bbutils
+import biasbalancer.plots as bbplots
 
 #%%
 
@@ -32,7 +32,7 @@ def calculate_WMR(cm, grp, w_fp):
     else:
         c = 1/w_fp
 
-    TP, FN, FP, TN = utils.extract_cm_values(cm, grp)
+    TP, FN, FP, TN = bbutils.extract_cm_values(cm, grp)
     n = sum([TP, TN, FN, FP])
     wmr = c*(w_fp*FP + (1-w_fp)*FN)/n
     return wmr
@@ -97,7 +97,7 @@ class BiasBalancer:
         self.rel_rates = self.get_relative_rates()
         self.WMR_rel_rates = self.get_relative_rates(self.WMR_rates)
 
-        self.BBplot = BiasBalancerPlots(self, **kwargs)
+        self.BBplot = bbplots.BiasBalancerPlots(self, **kwargs)
 
     
     ###############################################################
@@ -108,7 +108,7 @@ class BiasBalancer:
         """To do: Documentation"""
 
         relative_wmr = self.get_relative_rates(self.WMR_rates)
-        obs_counts = (utils.value_counts_df(self.classifier, 'a')
+        obs_counts = (bbutils.value_counts_df(self.classifier, 'a')
             .rename(columns = {'a': 'grp'}))
         l1_data = (pd.merge(relative_wmr, obs_counts)
             .rename(columns = {
@@ -206,19 +206,19 @@ class BiasBalancer:
             cm_sklearn = confusion_matrix(
                 y_true = df_group.y, 
                 y_pred = df_group.y_hat)
-            cm[grp] = utils.cm_matrix_to_dict(cm_sklearn)
+            cm[grp] = bbutils.cm_matrix_to_dict(cm_sklearn)
         
         # Making into a data frame of long format 
         data = pd.DataFrame({'a':self.a, 'y': self.y, 'y_hat':self.y_hat})
         agg_df = (data.groupby('a')
             .agg(
-                P = ("y", utils.N_pos), 
-                N = ("y", utils.N_neg),
-                PP = ("y_hat", utils.N_pos),
-                PN = ("y_hat", utils.N_neg))    
+                P = ("y", bbutils.N_pos), 
+                N = ("y", bbutils.N_neg),
+                PP = ("y_hat", bbutils.N_pos),
+                PN = ("y_hat", bbutils.N_neg))    
             .reset_index()     
         )
-        cm_df=(utils.flip_dataframe(pd.DataFrame(cm).reset_index())
+        cm_df=(bbutils.flip_dataframe(pd.DataFrame(cm).reset_index())
             .rename(columns={'index':'a'})
             .set_index('a')
             .join(agg_df.set_index('a'))
@@ -244,7 +244,7 @@ class BiasBalancer:
         """To do: Documentation"""
         rates = []   
         for grp in self.sens_grps:
-            TP, FN, FP, TN = utils.extract_cm_values(self.cm, grp)
+            TP, FN, FP, TN = bbutils.extract_cm_values(self.cm, grp)
             rates_grp = (pd.DataFrame(
                 [['FNR', FN, (TP + FN)], 
                 ['FPR', FP, (TN + FP)],
@@ -256,9 +256,9 @@ class BiasBalancer:
                 .assign(
                     grp = grp,
                     rate_val = lambda x: x.numerator/x.denominator,
-                    rate_val_lwr = lambda x: utils.wilson_confint(
+                    rate_val_lwr = lambda x: bbutils.wilson_confint(
                         x.numerator, x.denominator, 'lwr'),
-                    rate_val_upr = lambda x: utils.wilson_confint(
+                    rate_val_upr = lambda x: bbutils.wilson_confint(
                         x.numerator, x.denominator, 'upr'))
                 )
             rates.append(rates_grp)
@@ -393,12 +393,12 @@ class BiasBalancer:
                 .groupby("a", as_index = False)
                 .agg(
                     N = ("y_hat", "count"),
-                    N_predicted_label = ("y_hat", utils.N_pos),
-                    frac_predicted_label = ("y_hat", utils.frac_pos))
+                    N_predicted_label = ("y_hat", bbutils.N_pos),
+                    frac_predicted_label = ("y_hat", bbutils.frac_pos))
                 .assign(
-                    conf_lwr = lambda x: utils.wilson_confint(
+                    conf_lwr = lambda x: bbutils.wilson_confint(
                         x.N_predicted_label, x.N, 'lwr'),
-                    conf_upr = lambda x: utils.wilson_confint(
+                    conf_upr = lambda x: bbutils.wilson_confint(
                         x.N_predicted_label, x.N, 'upr'),
                     label = 'positive'))
         else:
@@ -406,12 +406,12 @@ class BiasBalancer:
                 .groupby("a", as_index = False)
                 .agg(
                     N = ("y_hat", "count"),
-                    N_predicted_label = ("y_hat", utils.N_neg),
-                    frac_predicted_label = ("y_hat", utils.frac_neg))
+                    N_predicted_label = ("y_hat", bbutils.N_neg),
+                    frac_predicted_label = ("y_hat", bbutils.frac_neg))
                 .assign(
-                    conf_lwr = lambda x: utils.wilson_confint(
+                    conf_lwr = lambda x: bbutils.wilson_confint(
                         x.N_predicted_label, x.N, 'lwr'),
-                    conf_upr = lambda x: utils.wilson_confint(
+                    conf_upr = lambda x: bbutils.wilson_confint(
                         x.N_predicted_label, x.N, 'upr'),
                     label = 'negative'))
 

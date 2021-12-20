@@ -1,4 +1,4 @@
-# Plots 
+#%% Plots 
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mtick
 from matplotlib.gridspec import GridSpec
@@ -15,7 +15,8 @@ import seaborn as sns
 
 from math import ceil, floor
 
-import src.BiasBalancer.utils as utils
+import biasbalancer.utils as bbutils
+#%%
 
 class BiasBalancerPlots():
     def __init__(self, BiasBalancer, **kwargs):
@@ -170,9 +171,9 @@ class BiasBalancerPlots():
         ax.tick_params(labelsize=12)
 
         # Set alpha values and error bars manually
-        containers = utils.flatten_list(ax.containers) # order = from left to right by group
+        containers = bbutils.flatten_list(ax.containers) # order = from left to right by group
         rate_names_seq = rate_names*self.n_sens_grps
-        groups = utils.flatten_list([[grp]*4 for grp in self.sens_grps])
+        groups = bbutils.flatten_list([[grp]*4 for grp in self.sens_grps])
         for bar, rate, grp in zip(containers, rate_names_seq, groups):
             alpha = alpha_weights[rate]
             bar.set_alpha(alpha)
@@ -298,9 +299,9 @@ class BiasBalancerPlots():
 
         # One plot for each sensitive group
         for i, grp in enumerate(self.sens_grps):
-            TP, FN, FP, TN = utils.extract_cm_values(cm, grp)
+            TP, FN, FP, TN = bbutils.extract_cm_values(cm, grp)
             n_obs = sum([TP, FN, FP, TN])
-            grp_cm = utils.cm_vals_to_matrix(TP, FN, FP, TN)
+            grp_cm = bbutils.cm_vals_to_matrix(TP, FN, FP, TN)
 
             N, P, PN, PP = (cm
             .query(f'a == "{grp}" & type_obs in ["PP", "PN", "P", "N"]')
@@ -373,7 +374,7 @@ class BiasBalancerPlots():
         sns.despine(ax = ax, top = True, right = True)
         ax.set_xlabel('$w_{fp}$', fontsize=self._label_size)
         ax.set_xlim((0,1))
-        ax.set_ylabel(utils.label_case(y), fontsize=self._label_size)
+        ax.set_ylabel(bbutils.label_case(y), fontsize=self._label_size)
         ax.set_title("False Positive Weight Influence", size=self._title_size)
         ax.legend(frameon = False, prop={'size':self._legend_size})
         ax.tick_params(labelsize=self._tick_size)
@@ -402,16 +403,16 @@ class BiasBalancerPlots():
         denominators_fpr = []
         denominators_tpr = []
         for grp in self.sens_grps:
-            TP, FN, FP, TN = utils.extract_cm_values(self.BiasBalancer.cm, grp)
+            TP, FN, FP, TN = bbutils.extract_cm_values(self.BiasBalancer.cm, grp)
             denominators_fpr.append(TN+FP)
             denominators_tpr.append(TP+FN)    
         threshold_points = threshold_points.assign(
             n_pos = denominators_tpr,
             n_neg = denominators_fpr,
-        	fpr_lwr = lambda x: utils.wilson_confint(x.fpr*x.n_neg, x.n_neg, "lwr"), 
-	        fpr_upr = lambda x: utils.wilson_confint(x.fpr*x.n_neg, x.n_neg, "upr"),
-	        tpr_lwr = lambda x: utils.wilson_confint(x.tpr*x.n_pos, x.n_pos, "lwr"),
-	        tpr_upr = lambda x: utils.wilson_confint(x.tpr*x.n_pos, x.n_pos, "upr")   
+        	fpr_lwr = lambda x: bbutils.wilson_confint(x.fpr*x.n_neg, x.n_neg, "lwr"), 
+	        fpr_upr = lambda x: bbutils.wilson_confint(x.fpr*x.n_neg, x.n_neg, "upr"),
+	        tpr_lwr = lambda x: bbutils.wilson_confint(x.tpr*x.n_pos, x.n_pos, "lwr"),
+	        tpr_upr = lambda x: bbutils.wilson_confint(x.tpr*x.n_pos, x.n_pos, "upr")   
         )
 
         if ax is None: 

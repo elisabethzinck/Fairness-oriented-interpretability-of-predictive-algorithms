@@ -3,8 +3,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 
-from src.BiasBalancer.BiasBalancer import BiasBalancer
-from src.BiasBalancer.utils import static_split
+from biasbalancer.biasbalancer import BiasBalancer
 
 #%% Initialize parameters
 figure_path = 'figures/evaluation_plots/'
@@ -154,6 +153,14 @@ def get_BiasBalancerDict(include_anym = True, include_ADNI = False):
     return BiasBalancerDict
             
 def get_l1_overview_table(print_latex = True):
+    
+    def static_split(string, pattern, n_elem):
+        "Same as str.split() except `n_elem`elements are always returned`"
+        tmp = string.split(pattern, maxsplit = n_elem-1) # n_elem = n_split + 1
+        n_remaining = n_elem - len(tmp)
+        out = tmp + [None]*n_remaining
+        return out
+
     "Generate level 1 overview table"
     l1_list = []
     for balancer in BiasBalancerDict.values():

@@ -5,7 +5,7 @@ import seaborn as sns
 import numpy as np 
 
 from src.evaluation_tool.utils import custom_palette
-from src.evaluation_tool.descriptive_tool import DescribeData
+from biasbalancer.descriptive_tool import DescribeData
 
 file_path = 'data\\processed\\catalan-juvenile-recidivism\\catalan-juvenile-recidivism-subset.csv'
 raw_data = pd.read_csv(file_path, index_col=0).reset_index(drop = False)
