@@ -4,7 +4,6 @@
 **.egg-info
 *-checkpoint.ipynb
 /.venv
-/biasbalancer_docs/build
 
 # Personal vscode settings
 .vscode/settings.json
