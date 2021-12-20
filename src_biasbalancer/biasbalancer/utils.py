@@ -135,13 +135,6 @@ def extract_cm_values(df, grp):
 
     return TP, FN, FP, TN
 
-def static_split(string, pattern, n_elem):
-    "Same as str.split() except `n_elem`elements are always returned`"
-    tmp = string.split(pattern, maxsplit = n_elem-1) # n_elem = n_split + 1
-    n_remaining = n_elem - len(tmp)
-    out = tmp + [None]*n_remaining
-    return out
-
 def one_hot_encode_mixed_data(X):
     """ To do: Documentation """
     # splitting into categorical and numerical columns 

@@ -7,7 +7,7 @@ from sklearn.metrics import confusion_matrix, roc_curve
 
 # dir functions
 from biasbalancer import utils
-from biasbalancer.BiasBalancerPlots import BiasBalancerPlots
+from biasbalancer.biasbalancerplots import BiasBalancerPlots
 
 #%%
 
