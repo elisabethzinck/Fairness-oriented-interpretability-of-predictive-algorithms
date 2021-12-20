@@ -5,7 +5,7 @@ import numpy as np
 import plotly.graph_objects as go
 import matplotlib.pyplot as plt 
 
-from src.evaluation_tool.descriptive_tool import DescribeData
+from biasbalancer.descriptive_tool import DescribeData
 from src.models.data_modules import ADNIDataModule
 
 write_sankey = False
