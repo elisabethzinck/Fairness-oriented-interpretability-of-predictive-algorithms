@@ -16,7 +16,7 @@ from sklearn.manifold import TSNE
 #    custom_palette, error_bar, 
 #    N_pos, frac_pos, wilson_confint, error_bar, abs_percentage_tick)
 from biasbalancer.utils import *
-from biasbalancer.biasbalancerplots import *
+from biasbalancer.plots import *
 #%% 
 class DescribeData:
     def __init__(self, y_name, a_name, id_name = None, data = None, data_name = None, **kwargs):

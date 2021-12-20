@@ -4,12 +4,10 @@ import pandas as pd
 
 # sklearn 
 from sklearn.metrics import confusion_matrix, roc_curve
-import os 
-print(os.getcwd())
 
 # dir functions
 import biasbalancer.utils as bbutils
-import biasbalancer.biasbalancerplots as bbplots
+import biasbalancer.plots as bbplots
 
 #%%
 
