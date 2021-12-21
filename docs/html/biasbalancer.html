@@ -15,9 +15,11 @@
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
         <script src="_static/doctools.js"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="search.html" /> 
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="src_biasbalancer" href="modules.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -35,19 +37,22 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <!-- Local TOC -->
-              <div class="local-toc"><ul>
-<li><a class="reference internal" href="#">biasbalancer package</a><ul>
-<li><a class="reference internal" href="#submodules">Submodules</a></li>
-<li><a class="reference internal" href="#module-biasbalancer.balancer">biasbalancer.balancer module</a></li>
-<li><a class="reference internal" href="#module-biasbalancer.descriptive_tool">biasbalancer.descriptive_tool module</a></li>
-<li><a class="reference internal" href="#module-biasbalancer.plots">biasbalancer.plots module</a></li>
-<li><a class="reference internal" href="#module-biasbalancer.utils">biasbalancer.utils module</a></li>
-<li><a class="reference internal" href="#module-biasbalancer">Module contents</a></li>
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">src_biasbalancer</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">biasbalancer package</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-biasbalancer.balancer">biasbalancer.balancer module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-biasbalancer.descriptive_tool">biasbalancer.descriptive_tool module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-biasbalancer.plots">biasbalancer.plots module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-biasbalancer.utils">biasbalancer.utils module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-biasbalancer">Module contents</a></li>
 </ul>
 </li>
 </ul>
-</div>
+</li>
+</ul>
+
         </div>
       </div>
     </nav>
@@ -62,6 +67,7 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="modules.html">src_biasbalancer</a> &raquo;</li>
       <li>biasbalancer package</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/biasbalancer.rst.txt" rel="nofollow"> View page source</a>
@@ -170,12 +176,119 @@ and minimum rate.</p>
 <dt class="sig sig-object py" id="biasbalancer.balancer.BiasBalancer.level_2">
 <span class="sig-name descname"><span class="pre">level_2</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">plot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_table</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.balancer.BiasBalancer.level_2" title="Permalink to this definition"></a></dt>
 <dd><p>To do: Documentation</p>
+<table class="docutils align-default" id="id9">
+<caption><span class="caption-text">Overview table of Fairness Criteria</span><a class="headerlink" href="#id9" title="Permalink to this table"></a></caption>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Fairness Criterion</p></th>
+<th class="head"><p>Enforces</p></th>
+<th class="head"><p>Reference</p></th>
+<th class="head"><p>Other Names</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Independence</p></td>
+<td><p><span class="math notranslate nohighlight">\(\frac{PP_a}{N_a} = \frac{PP_b}{N_b}\)</span></p></td>
+<td><p><a class="reference internal" href="#bar2019" id="id1"><span>[BAR2019]</span></a></p></td>
+<td><p>Statistical Parity |                             Demographic Parity |                                        Group Fairness</p></td>
+</tr>
+<tr class="row-odd"><td><p>Sufficiency</p></td>
+<td><p><span class="math notranslate nohighlight">\(FOR_a = FOR_b\)</span> and <span class="math notranslate nohighlight">\(FDR_a = FDR_b\)</span></p></td>
+<td><p><a class="reference internal" href="#bar2019" id="id2"><span>[BAR2019]</span></a></p></td>
+<td><p>Predictive Rate Parity |                                 Conditional Use Accuracy Parity</p></td>
+</tr>
+<tr class="row-even"><td><p>Predictive Parity <span class="math notranslate nohighlight">\(\bullet\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(FDR_a = FDR_b\)</span></p></td>
+<td><p><a class="reference internal" href="#ver2018" id="id3"><span>[VER2018]</span></a></p></td>
+<td><p>Outcome Test</p></td>
+</tr>
+<tr class="row-odd"><td><p>Separation</p></td>
+<td><p><span class="math notranslate nohighlight">\(FPR_a = FPR_b\)</span> and <span class="math notranslate nohighlight">\(FNR_a = FNR_b\)</span></p></td>
+<td><p><a class="reference internal" href="#hardt2016" id="id4"><span>[HARDT2016]</span></a> <a class="reference internal" href="#bar2019" id="id5"><span>[BAR2019]</span></a></p></td>
+<td><p>Equalized Odds |                                        Positive Rate Parity |                              Disparate Mistreatment |                      Conditional Procedure Accuracy Equality</p></td>
+</tr>
+<tr class="row-even"><td><p>FPR-balance <span class="math notranslate nohighlight">\(\star\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(FPR_a = FPR_b\)</span></p></td>
+<td><p><a class="reference internal" href="#ver2018" id="id6"><span>[VER2018]</span></a></p></td>
+<td><p>Predictive Equality</p></td>
+</tr>
+<tr class="row-odd"><td><p>Equal Opportunity <span class="math notranslate nohighlight">\(\star\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(FNR_a = FNR_b\)</span></p></td>
+<td><p><a class="reference internal" href="#hardt2016" id="id7"><span>[HARDT2016]</span></a>  <a class="reference internal" href="#bar2019" id="id8"><span>[BAR2019]</span></a></p></td>
+<td><p>FNR-balance</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="citation">
+<dt class="label" id="hardt2016"><span class="brackets">HARDT2016</span><span class="fn-backref">(<a href="#id4">1</a>,<a href="#id7">2</a>)</span></dt>
+<dd><p>Hardt, M., Price, E., and Srebro, N. (2016).
+Equality of opportunity in supervised learning.</p>
+</dd>
+<dt class="label" id="bar2019"><span class="brackets">BAR2019</span><span class="fn-backref">(<a href="#id1">1</a>,<a href="#id2">2</a>,<a href="#id5">3</a>,<a href="#id8">4</a>)</span></dt>
+<dd><p>Barocas, S., Hardt, M., and Narayanan, A. (2019).
+Fairness and Machine Learning.</p>
+</dd>
+<dt class="label" id="ver2018"><span class="brackets">VER2018</span><span class="fn-backref">(<a href="#id3">1</a>,<a href="#id6">2</a>)</span></dt>
+<dd><p>Verma,  S.  and  Rubin,  J.  (2018).
+Fairness  definitions  explained.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="biasbalancer.balancer.BiasBalancer.level_3">
 <span class="sig-name descname"><span class="pre">level_3</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">method</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_table</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.balancer.BiasBalancer.level_3" title="Permalink to this definition"></a></dt>
-<dd><p>To do: Documentation</p>
+<dd><p>To do: Documentation here</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 20%" />
+<col style="width: 38%" />
+<col style="width: 43%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p>Method</p></td>
+<td><p>When…</p></td>
+<td><p>What</p></td>
+</tr>
+<tr class="row-even"><td><p>w_fp_influence</p></td>
+<td><p>Unsure about how <span class="math notranslate nohighlight">\(w_{FP}\)</span></p>
+<p>influences the result.</p>
+</td>
+<td><p>WMQ for each group as a function of</p>
+<p><span class="math notranslate nohighlight">\(w_{FP}\)</span></p>
+</td>
+</tr>
+<tr class="row-odd"><td><p>roc_curves</p></td>
+<td><p>Separation, FPR balance or equal</p>
+<p>opportunity is large in barometer</p>
+</td>
+<td><p>The ROC-curve for each sensitive group</p></td>
+</tr>
+<tr class="row-even"><td><p>calibration</p></td>
+<td><p>Sufficiency or predictive parity is</p>
+<p>large in barometer</p>
+</td>
+<td><p>Calibration curve for each group.</p></td>
+</tr>
+<tr class="row-odd"><td><p>confusion_matrix</p></td>
+<td><p>The dataset or a group contain</p>
+<p>few observations</p>
+</td>
+<td><p>Confusion matrix for each group</p></td>
+</tr>
+<tr class="row-even"><td><p>independence_check</p></td>
+<td><p>Independence is large in barometer</p></td>
+<td><p>Fraction of predicted positives</p>
+<p>across groups</p>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 </dd></dl>
@@ -594,7 +707,9 @@ by get_confusion_matrix() in FairKit</p></li>
 
            </div>
           </div>
-          <footer>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="modules.html" class="btn btn-neutral float-left" title="src_biasbalancer" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
 
   <hr/>
 
