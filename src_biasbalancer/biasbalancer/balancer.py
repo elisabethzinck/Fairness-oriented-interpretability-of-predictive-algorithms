@@ -151,7 +151,32 @@ class BiasBalancer:
             return rates.query("rate != 'WMR'"), relative_rates, barometer
         
     def level_3(self, method, plot = True, output_table = True, **kwargs):
-        """To do: Documentation"""
+        """To do: Documentation here
+
+        +-------------------+------------------------------------+-----------------------------------------+
+        |Method	            |When…                               |What                                     |
+        +-------------------+------------------------------------+-----------------------------------------+
+        |w_fp_influence	    |Unsure about how w fp influences 	 |WMQ for each group as a function of w fp |
+        |                   |                                    |                                         |
+        |                   |the result.                         |                                         |
+        +-------------------+------------------------------------+-----------------------------------------+
+        |roc_curves         |Separation, FPR balance or equal    |The ROC-curve for each sensitive group   |
+        |                   |                                    |                                         |
+        |                   |opportunity is large in barometer   |                                         |
+        +-------------------+------------------------------------+-----------------------------------------+
+        |calibration	    |Sufficiency or predictive parity is |Calibration curve for each group.        |
+        |                   |                                    |                                         |
+        |                   |large in barometer                  |                                         |
+        +-------------------+------------------------------------+-----------------------------------------+
+        |confusion_matrix   |The dataset or a group contain      |Confusion matrix for each group          |
+        |                   |                                    |                                         |
+        |                   |few observations                    |                                         |
+        +-------------------+------------------------------------+-----------------------------------------+
+        |independence_check |Independence is large in barometer  |Fraction of predicted positives          |
+        |                   |                                    |                                         |
+        |                   |                                    |across groups                            |
+        +-------------------+------------------------------------+-----------------------------------------+        
+        """
 
         method_options = [
             'w_fp_influence', 
