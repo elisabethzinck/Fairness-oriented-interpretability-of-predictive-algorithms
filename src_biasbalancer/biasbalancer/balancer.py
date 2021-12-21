@@ -156,9 +156,9 @@ class BiasBalancer:
         +-------------------+------------------------------------+-----------------------------------------+
         |Method	            |When…                               |What                                     |
         +-------------------+------------------------------------+-----------------------------------------+
-        |w_fp_influence	    |Unsure about how w fp influences 	 |WMQ for each group as a function of w fp |
+        |w_fp_influence	    |Unsure about how :math:`w_{FP}`  	 |WMQ for each group as a function of      |
         |                   |                                    |                                         |
-        |                   |the result.                         |                                         |
+        |                   |influences the result.              |:math:`w_{FP}`                           |
         +-------------------+------------------------------------+-----------------------------------------+
         |roc_curves         |Separation, FPR balance or equal    |The ROC-curve for each sensitive group   |
         |                   |                                    |                                         |
