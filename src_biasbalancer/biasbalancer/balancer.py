@@ -123,7 +123,18 @@ class BiasBalancer:
             return l1_data
     
     def level_2(self, plot = True, output_table = True, **kwargs):
-        """To do: Documentation"""
+        """To do: Documentation
+
+        .. csv-table:: Overview table of Fairness Criteria
+           :file: ../../references/overview_table.csv
+           :header-rows: 1
+        .. [HARDT2016] Hardt, M., Price, E., and Srebro, N. (2016).
+           Equality of opportunity in supervised learning.
+        .. [BAR2019]  Barocas, S., Hardt, M., and Narayanan, A. (2019).
+           Fairness and Machine Learning.
+        .. [VER2018] Verma,  S.  and  Rubin,  J.  (2018).
+           Fairness  definitions  explained.
+        """
         rates = (pd.concat(
                 [self.rates, self.WMR_rates]
                 )

@@ -1,0 +1,7 @@
+﻿Fairness Criterion,Enforces,Reference,Other Names
+Independence,:math:`\frac{PP_a}{N_a} = \frac{PP_b}{N_b}`,[BAR2019]_ ,Statistical Parity |                             Demographic Parity |                                        Group Fairness
+Sufficiency,:math:`FOR_a = FOR_b` and :math:`FDR_a = FDR_b`,[BAR2019]_ ,Predictive Rate Parity |                                 Conditional Use Accuracy Parity
+Predictive Parity :math:`\bullet`,:math:`FDR_a = FDR_b`,[VER2018]_ ,Outcome Test
+Separation,:math:`FPR_a = FPR_b` and :math:`FNR_a = FNR_b`,[HARDT2016]_ [BAR2019]_ ,Equalized Odds |                                        Positive Rate Parity |                              Disparate Mistreatment |                      Conditional Procedure Accuracy Equality
+FPR-balance :math:`\star`,:math:`FPR_a = FPR_b`,[VER2018]_ ,Predictive Equality
+Equal Opportunity :math:`\star`,:math:`FNR_a = FNR_b`,[HARDT2016]_  [BAR2019]_ ,FNR-balance
