@@ -1,4 +1,4 @@
-#%%
+# %%
 import numpy as np
 import pandas as pd
 import warnings
@@ -8,9 +8,10 @@ from sklearn.metrics import confusion_matrix, roc_curve
 import biasbalancer.utils as bbutils
 import biasbalancer.plots as bbplots
 
+
 def calculate_WMR(cm, grp, w_fp):
     """Calculate the weighted misclassification rate (WMR)
-    
+
     Args:
         cm (dataframe): confusion matrix as returned 
                         by get_confusion_matrix() in BiasBalancer
@@ -21,7 +22,8 @@ def calculate_WMR(cm, grp, w_fp):
     if not isinstance(w_fp, int) and not isinstance(w_fp, float):
         raise TypeError("w_fp must be a float or integer.")
     if w_fp < 0 or w_fp > 1:
-        raise ValueError(f"w_fp must be in interval [0,1]. You supplied w_fp = {w_fp}")
+        raise ValueError(
+            f"w_fp must be in interval [0,1]. You supplied w_fp = {w_fp}")
 
     # normalization constant
     if w_fp < 0.5:
@@ -34,9 +36,10 @@ def calculate_WMR(cm, grp, w_fp):
     wmr = c*(w_fp*FP + (1-w_fp)*FN)/n
     return wmr
 
+
 class BiasBalancer:
     """To do: More extensive documentation
-    
+
     Args:
         data (pd.DataFrame): DataFrame containing data used for evaluation
         y_name (str): Name of target variable
@@ -46,24 +49,28 @@ class BiasBalancer:
         w_fp (int or float): False positive error weight
         model_name (str): Name of the model or dataset used. Is used for plot titles. 
     """
-    
-    def __init__(self, data, y_name, y_hat_name, a_name, r_name, w_fp, model_name = None, **kwargs):
+
+    def __init__(self, data, y_name, y_hat_name, a_name, r_name, w_fp, model_name=None, **kwargs):
 
         # Input checks
         if not isinstance(data, pd.DataFrame):
-            raise ValueError(f'`data` must be a dataframe. You supplied a {type(data)}')
-        
+            raise ValueError(
+                f'`data` must be a dataframe. You supplied a {type(data)}')
+
         input_names = set([y_name, y_hat_name, a_name, r_name])
-        if not input_names.issubset(set(data.columns)): 
-            raise ValueError('`y_name`, `y_hat_name`, `a_name`, and `r_name` must be present in columns of `data`.')
+        if not input_names.issubset(set(data.columns)):
+            raise ValueError(
+                '`y_name`, `y_hat_name`, `a_name`, and `r_name` must be present in columns of `data`.')
 
-        if not data[r_name].between(0,1).all():
-            raise ValueError('Scores in column `r_name` must be in range [0,1]')
+        if not data[r_name].between(0, 1).all():
+            raise ValueError(
+                'Scores in column `r_name` must be in range [0,1]')
 
-        y_binary = data[y_name].isin([0,1]).all()
-        y_hat_binary = data[y_hat_name].isin([0,1]).all()
+        y_binary = data[y_name].isin([0, 1]).all()
+        y_hat_binary = data[y_hat_name].isin([0, 1]).all()
         if not (y_binary and y_hat_binary):
-            raise ValueError('Targets in column `y_name` and predictions in column `y_hat_name` must be binary.')
+            raise ValueError(
+                'Targets in column `y_name` and predictions in column `y_hat_name` must be binary.')
 
         if not isinstance(model_name, str) and model_name is not None:
             raise ValueError('`model_name` must be of type str or None.')
@@ -77,31 +84,29 @@ class BiasBalancer:
         self.model_name = model_name
 
         self.classifier = pd.DataFrame({
-            'y': data[y_name], 
-            'a': data[a_name], 
-            'y_hat': data[y_hat_name], 
-            'r': data[r_name]}).reset_index(drop = True)
+            'y': data[y_name],
+            'a': data[a_name],
+            'y_hat': data[y_hat_name],
+            'r': data[r_name]}).reset_index(drop=True)
         self.sens_grps = np.sort(self.classifier.a.unique())
         self.n_sens_grps = len(self.sens_grps)
         self.n = data.shape[0]
-        
 
         self.cm = self.get_confusion_matrix()
         self.rates = self.get_rates()
-        self.WMR_rates = self.get_WMR_rates(w_fp = self.w_fp)
+        self.WMR_rates = self.get_WMR_rates(w_fp=self.w_fp)
         self.rel_rates = self.get_relative_rates()
         self.WMR_rel_rates = self.get_relative_rates(self.WMR_rates)
 
         self.BBplot = bbplots.BiasBalancerPlots(self, **kwargs)
 
-    
     ###############################################################
     #                  LAYER METHODS
     ###############################################################
-    
-    def level_1(self, plot  = True, output_table = True):
+
+    def level_1(self, plot=True, output_table=True):
         """To do: Documentation (including description of what WMR and WMQ is)
-        
+
         Args:
             plot (bool): If True, a plot is made visualizing the results
             output_table (bool): If True, the results are returned in a dataframe
@@ -109,20 +114,20 @@ class BiasBalancer:
 
         relative_wmr = self.get_relative_rates(self.WMR_rates)
         obs_counts = (bbutils.value_counts_df(self.classifier, 'a')
-            .rename(columns = {'a': 'grp'}))
+                      .rename(columns={'a': 'grp'}))
         l1_data = (pd.merge(relative_wmr, obs_counts)
-            .rename(columns = {
-                'rate_val': 'WMR',
-                'relative_rate': 'WMQ'}))
-        l1_data = l1_data[['grp', 'n', 'WMR','WMQ']]
+                   .rename(columns={
+                       'rate_val': 'WMR',
+                       'relative_rate': 'WMQ'}))
+        l1_data = l1_data[['grp', 'n', 'WMR', 'WMQ']]
 
         if plot:
-            self.BBplot.plot_level_1(l1_data = l1_data, ax = None)
+            self.BBplot.plot_level_1(l1_data=l1_data, ax=None)
 
         if output_table:
             return l1_data
-    
-    def level_2(self, plot = True, output_table = True, suptitle = False):
+
+    def level_2(self, plot=True, output_table=True, suptitle=False):
         """To do: Documentation
 
         .. csv-table:: Overview table of Fairness Criteria
@@ -141,21 +146,22 @@ class BiasBalancer:
             suptitle (bool): If True, the BiasBalancer.model_name is used as suptitle. Defaults to False. 
         """
         rates = (pd.concat(
-                [self.rates, self.WMR_rates]
-                )
-                .query("rate in ['FPR', 'FNR', 'FDR', 'FOR', 'WMR']")
-                .sort_values(['rate', 'grp'])
-                .reset_index(drop = True))
-        relative_rates = self.get_relative_rates(rates = rates)
+            [self.rates, self.WMR_rates]
+        )
+            .query("rate in ['FPR', 'FNR', 'FDR', 'FOR', 'WMR']")
+            .sort_values(['rate', 'grp'])
+            .reset_index(drop=True))
+        relative_rates = self.get_relative_rates(rates=rates)
         barometer = self.get_fairness_barometer()
-    
+
         if plot:
-            self.BBplot.plot_level_2(rates, relative_rates, barometer, suptitle = suptitle)
+            self.BBplot.plot_level_2(
+                rates, relative_rates, barometer, suptitle=suptitle)
 
         if output_table:
             return rates.query("rate != 'WMR'"), relative_rates, barometer
-        
-    def level_3(self, method, plot = True, output_table = True, **kwargs):
+
+    def level_3(self, method, plot=True, output_table=True, **kwargs):
         """To do: Documentation here
 
         +-------------------+------------------------------------+-----------------------------------------+
@@ -181,7 +187,7 @@ class BiasBalancer:
         |                   |                                    |                                         |
         |                   |                                    |across groups                            |
         +-------------------+------------------------------------+-----------------------------------------+        
-        
+
         Args:
             method ({'w_fp_influence', 'roc_curves', 'calibration', 'confusion_matrix', 'independence_check'}): The method to use for further analysis
             plot (bool): If True, a plot is made visualizing the results
@@ -191,27 +197,29 @@ class BiasBalancer:
         """
 
         method_options = [
-            'w_fp_influence', 
-            'roc_curves', 
-            'calibration', 
+            'w_fp_influence',
+            'roc_curves',
+            'calibration',
             'confusion_matrix',
             'independence_check']
 
         if not isinstance(method, str):
-            raise ValueError(f'`method` must be of type string. You supplied {type(method)}')
-        
+            raise ValueError(
+                f'`method` must be of type string. You supplied {type(method)}')
+
         if method not in method_options:
-            raise ValueError(f'`method` must be one of the following: {method_options}. You supplied `method` = {method}')
+            raise ValueError(
+                f'`method` must be one of the following: {method_options}. You supplied `method` = {method}')
 
         if method == 'w_fp_influence':
-            w_fp_influence = self.get_w_fp_influence(plot = plot, **kwargs)
+            w_fp_influence = self.get_w_fp_influence(plot=plot, **kwargs)
             if output_table:
                 return w_fp_influence
             else:
                 return None
 
         if method == 'roc_curves':
-            roc = self.get_roc_curves(plot = plot, **kwargs)
+            roc = self.get_roc_curves(plot=plot, **kwargs)
             if output_table:
                 return roc
             else:
@@ -219,89 +227,90 @@ class BiasBalancer:
 
         if method == 'calibration':
             n_bins = kwargs.get('n_bins', 5)
-            calibration = self.get_calibration(plot = plot, n_bins = n_bins)
+            calibration = self.get_calibration(plot=plot, n_bins=n_bins)
             if output_table:
                 return calibration
             else:
                 return None
 
         if method == 'confusion_matrix':
-            cm = self.get_confusion_matrix(plot = plot, **kwargs)
+            cm = self.get_confusion_matrix(plot=plot, **kwargs)
             if output_table:
                 return cm
             else:
                 return None
-        
+
         if method == 'independence_check':
-            independence_check = self.get_independence_check(plot = plot, **kwargs)
+            independence_check = self.get_independence_check(
+                plot=plot, **kwargs)
             if output_table:
                 return independence_check
             else:
                 return None
 
-
     ###############################################################
     #                  CALCULATION METHODS
     ###############################################################
 
-    def get_confusion_matrix(self, plot = False, **kwargs):
+    def get_confusion_matrix(self, plot=False, **kwargs):
         """Calculate the confusion matrix pr sensitive group
-        
+
         Args:
             plot (bool): If True, the confusion matrices are plotted
 
         Keyword Arguments:
             cm_print_n (bool): If True, the number of observations is shown in each cell. Defaults to False. 
 
-        
+
         """
         # Make dictionary of confusion matrices
         cm = {}
         for grp in self.sens_grps:
             df_group = self.classifier[self.classifier.a == grp]
             cm_sklearn = confusion_matrix(
-                y_true = df_group.y, 
-                y_pred = df_group.y_hat)
+                y_true=df_group.y,
+                y_pred=df_group.y_hat)
             cm[grp] = bbutils.cm_matrix_to_dict(cm_sklearn)
 
         # Convert into dataframe in long format
         cm_df = (pd.DataFrame(cm)
-            .reset_index()
-            .rename(columns = {'index': 'type_obs'})
-            .melt(id_vars = 'type_obs', var_name = 'a', value_name = 'number_obs'))
-        
+                 .reset_index()
+                 .rename(columns={'index': 'type_obs'})
+                 .melt(id_vars='type_obs', var_name='a', value_name='number_obs'))
+
         # Calculate marginal values
         agg_df = (self.classifier.groupby('a')
-            .agg(
-                P = ("y", bbutils.N_pos), 
-                N = ("y", bbutils.N_neg),
-                PP = ("y_hat", bbutils.N_pos),
-                PN = ("y_hat", bbutils.N_neg))    
+                  .agg(
+            P=("y", bbutils.N_pos),
+            N=("y", bbutils.N_neg),
+            PP=("y_hat", bbutils.N_pos),
+            PN=("y_hat", bbutils.N_neg))
             .reset_index()
-            .melt(id_vars = 'a', var_name = 'type_obs', value_name = 'number_obs')     
+            .melt(id_vars='a', var_name='type_obs', value_name='number_obs')
         )
 
         # Combine the two
         cm_df = pd.concat([cm_df, agg_df]).reset_index(drop=True)
 
         # Calculate fractions
-        df = pd.DataFrame(columns=['a', 'type_obs', 'number_obs', 'fraction_obs'])
+        df = pd.DataFrame(
+            columns=['a', 'type_obs', 'number_obs', 'fraction_obs'])
         for grp in self.sens_grps:
             n_grp = self.classifier.a.value_counts()[grp]
             tmp_df = (cm_df.query(f"a=='{grp}'")
-                .assign(fraction_obs = lambda x: x.number_obs/n_grp)
-            )
+                      .assign(fraction_obs=lambda x: x.number_obs/n_grp)
+                      )
             df = df.append(tmp_df)
 
         df.reset_index(inplace=True, drop=True)
 
         if plot:
             cm_print_n = kwargs.get('cm_print_n', False)
-            self.BBplot.plot_confusion_matrix(df, cm_print_n = cm_print_n)
+            self.BBplot.plot_confusion_matrix(df, cm_print_n=cm_print_n)
 
         return df
 
-    def get_rates(self, plot = False):
+    def get_rates(self, plot=False):
         """Calculate group wise rates
 
         Args: 
@@ -309,39 +318,39 @@ class BiasBalancer:
 
         Returns:
             Dataframe:  The calculated rates by group. The following rates are returned: FNR, FPR, FDR, FOR, PN/n, and PP/n. 
-        
+
         """
-        rates = []   
+        rates = []
         for grp in self.sens_grps:
             TP, FN, FP, TN = bbutils.extract_cm_values(self.cm, grp)
             rates_grp = (pd.DataFrame(
-                [['FNR', FN, (TP + FN)], 
-                ['FPR', FP, (TN + FP)],
-                ['FDR', FP, (TP + FP)],
-                ['FOR', FN, (TN + FN)],
-                ['PN/n', (TN+FN), (TP+FP+TN+FN)],
-                ['PP/n', (TP+FP), (TP+FP+TN+FN)]], 
-                columns = ['rate', 'numerator', 'denominator'])
+                [['FNR', FN, (TP + FN)],
+                 ['FPR', FP, (TN + FP)],
+                 ['FDR', FP, (TP + FP)],
+                 ['FOR', FN, (TN + FN)],
+                 ['PN/n', (TN+FN), (TP+FP+TN+FN)],
+                 ['PP/n', (TP+FP), (TP+FP+TN+FN)]],
+                columns=['rate', 'numerator', 'denominator'])
                 .assign(
-                    grp = grp,
-                    rate_val = lambda x: x.numerator/x.denominator,
-                    rate_val_lwr = lambda x: bbutils.wilson_confint(
+                    grp=grp,
+                    rate_val=lambda x: x.numerator/x.denominator,
+                    rate_val_lwr=lambda x: bbutils.wilson_confint(
                         x.numerator, x.denominator, 'lwr'),
-                    rate_val_upr = lambda x: bbutils.wilson_confint(
+                    rate_val_upr=lambda x: bbutils.wilson_confint(
                         x.numerator, x.denominator, 'upr'))
-                )
+            )
             rates.append(rates_grp)
 
         rates = (pd.concat(rates)
-            .reset_index(drop = True)
-            .drop(columns = ['numerator', 'denominator']))
+                 .reset_index(drop=True)
+                 .drop(columns=['numerator', 'denominator']))
 
         if plot:
             self.BBplot.plot_rates(rates)
-        
+
         return rates
 
-    def get_relative_rates(self, rates = None, rate_names = None, plot = False):
+    def get_relative_rates(self, rates=None, rate_names=None, plot=False):
         """Calculate relative difference in rates between group rate 
         and minimum rate.
 
@@ -353,9 +362,9 @@ class BiasBalancer:
             group['min_rate'] = group['rate_val'].agg('min')
             return group
 
-        if rates is not None and rate_names is not None: 
+        if rates is not None and rate_names is not None:
             raise ValueError('Supply either `rates` or `rate_names`')
-        
+
         if rate_names == [np.nan]:
             return None
         elif rate_names is not None:
@@ -363,25 +372,25 @@ class BiasBalancer:
         elif rates is None and rate_names is None:
             rate_names = ['FPR', 'FNR', 'FDR', 'FOR']
             rates = self.rates[self.rates.rate.isin(rate_names)]
-    
+
         # Calculate relative rates
         rel_rates = (rates
-            .groupby(by = 'rate')
-            .apply(get_minimum_rate)
-            .assign(
-                relative_rate = lambda x: 
-                    (x.rate_val-x.min_rate)/x.min_rate*100)
-            .loc[:, ['rate', 'grp', 'rate_val', 'relative_rate']]
-            .reset_index(drop = True))
+                     .groupby(by='rate')
+                     .apply(get_minimum_rate)
+                     .assign(
+                         relative_rate=lambda x:
+                         (x.rate_val-x.min_rate)/x.min_rate*100)
+                     .loc[:, ['rate', 'grp', 'rate_val', 'relative_rate']]
+                     .reset_index(drop=True))
 
         if plot:
             self.BBplot.plot_relative_rates(rel_rates)
 
         return rel_rates
-    
-    def get_WMR_rates(self, w_fp = None):
+
+    def get_WMR_rates(self, w_fp=None):
         """Calculate weighted misclassification rate (WMR) by group
-        
+
         Args:
             w_fp (int or float): False positive error weight. 
         """
@@ -391,12 +400,13 @@ class BiasBalancer:
         WMR = pd.DataFrame({
             'grp': self.sens_grps,
             'rate': 'WMR'})
-        WMR['rate_val'] = [calculate_WMR(self.cm, grp, w_fp) for grp in WMR.grp]
+        WMR['rate_val'] = [calculate_WMR(self.cm, grp, w_fp)
+                           for grp in WMR.grp]
         return WMR
 
-    def get_fairness_barometer(self, plot = False):
+    def get_fairness_barometer(self, plot=False):
         """ Calculate the fairness barometer
-        
+
         To do: More documentation? 
 
         Args: 
@@ -412,7 +422,6 @@ class BiasBalancer:
             # Independence not measured if w=0.5
             independence_measure = np.nan
 
-
         fairness_crit = pd.DataFrame([
             ['Independence', independence_measure],
             ['Separation', 'FPR'],
@@ -423,30 +432,30 @@ class BiasBalancer:
             ['Sufficiency', 'FOR'],
             ['Predictive parity', 'FDR'],
             ['WMR balance', 'WMR']],
-            columns = ['criterion', 'rate']).dropna()
-        
+            columns=['criterion', 'rate']).dropna()
+
         rel_independence = self.get_relative_rates(
-            rate_names = [independence_measure])
+            rate_names=[independence_measure])
         all_data = (pd.concat([self.WMR_rel_rates, self.rel_rates, rel_independence])
-            .merge(fairness_crit))
+                    .merge(fairness_crit))
         idx_discrim = (all_data
-            .groupby(by = ['rate', 'criterion'], as_index = False)
-            .relative_rate
-            .idxmax()) # Idx for discriminated groups
+                       .groupby(by=['rate', 'criterion'], as_index=False)
+                       .relative_rate
+                       .idxmax())  # Idx for discriminated groups
         fairness_barometer = (all_data.loc[idx_discrim.relative_rate]
-            .groupby(by = 'criterion', as_index = False)
-            .agg({
-                'relative_rate': 'mean',
-                'grp': lambda x: list(pd.unique(x))})
-            .rename(columns = {'grp': 'discriminated_grp'})
-            .sort_values('relative_rate', ascending = False))
+                              .groupby(by='criterion', as_index=False)
+                              .agg({
+                                  'relative_rate': 'mean',
+                                  'grp': lambda x: list(pd.unique(x))})
+                              .rename(columns={'grp': 'discriminated_grp'})
+                              .sort_values('relative_rate', ascending=False))
 
         if plot:
             self.BBplot.plot_fairness_barometer(fairness_barometer)
 
         return fairness_barometer
 
-    def get_roc_curves(self, plot = False, **kwargs):
+    def get_roc_curves(self, plot=False, **kwargs):
         """ Calculates ROC curves by sensitive group
 
         Args:
@@ -455,74 +464,74 @@ class BiasBalancer:
         Keyword Arguments:
             threshold (int, float or dict): The threshold value(s) used for classification (will be marked by dots on the ROC-curves). Can be a single number in [0,1] or a dict with a threshold for each sensitive group. Defaults to 0.5. 
         """
-        
+
         roc_list = []
         for grp in self.sens_grps:
             data_grp = self.classifier[self.classifier.a == grp]
             fpr, tpr, thresholds = roc_curve(
-                y_true = data_grp.y, 
-                y_score = data_grp.r)
+                y_true=data_grp.y,
+                y_score=data_grp.r)
             roc_grp = (
                 pd.DataFrame({
-                    'fpr': fpr, 
-                    'tpr': tpr, 
+                    'fpr': fpr,
+                    'tpr': tpr,
                     'threshold': thresholds,
                     'sens_grp': grp}))
             roc_list.append(roc_grp)
-        roc = pd.concat(roc_list).reset_index(drop = True) 
+        roc = pd.concat(roc_list).reset_index(drop=True)
 
         if plot:
             threshold = kwargs.get('threshold', 0.5)
-            self.BBplot.plot_roc_curves(roc, threshold = threshold) 
-        return roc  
+            self.BBplot.plot_roc_curves(roc, threshold=threshold)
+        return roc
 
-    def get_independence_check(self, plot = False, **kwargs):
+    def get_independence_check(self, plot=False, **kwargs):
         """Get predicted positive rates and Confidence Intervals per 
         sensitive group
-        
+
         Args:
             plot (bool): If True, the results are visualized
 
         Keyword Args:
             orientation ({'h', 'v'}): Orientation of plot. Defaults to horizontal ('h'). 
-        
+
         """
-        
-        # If w_fp >= 0.5, the 'positive' label is unfavourable and therefore plotted. 
+
+        # If w_fp >= 0.5, the 'positive' label is unfavourable and therefore plotted.
         if self.w_fp >= 0.5:
             df = (self.classifier
-                .groupby("a", as_index = False)
-                .agg(
-                    N = ("y_hat", "count"),
-                    N_predicted_label = ("y_hat", bbutils.N_pos),
-                    frac_predicted_label = ("y_hat", bbutils.frac_pos))
-                .assign(
-                    conf_lwr = lambda x: bbutils.wilson_confint(
-                        x.N_predicted_label, x.N, 'lwr'),
-                    conf_upr = lambda x: bbutils.wilson_confint(
-                        x.N_predicted_label, x.N, 'upr'),
-                    label = 'positive'))
+                  .groupby("a", as_index=False)
+                  .agg(
+                      N=("y_hat", "count"),
+                      N_predicted_label=("y_hat", bbutils.N_pos),
+                      frac_predicted_label=("y_hat", bbutils.frac_pos))
+                  .assign(
+                      conf_lwr=lambda x: bbutils.wilson_confint(
+                          x.N_predicted_label, x.N, 'lwr'),
+                      conf_upr=lambda x: bbutils.wilson_confint(
+                          x.N_predicted_label, x.N, 'upr'),
+                      label='positive'))
         else:
             df = (self.classifier
-                .groupby("a", as_index = False)
-                .agg(
-                    N = ("y_hat", "count"),
-                    N_predicted_label = ("y_hat", bbutils.N_neg),
-                    frac_predicted_label = ("y_hat", bbutils.frac_neg))
-                .assign(
-                    conf_lwr = lambda x: bbutils.wilson_confint(
-                        x.N_predicted_label, x.N, 'lwr'),
-                    conf_upr = lambda x: bbutils.wilson_confint(
-                        x.N_predicted_label, x.N, 'upr'),
-                    label = 'negative'))
+                  .groupby("a", as_index=False)
+                  .agg(
+                      N=("y_hat", "count"),
+                      N_predicted_label=("y_hat", bbutils.N_neg),
+                      frac_predicted_label=("y_hat", bbutils.frac_neg))
+                  .assign(
+                      conf_lwr=lambda x: bbutils.wilson_confint(
+                          x.N_predicted_label, x.N, 'lwr'),
+                      conf_upr=lambda x: bbutils.wilson_confint(
+                          x.N_predicted_label, x.N, 'upr'),
+                      label='negative'))
 
         if plot:
             orientation = kwargs.get('orientation', 'h')
-            self.BBplot.plot_independence_check(df, orientation = orientation)
+            self.BBplot.plot_independence_check(df, orientation=orientation)
 
         return df
 
-    def get_calibration(self, n_bins = 5, plot = False):
+    def get_calibration(self, n_bins=5, plot=False):
         """ Calculate calibration by group
 
         Args:
@@ -531,33 +540,34 @@ class BiasBalancer:
 
         """
         # To do: Check if it fails gracefully if a bin contains zero observations
-        bins = np.linspace(0, 1, num = n_bins+1)
+        bins = np.linspace(0, 1, num=n_bins+1)
         calibration_df = (
             self.classifier
             .assign(
-                bin = lambda x: pd.cut(x.r, bins = bins),
-                bin_center = lambda x: [x.bin[i].mid for i in range(x.shape[0])])
+                bin=lambda x: pd.cut(x.r, bins=bins),
+                bin_center=lambda x: [x.bin[i].mid for i in range(x.shape[0])])
             .groupby(['a', 'bin_center'])
             .agg(
-                y_bin_mean = ('y', lambda x: np.mean(x)),
-                y_bin_se = ('y', lambda x: np.std(x)/np.sqrt(len(x))),
-                bin_size = ('y', lambda x: len(x)))
+                y_bin_mean=('y', lambda x: np.mean(x)),
+                y_bin_se=('y', lambda x: np.std(x)/np.sqrt(len(x))),
+                bin_size=('y', lambda x: len(x)))
             .assign(
-                y_bin_lwr = lambda x: x['y_bin_mean']-x['y_bin_se'],
-                y_bin_upr = lambda x: x['y_bin_mean']+x['y_bin_se'])
+                y_bin_lwr=lambda x: x['y_bin_mean']-x['y_bin_se'],
+                y_bin_upr=lambda x: x['y_bin_mean']+x['y_bin_se'])
             .reset_index()
-            )
+        )
 
         if calibration_df.bin_size.min() < 2:
-            warnings.warn('One or more bins contain only one observations, and no confidence interval is shown for these bins.')
+            warnings.warn(
+                'One or more bins contain only one observations, and no confidence interval is shown for these bins.')
 
         if plot:
             self.BBplot.plot_calibration(calibration_df)
         return calibration_df
 
-    def get_w_fp_influence(self, plot = False, **kwargs):
+    def get_w_fp_influence(self, plot=False, **kwargs):
         """Investigate how w_fp influences WMQ or WMR
-        
+
         Args:
             plot (bool): If True, results are visualized
 
@@ -566,61 +576,65 @@ class BiasBalancer:
 
         """
         n_values = 100
-        w_fp_values = np.linspace(0, 1, num = n_values)
+        w_fp_values = np.linspace(0, 1, num=n_values)
         relative_wmrs = []
         for w_fp in w_fp_values:
-            wmr = self.get_WMR_rates(w_fp = w_fp)
-            rel_wmr = self.get_relative_rates(wmr).assign(w_fp = w_fp)
+            wmr = self.get_WMR_rates(w_fp=w_fp)
+            rel_wmr = self.get_relative_rates(wmr).assign(w_fp=w_fp)
             relative_wmrs.append(rel_wmr)
 
         relative_wmrs = (pd.concat(relative_wmrs)
-            .reset_index()
-            .rename(columns = {
-                'rate_val': 'WMR',
-                'relative_rate': 'WMQ'}))
-        
+                         .reset_index()
+                         .rename(columns={
+                             'rate_val': 'WMR',
+                             'relative_rate': 'WMQ'}))
+
         if plot:
             plot_WMQ = kwargs.get('plot_WMQ', True)
-            self.BBplot.plot_w_fp_influence(relative_wmrs, plot_WMQ = plot_WMQ)
-        
-        return relative_wmrs
-        
+            self.BBplot.plot_w_fp_influence(relative_wmrs, plot_WMQ=plot_WMQ)
 
-#%% Main
+        return relative_wmrs
+
+
+# %% Main
 if __name__ == "__main__":
     file_path = 'data/processed/anonymous_data.csv'
     df = pd.read_csv(file_path)
     df.head()
 
     fair_anym = BiasBalancer(
-        data = df,
-        y_name = 'y',
-        y_hat_name = 'yhat', 
-        a_name = 'grp', 
-        r_name = 'phat',
-        w_fp = 0.8,
+        data=df,
+        y_name='y',
+        y_hat_name='yhat',
+        a_name='grp',
+        r_name='phat',
+        w_fp=0.8,
         model_name="Example Data")
 
     # l1 check
     l1 = fair_anym.level_1()
 
     # l2 check
-    fair_anym.get_rates(plot = True)
-    fair_anym.get_relative_rates(plot = True)
-    fair_anym.get_fairness_barometer(plot = True)
-    res = fair_anym.level_2(**{"suptitle":True})
+    fair_anym.get_rates(plot=True)
+    fair_anym.get_relative_rates(plot=True)
+    fair_anym.get_fairness_barometer(plot=True)
+    res = fair_anym.level_2(**{"suptitle": True})
 
     # l3 check
     w_fp_influence = fair_anym.get_w_fp_influence()
-    w_fp_influence = fair_anym.get_w_fp_influence(plot = True, **{'relative': False})
-    w_fp_influence = fair_anym.level_3(method = 'w_fp_influence')
+    w_fp_influence = fair_anym.get_w_fp_influence(
+        plot=True, **{'relative': False})
+    w_fp_influence = fair_anym.level_3(method='w_fp_influence')
     threshold_list = [{'A': 0.5, 'B': 0.6, 'C': 0.7}, 0.5]
     for threshold in threshold_list:
-        roc = fair_anym.level_3(method = 'roc_curves', **{'threshold': threshold})
-        roc = fair_anym.get_roc_curves(threshold = threshold, plot = True)
-    calibration = fair_anym.level_3(method = 'calibration', **{'n_bins': 3})
-    independence = fair_anym.level_3('independence_check', **{'orientation':'h'}) 
-    conf_mat = fair_anym.level_3(method = 'confusion_matrix')
-    conf_mat = fair_anym.level_3(method = 'confusion_matrix', **{'cm_print_n': True})
+        roc = fair_anym.level_3(method='roc_curves', **
+                                {'threshold': threshold})
+        roc = fair_anym.get_roc_curves(threshold=threshold, plot=True)
+    calibration = fair_anym.level_3(method='calibration', **{'n_bins': 3})
+    independence = fair_anym.level_3(
+        'independence_check', **{'orientation': 'h'})
+    conf_mat = fair_anym.level_3(method='confusion_matrix')
+    conf_mat = fair_anym.level_3(
+        method='confusion_matrix', **{'cm_print_n': True})
 
 # %%

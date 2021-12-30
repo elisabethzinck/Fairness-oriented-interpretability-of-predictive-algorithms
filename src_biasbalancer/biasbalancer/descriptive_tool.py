@@ -149,7 +149,7 @@ class DescribeData:
                         alpha = 0.95)
                 ax.set_ylim((0,100))
                 ax.set_xticklabels([grp.capitalize() for grp in self.sens_grps])
-                ax.yaxis.set_major_formatter(mtick.FuncFormatter(abs_percentage_tick))
+                ax.yaxis.set_major_formatter(mtick.PercentFormatter())
             else:
                 sns.barplot(x="positive_perc",
                         y = "a",
@@ -160,7 +160,7 @@ class DescribeData:
                         alpha = 0.95) # To do: hvad gør den?
                 ax.set_xlim((0,100))
                 ax.set_yticklabels([grp.capitalize() for grp in self.sens_grps])
-                ax.xaxis.set_major_formatter(mtick.FuncFormatter(abs_percentage_tick))
+                ax.xaxis.set_major_formatter(mtick.PercentFormatter())
             error_bar(ax, plot_df, bar_mid, orientation=orientation)
             ax.set_ylabel('', fontsize = 12)
             ax.set_xlabel('', fontsize = 12)
@@ -200,7 +200,7 @@ class DescribeData:
         else:
             cols_to_drop = ['y', 'a']
         X = self.data.drop(columns=cols_to_drop)
-        X = utils.one_hot_encode_mixed_data(X)
+        X = one_hot_encode_mixed_data(X)
         scaler = StandardScaler()
         X_scaled = scaler.fit_transform(X)
 
