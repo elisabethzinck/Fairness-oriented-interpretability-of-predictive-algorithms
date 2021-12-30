@@ -19,6 +19,13 @@ import biasbalancer.utils as bbutils
 #%%
 
 class BiasBalancerPlots():
+    """Plotting class used for plotting results from BiasBalancer
+    
+    Args: 
+        BiasBalancer (biasbalancer.balancer.BiasBalancer): Object of type BiasBalancer. 
+    
+    Keyword arguments: 
+        specific_col_idx ("""
     def __init__(self, BiasBalancer, **kwargs):
 
         self.BiasBalancer = BiasBalancer
@@ -49,35 +56,38 @@ class BiasBalancerPlots():
     #                  Level 1
     #################################################
     
-    def format_text_level_1(self, ax, x, y, text_list, color_list, font_sizes, font_weights):
-        """Plots a list of words with specific colors, sizes and font 
-        weights on a provided axis 
-        Function inspired by: https://matplotlib.org/2.0.2/examples/text_labels_and_annotations/rainbow_text.html
-        Args:
-            ax(matplotlib axis): axis to plot text on 
-            x(float): x-coordinate of text start
-            y(float): y-coordinate of text start
-            text_list(list of strings): List with words to plot 
-            color_list(list): List of colors for each word in text_list
-            font_sizes(list): List of font sizes for each word in text_list
-            font_sizes(list): List of font weigths for each word in text_list
-        """
-        t = ax.transData
-        canvas = ax.figure.canvas
-        
-        for s, c, f, w in zip(text_list, color_list, font_sizes, font_weights):
-            text = ax.text(x, y, s + " ", color=c, 
-                        fontsize = f, weight = w, transform=t)
-            text.draw(canvas.get_renderer())
-            ex = text.get_window_extent()
-            t = transforms.offset_copy(text._transform, x=ex.width, units='dots')
 
     def plot_level_1(self, l1_data, ax = None):
         """ Visualize the maximum gap in WMR by text
         
         Args:
-            l1_data (data frame): data frame with data returned in level_1
+            l1_data (data frame): data frame with data returned from BiasBalancer.level_1()
+            ax (matplotlib axis): Axes to plot on. Optional. 
         """
+
+        def format_text_level_1(ax, x, y, text_list, color_list, font_sizes, font_weights):
+            """Plots a list of words with specific colors, sizes and font 
+            weights on a provided axis 
+            Function inspired by: https://matplotlib.org/2.0.2/examples/text_labels_and_annotations/rainbow_text.html
+            
+            Args:
+                ax (matplotlib axis): axis to plot text on 
+                x (float): x-coordinate of text start
+                y (float): y-coordinate of text start
+                text_list (list of strings): List with words to plot 
+                color_list (list): List of colors for each word in text_list
+                font_sizes (list): List of font sizes for each word in text_list
+                font_sizes (list): List of font weigths for each word in text_list
+            """
+            t = ax.transData
+            canvas = ax.figure.canvas
+            
+            for s, c, f, w in zip(text_list, color_list, font_sizes, font_weights):
+                text = ax.text(x, y, s + " ", color=c, 
+                            fontsize = f, weight = w, transform=t)
+                text.draw(canvas.get_renderer())
+                ex = text.get_window_extent()
+                t = transforms.offset_copy(text._transform, x=ex.width, units='dots')
         if ax is None:
             fig = plt.figure(figsize=(6,1.3))
             ax = fig.add_subplot(1, 1, 1)
@@ -115,16 +125,25 @@ class BiasBalancerPlots():
         ax.set_ylim(0.72,0.85)
         ax.set_axis_off()
         sns.despine(top = True, bottom = True, left = True, right= True)
-        self.format_text_level_1(ax, 0.02, 0.8, line_1, color_list_1,
+        format_text_level_1(ax, 0.02, 0.8, line_1, color_list_1,
                             font_sizes_1, font_weights_1)
-        self.format_text_level_1(ax, 0.02, 0.74, line_2, color_list_2,
+        format_text_level_1(ax, 0.02, 0.74, line_2, color_list_2,
                             font_sizes_2, font_weights_2)
 
     #################################################
     #                  Level 2
     #################################################
 
-    def plot_level_2(self, rates, relative_rates, barometer, **kwargs):
+    def plot_level_2(self, rates, relative_rates, barometer, suptitle = False):
+        """Create level 2 plot
+        
+        Args: 
+            rates (DataFrame): DataFrame as returned by BiasBalancer.get_rates()
+            relative_rates (DataFrame): DataFrame as returned by BiasBalancer.get_relative_rates()
+            barometer (DataFrame): DataFrame as returned by BiasBalancer.get_fairness_barometer()
+            suptitle (bool): If True, the BiasBalancer.model_name is used as suptitle. Defaults to False. 
+            
+        """
         gs = GridSpec(nrows = 10, ncols = 3)
         f = plt.figure(figsize=(22,6))
         ax0 = f.add_subplot(gs[:, 0])
@@ -137,7 +156,6 @@ class BiasBalancerPlots():
 
         f.subplots_adjust(wspace = 0.5, hspace = 0.7)
 
-        suptitle = kwargs.get('suptitle', False)
         if suptitle:
             f.suptitle(f"{self.model_name}",
                         x=0.35, y = 0.98, 
@@ -146,8 +164,13 @@ class BiasBalancerPlots():
 
     
     def plot_rates(self, rates, ax = None):
-        """Plot FPR, FNR, FDR, FOR for each group"""
-        # To do: Make this general? Be aware of problems with CIs on WMR
+        """Plot FPR, FNR, FDR, FOR for each group
+        
+        Args: 
+            rates (DataFrame): As returned by BiasBalancer.get_rates()
+            ax (matplotlib axis): Axis to be plotted on. Optional. 
+        """
+
         rate_names = ['FPR', 'FNR', 'FDR', 'FOR']
         rates = rates[rates.rate.isin(rate_names)]
 
@@ -193,11 +216,11 @@ class BiasBalancerPlots():
         
         Args:
             relative_rates (pd.DataFrame): DataFrame as returned by BiasBalancer.get_relative_rates()
-            ax (To do:) 
+            ax (matplotlib axis): Axis to plot on. Optional.  
             l2_plot (bool): If True, format plot specifically for second level visualization
         
         """
-        # To do: Check input rates
+        # Manually sets the vertical spacing in the plot
         if l2_plot:
             rate_positions = {'WMR': 1, 'FPR': 0.8, 'FNR': 0.6, 'FDR': 0.4, 'FOR': 0.2}
             alpha_weights = get_alpha_weights(self.w_fp)
@@ -240,17 +263,25 @@ class BiasBalancerPlots():
         _, xmax = ax.get_xlim()
         ax.set_xlim(left = -0.05*xmax) # To see all of leftmost dots
         ax.set_ylim(ylims)
-        ax.xaxis.set_major_formatter(mtick.FuncFormatter(abs_percentage_tick))
+        ax.xaxis.set_major_formatter(mtick.PercentFormatter())
         sns.despine(ax = ax, left = True, top = True, right = True)
         ax.tick_params(left=False, labelsize=12)
     
     def plot_fairness_barometer(self, fairness_barometer, ax = None):
+        """Plot fairness barometer
+        
+        Args: 
+            fairness_barometer (DataFrame): As returned by BiasBalancer.get_fairness_barometer()
+            ax (matplotlib axis): Axis to plot on. Optional. 
+            """
         # To do: Make this more readable
         plot_df = fairness_barometer
         plot_df['grey_bar'] = [rr if rr <= 20 else 20 for rr in plot_df['relative_rate']]
+        
         if ax is None:
             fig = plt.figure(figsize=(6,3))
             ax = fig.add_subplot(1, 1, 1)
+
         sns.barplot(
             x = 'relative_rate', y = 'criterion', 
             data = plot_df,
@@ -260,19 +291,22 @@ class BiasBalancerPlots():
             x = 'grey_bar', y = 'criterion', 
             data = plot_df,
             ax = ax, zorder = 2, color = "#EBEBEB", edgecolor="#EBEBEB")
-        ax.set_xlabel('')
-        ax.set_ylabel('')
-        _, xmax = ax.get_xlim()
-        max_rr = plot_df.relative_rate.max()
-        ax.set_xlim(left=-0.05*xmax, right=max_rr + 0.25*max_rr)
-        ax.set_title('Unfairness barometer', fontsize=14, loc = 'left')
-        sns.despine(ax = ax, left = True, top = True, right = True)
-        ax.tick_params(left=False, labelsize=12)
-        ax.xaxis.set_major_formatter(mtick.FuncFormatter(abs_percentage_tick))
         add_colors_with_stripes(
             ax = ax, 
             color_dict = self.sens_grps_cols, 
             color_variable = plot_df.discriminated_grp)
+        
+        # Adjustments and labels
+        _, xmax = ax.get_xlim()
+        max_rr = plot_df.relative_rate.max()
+        ax.set_xlim(left=-0.05*xmax, right=max_rr + 0.25*max_rr)
+        ax.set_xlabel('')
+        ax.set_ylabel('')
+        ax.set_title('Unfairness barometer', fontsize=14, loc = 'left')
+        sns.despine(ax = ax, left = True, top = True, right = True)
+        ax.tick_params(left=False, labelsize=12)
+        ax.xaxis.set_major_formatter(mtick.PercentFormatter())
+        
         # Legend
         patches = get_BW_fairness_barometer_legend_patches( 
             plot_df = plot_df)
@@ -287,7 +321,13 @@ class BiasBalancerPlots():
     #                  Level 3
     #################################################
     
-    def plot_confusion_matrix(self, cm, **kwargs):
+    def plot_confusion_matrix(self, cm, cm_print_n = False):
+        """ Plots confusion matrix by sensitive group
+        
+        Args:
+            cm (dataframe): Confusion matrix as returned by balancer.get_confusion_matrix()
+            cm_print_n (bool): If True, the number of observations is shown in each cell. Defaults to False. 
+        """
         n_grps = len(self.sens_grps)
 
         # To Do: Fix grid, when we have e.g. 4 groups 
@@ -336,7 +376,7 @@ class BiasBalancerPlots():
                 old_text = a.get_text()
                 new_text = f"{name}: {old_text}%"
                 a.set_text(new_text)
-                if kwargs.get("cm_print_n", False):
+                if cm_print_n:
                     ax.text(x=coord[0],
                             y=coord[1],
                             s=f"(n={val})",
@@ -356,11 +396,16 @@ class BiasBalancerPlots():
                     fontsize = self._title_size, horizontalalignment='center',
                     y = 1.05)
 
-    def plot_w_fp_influence(self, plot_df, **kwargs):
-        relative = kwargs.get('relative', True)
+    def plot_w_fp_influence(self, plot_df, plot_WMQ = True):
+        """ Plots the influence of w_fp on WMQ or WMR
+        
+        Args: 
+            plot_df (dataframe): As returned by balancer.get_w_fp_influence()
+            plot_WMQ (bool): If True, WMQ is plotted, and otherwise WMR is plotted. Defaults to True. 
+        """
         fig = plt.figure()
         ax = fig.add_subplot(1, 1, 1)
-        if relative:
+        if plot_WMQ:
             y = 'WMQ'
         else:
             y = 'WMR'
@@ -369,7 +414,7 @@ class BiasBalancerPlots():
             data = plot_df, 
             ax = ax, 
             palette = self.sens_grps_cols)
-        if relative:
+        if plot_WMQ:
             ax.axhline(y = 20, color = 'grey', linewidth = 0.5)
         sns.despine(ax = ax, top = True, right = True)
         ax.set_xlabel('$w_{fp}$', fontsize=self._label_size)
@@ -378,14 +423,19 @@ class BiasBalancerPlots():
         ax.set_title("False Positive Weight Influence", size=self._title_size)
         ax.legend(frameon = False, prop={'size':self._legend_size})
         ax.tick_params(labelsize=self._tick_size)
-        if relative:
-            ax.yaxis.set_major_formatter(mtick.FuncFormatter(abs_percentage_tick))
+        if plot_WMQ:
+            ax.yaxis.set_major_formatter(mtick.PercentFormatter())
    
-    def plot_roc_curves(self, roc_df, ax = None, threshold = None):
+    def plot_roc_curves(self, roc_df, ax = None, threshold = 0.5):
+        """ Visualizes ROC curves by sensitive group
 
+        Args:
+            roc_df (dataframe): Dataframe as returned by balancer.get_roc_curves()
+            ax (matplotlib.axes._subplots.AxesSubplot): Ax to plot on. If None, a new axis is created. 
+            threshold (int, float or dict): The threshold value(s) used for   classification (will be marked by dots on the ROC-curves). Can be a single number in [0,1] or a dict with a threshold for each sensitive group. Defaults to 0.5. 
+        """
 
         # Make thresholds into dict
-        if threshold is None: threshold = 0.5
         if isinstance(threshold, int) or isinstance(threshold, float):
             t_dict = {grp:threshold for grp in self.sens_grps}
         elif isinstance(threshold, dict):
@@ -400,6 +450,7 @@ class BiasBalancerPlots():
             threshold_points.append(point)
         threshold_points = pd.concat(threshold_points)
 
+        # Add CIs to points
         denominators_fpr = []
         denominators_tpr = []
         for grp in self.sens_grps:
@@ -418,12 +469,14 @@ class BiasBalancerPlots():
         if ax is None: 
             fig = plt.figure()
             ax = fig.add_subplot(1, 1, 1)
+        # ROC curves
         sns.lineplot(
             x = 'fpr', y = 'tpr', hue = 'sens_grp', 
             data = roc_df, ax = ax,
             estimator = None, alpha = 0.45,
             palette = self.sens_grps_cols,
             zorder = 1)
+        # Threshold points
         sns.scatterplot(
             x = 'fpr', y = 'tpr', 
             data = threshold_points, ax = ax,
@@ -431,6 +484,7 @@ class BiasBalancerPlots():
             palette = self.sens_grps_cols, 
             linewidth=0,
             zorder = 3, legend = False),
+        # CIs
         ax.vlines(
             x = threshold_points.fpr,
             ymin = threshold_points.tpr_lwr, 
@@ -443,7 +497,9 @@ class BiasBalancerPlots():
             xmax = threshold_points.fpr_upr, 
             colors = self.sens_grps_cols.values(), linewidth = 0.5,
             zorder = 2)
+
         ax.plot([0,1], [0,1], color = 'grey', linewidth = 0.5)
+
         ax.set_xlabel('False positive rate', size=self._label_size)
         ax.set_ylabel('True positive rate', size=self._label_size)
         ax.set_title('ROC Curves (Analysis of Separation)', size=self._title_size)
@@ -469,6 +525,12 @@ class BiasBalancerPlots():
     def plot_independence_check(self, df, ax=None, orientation = 'h'):
         """ Bar plot of the percentage of predicted positives per
         sensitive group including a Wilson 95% CI 
+
+        Args:
+            df (pd.Dataframe): As returned by BiasBalancer.get_independence_check(). 
+            ax (matplotlib.axes._subplots.AxesSubplot): Ax to plot on. If None, a new axis is created. 
+            orientation ({'h', 'v'}): Orientation of plot. Defaults to horizontal ('h'). 
+
         """
         assert orientation in ["v", "h"], "Choose orientation 'v' or 'h'"
 
@@ -489,6 +551,7 @@ class BiasBalancerPlots():
             plot_df = plot_data.query(f'a == "{grp}"')
             assert plot_df.shape[0] == 1
             bar_mid = plot_df.index[0]
+
             if orientation == 'v':
                 sns.barplot(y="perc",
                         x = "a",
@@ -499,7 +562,7 @@ class BiasBalancerPlots():
                         alpha = 0.95)
                 ax.set_ylim((0,100))
                 ax.set_xticklabels([grp.title() for grp in self.sens_grps])
-                ax.yaxis.set_major_formatter(mtick.FuncFormatter(abs_percentage_tick))
+                ax.yaxis.set_major_formatter(mtick.PercentFormatter())
                 ax.set_ylabel(perc_label, fontsize=self._label_size)
                 ax.set_xlabel(None)
             else:
@@ -512,7 +575,7 @@ class BiasBalancerPlots():
                         alpha = 0.95)
                 ax.set_xlim((0,100))
                 ax.set_yticklabels([grp.title() for grp in self.sens_grps])
-                ax.xaxis.set_major_formatter(mtick.FuncFormatter(abs_percentage_tick))
+                ax.xaxis.set_major_formatter(mtick.PercentFormatter())
                 ax.set_xlabel(perc_label, fontsize=self._label_size)
                 ax.set_ylabel(None)
             error_bar(ax, plot_df, bar_mid, orientation=orientation)
@@ -529,7 +592,7 @@ class BiasBalancerPlots():
             calibration_df (pd.DataFrame): As returned by BiasBalancer.get_calibration()
             ax (matplotlib.axes): Axes object to plot on. Optional. 
         """
-        # To do: Documentation
+
         n_bins = calibration_df.bin_center.nunique()
         muted_colors = {k:desaturate(col) for (k,col) in self.sens_grps_cols.items()}
         calibration_df = (
@@ -537,6 +600,8 @@ class BiasBalancerPlots():
             .assign(color = lambda x: x.a.map(muted_colors))
             .sort_values(['bin_center', 'a'])
             .reset_index())
+
+        # Add jitter to make confidence interval visible
         jitter = list(np.linspace(-0.004, 0.004, self.n_sens_grps))*n_bins
         calibration_df['bin_center_jitter'] = calibration_df['bin_center'] + jitter
 
@@ -583,11 +648,9 @@ def get_alpha_weights(w_fp):
     return alpha_weights
 
 def custom_palette(n_colors = 1, specific_col_idx = None):
-    # To do: This is the old color palette.
-    # Perhaps change idx for 8 colors to match cheXpert
     """Returns a custom palette of n_colors (max 10 colors)
     
-        The color palette have been created using this link: 
+        The color palette has been created using this link: 
         https://coolors.co/f94d50-f3722c-f8961e-f9844a-f9c74f-a1c680-3a9278-7ab8b6-577590-206683
         and added two colors "english lavender BD7585" and "Salmon Pink F193A1"
 
@@ -596,8 +659,10 @@ def custom_palette(n_colors = 1, specific_col_idx = None):
             specific_col_idx: list of desired color indexes. Defaults to None.
             
         Returns: 
-            A custom seaborn palette of n_colors length 
+            A custom seaborn palette of n_colors or len(specific_col_idx) length 
     """
+    # To do: This is the old color palette.
+    # Perhaps change idx for 8 colors to match cheXpert
     colors =  ["f94d50","f3722c","f8961e","f9844a","f9c74f","a1c680",
     "3a9278","7ab8b6","577590","206683", "F193A1", "B66879"]
 
@@ -646,7 +711,6 @@ def add_colors_with_stripes(ax, color_dict, color_variable):
             Each item in series is a list. 
     """
     muted_colors = {k:desaturate(col) for (k,col) in color_dict.items()}
-    bar_colors = [[muted_colors[grp] for grp in grp_list] for grp_list in color_variable]
 
     # Set colors of bars.
     plt.rcParams['hatch.linewidth'] = 8 # Controls thickness of stripes
@@ -706,7 +770,7 @@ def desaturate(color, prop = 0.75):
         """Desaturate color like in default seaborn plot
         
         Args: 
-            prop (float): To do: is prop proportion?? 
+            prop (float): Amount to desaturate
         """
         h,l,s = colorsys.rgb_to_hls(*color)
         s *= prop
@@ -723,8 +787,7 @@ def get_BW_fairness_barometer_legend_patches(plot_df):
         patches (list): List of matplotlib patches to put in legend handles 
     """ 
     plot_df = plot_df.query("relative_rate > 20")
-    discrims = np.unique(plot_df.discriminated_grp)
-    n_cols = np.unique([len(discrims[i]) for i in range(len(discrims))])
+    n_cols = plot_df.discriminated_grp.apply(len).unique()
     patches = []
     if 1 in n_cols:
         col = '#6C757D' 
@@ -751,7 +814,5 @@ def get_BW_fairness_barometer_legend_patches(plot_df):
 
     return patches
 
-def abs_percentage_tick(x, pos):
-    """Return absolute percentage value w/ % as string"""
-    return str(round(abs(x))) + '%'
     
+# %%

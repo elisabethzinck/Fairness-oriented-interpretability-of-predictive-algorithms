@@ -50,20 +50,15 @@ def cm_dict_to_matrix(cm_dict):
     return cm_matrix
 
 def cm_matrix_to_dict(cm_matrix):
-    """
-    
-    Convert a 2x2 confusion matrix to named dict
+    """Convert a 2x2 confusion matrix to named dict
 
-    Confusion matrix must be of form [[TP, FN], [FN, TN]]
+    Args:
+        cm_matrix (array): Confusion in form [[TP, FN], [FN, TN]]
     """
     TN, FP, FN, TP = cm_matrix.ravel()
     cm_dict = {'TP': TP, 'FN': FN, 'FP': FP, 'TN': TN}
     return cm_dict
 
-
-def round_func(x, base = 5):
-    """Costum round function, which rounds to the nearest base. Default base = 5"""
-    return(round(x/base)*base)
 
 def flip_dataframe(df, new_colname = 'index'):
     """Flips table such that first row becomes columns"""
@@ -120,23 +115,31 @@ def wilson_confint(n_successes, n, side):
         return conf[1]
     else:
         raise ValueError(f"`side` must be in ['lwr', 'upr']. You supplied `side` = {side}")
-        return None
 
 def extract_cm_values(df, grp):
     """Extracts TP, TN, FP and TN from long format confusion matrix
     
     Args: 
-        df(Dataframe): long format confusion matrix as returned 
-                        by get_confusion_matrix() in FairKit
-        grp(str): sensitive group name 
+        df (Dataframe): confusion matrix as returned 
+                        by get_confusion_matrix() in BiasBalancer
+        grp (str): sensitive group name 
     """
-    cm_data = df.query(f"a=='{grp}' & type_obs in ['TP', 'FN', 'FP', 'TN']")
-    TP, FN, FP, TN = cm_data.number_obs.to_list()
+    cm_data = df.query(f"a=='{grp}'").set_index('type_obs')
+    TP = cm_data.at['TP', 'number_obs']
+    FN = cm_data.at['FN', 'number_obs']
+    FP = cm_data.at['FP', 'number_obs']
+    TN = cm_data.at['TN', 'number_obs']
 
     return TP, FN, FP, TN
 
 def one_hot_encode_mixed_data(X):
-    """ To do: Documentation """
+    """Perform one hot encoding on categorical variables
+    
+    Args:
+        X (dataframe): Dataframe to perform encoding on
+        
+    Returns: 
+        Dataframe where all categorical variables are one hot encoded """
     # splitting into categorical and numerical columns 
     X_cat = X.loc[:, (X.dtypes=='object').values]
     X_num = X.drop(columns = X_cat.columns)
