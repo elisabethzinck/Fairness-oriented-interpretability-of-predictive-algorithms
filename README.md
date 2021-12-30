@@ -3,7 +3,7 @@
 ## biasbalancer 
 
 ### Documentation
-The documentation of biasbalancer is found in *link here*. 
+The documentation of biasbalancer is found [here](https://elisabethzinck.github.io/Fairness-oriented-interpretability-of-predictive-algorithms/html/index.html). 
 
 #### Updating documentation
 If you make any changes to the bias balances module, please update the documentation. A setup from scratch can be made by running the following from the command line

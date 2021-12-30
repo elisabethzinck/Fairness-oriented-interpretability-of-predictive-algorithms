@@ -41,6 +41,9 @@ templates_path = ['_templates']
 # This pattern also affects html_static_path and html_extra_path.
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', '**setup**']
 
+# Document members (i.e. the methods) in same order as source code instead of alphabetical order.
+autodoc_member_order = 'bysource'
+
 
 # -- Options for HTML output -------------------------------------------------
 

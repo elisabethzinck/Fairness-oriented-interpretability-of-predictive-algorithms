@@ -85,96 +85,56 @@
 </section>
 <section id="module-biasbalancer.balancer">
 <span id="biasbalancer-balancer-module"></span><h2>biasbalancer.balancer module<a class="headerlink" href="#module-biasbalancer.balancer" title="Permalink to this headline"></a></h2>
-<dl class="py class">
-<dt class="sig sig-object py" id="biasbalancer.balancer.BiasBalancer">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">biasbalancer.balancer.</span></span><span class="sig-name descname"><span class="pre">BiasBalancer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_hat_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">a_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">w_fp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.balancer.BiasBalancer" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<dl class="py method">
-<dt class="sig sig-object py" id="biasbalancer.balancer.BiasBalancer.get_WMR_rates">
-<span class="sig-name descname"><span class="pre">get_WMR_rates</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">w_fp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.balancer.BiasBalancer.get_WMR_rates" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="biasbalancer.balancer.BiasBalancer.get_calibration">
-<span class="sig-name descname"><span class="pre">get_calibration</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_bins</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.balancer.BiasBalancer.get_calibration" title="Permalink to this definition"></a></dt>
-<dd><p>Calculate calibration by group</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="biasbalancer.balancer.calculate_WMR">
+<span class="sig-prename descclassname"><span class="pre">biasbalancer.balancer.</span></span><span class="sig-name descname"><span class="pre">calculate_WMR</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">w_fp</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.balancer.calculate_WMR" title="Permalink to this definition"></a></dt>
+<dd><p>Calculate the weighted misclassification rate (WMR)</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>n_bins</strong> (<em>int</em>) – Number of bins used in calculation</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>Should columns be described?</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>pd.DataFrame with calculations. To do</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cm</strong> (<em>dataframe</em>) – confusion matrix as returned
+by get_confusion_matrix() in BiasBalancer</p></li>
+<li><p><strong>w_fp</strong> (<em>int</em><em> or </em><em>float</em>) – False positive error weight. Must be in interval [0,1].</p></li>
+</ul>
 </dd>
 </dl>
 </dd></dl>
 
-<dl class="py method">
-<dt class="sig sig-object py" id="biasbalancer.balancer.BiasBalancer.get_confusion_matrix">
-<span class="sig-name descname"><span class="pre">get_confusion_matrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">plot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.balancer.BiasBalancer.get_confusion_matrix" title="Permalink to this definition"></a></dt>
-<dd><p>Calculate the confusion matrix for sensitive groups</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="biasbalancer.balancer.BiasBalancer.get_fairness_barometer">
-<span class="sig-name descname"><span class="pre">get_fairness_barometer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">plot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.balancer.BiasBalancer.get_fairness_barometer" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="biasbalancer.balancer.BiasBalancer.get_independence_check">
-<span class="sig-name descname"><span class="pre">get_independence_check</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">plot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.balancer.BiasBalancer.get_independence_check" title="Permalink to this definition"></a></dt>
-<dd><p>Predicted Positive rates and Confidence Intervals per
-sensitive group</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="biasbalancer.balancer.BiasBalancer.get_rates">
-<span class="sig-name descname"><span class="pre">get_rates</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">plot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.balancer.BiasBalancer.get_rates" title="Permalink to this definition"></a></dt>
-<dd><p>To do: Documentation</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="biasbalancer.balancer.BiasBalancer.get_relative_rates">
-<span class="sig-name descname"><span class="pre">get_relative_rates</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rates</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rate_names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.balancer.BiasBalancer.get_relative_rates" title="Permalink to this definition"></a></dt>
-<dd><p>Calculate relative difference in rates between group rate
-and minimum rate.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="biasbalancer.balancer.BiasBalancer">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">biasbalancer.balancer.</span></span><span class="sig-name descname"><span class="pre">BiasBalancer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_hat_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">a_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">w_fp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.balancer.BiasBalancer" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>To do: More extensive documentation</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>rates</strong> (<em>DataFrame</em>) – Contains data frame with rates from which relative rates should be calculated</p></li>
-<li><p><strong>rate_names</strong> (<em>list</em>) – list of names of rates for which to calculate relative rates</p></li>
+<li><p><strong>data</strong> (<em>pd.DataFrame</em>) – DataFrame containing data used for evaluation</p></li>
+<li><p><strong>y_name</strong> (<em>str</em>) – Name of target variable</p></li>
+<li><p><strong>y_hat_name</strong> (<em>str</em>) – Name of binary output variable</p></li>
+<li><p><strong>r_name</strong> (<em>str</em>) – Name of variable containing scores (predicted probabilities)</p></li>
+<li><p><strong>a_name</strong> (<em>str</em>) – Name of sensitive variable</p></li>
+<li><p><strong>w_fp</strong> (<em>int</em><em> or </em><em>float</em>) – False positive error weight</p></li>
+<li><p><strong>model_name</strong> (<em>str</em>) – Name of the model or dataset used. Is used for plot titles.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="biasbalancer.balancer.BiasBalancer.level_1">
+<span class="sig-name descname"><span class="pre">level_1</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">plot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_table</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.balancer.BiasBalancer.level_1" title="Permalink to this definition"></a></dt>
+<dd><p>To do: Documentation (including description of what WMR and WMQ is)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>plot</strong> (<em>bool</em>) – If True, a plot is made visualizing the results</p></li>
+<li><p><strong>output_table</strong> (<em>bool</em>) – If True, the results are returned in a dataframe</p></li>
 </ul>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="biasbalancer.balancer.BiasBalancer.get_roc_curves">
-<span class="sig-name descname"><span class="pre">get_roc_curves</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.balancer.BiasBalancer.get_roc_curves" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="biasbalancer.balancer.BiasBalancer.get_w_fp_influence">
-<span class="sig-name descname"><span class="pre">get_w_fp_influence</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">plot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.balancer.BiasBalancer.get_w_fp_influence" title="Permalink to this definition"></a></dt>
-<dd><p>Investigate how w_fp influences WMQ or WMR</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>relative</strong> (<em>bool</em>) – Plot weighted misclassification quotient? If False, weighted misclassification rate is plotted</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="biasbalancer.balancer.BiasBalancer.level_1">
-<span class="sig-name descname"><span class="pre">level_1</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">plot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_table</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.balancer.BiasBalancer.level_1" title="Permalink to this definition"></a></dt>
-<dd><p>To do: Documentation</p>
-</dd></dl>
-
-<dl class="py method">
 <dt class="sig sig-object py" id="biasbalancer.balancer.BiasBalancer.level_2">
-<span class="sig-name descname"><span class="pre">level_2</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">plot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_table</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.balancer.BiasBalancer.level_2" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">level_2</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">plot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_table</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">suptitle</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.balancer.BiasBalancer.level_2" title="Permalink to this definition"></a></dt>
 <dd><p>To do: Documentation</p>
 <table class="docutils align-default" id="id9">
 <caption><span class="caption-text">Overview table of Fairness Criteria</span><a class="headerlink" href="#id9" title="Permalink to this table"></a></caption>
@@ -238,6 +198,15 @@ Fairness and Machine Learning.</p>
 Fairness  definitions  explained.</p>
 </dd>
 </dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>plot</strong> (<em>bool</em>) – If True, a plot is made visualizing the results</p></li>
+<li><p><strong>output_table</strong> (<em>bool</em>) – If True, the results are returned in a dataframe</p></li>
+<li><p><strong>suptitle</strong> (<em>bool</em>) – If True, the BiasBalancer.model_name is used as suptitle. Defaults to False.</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
@@ -289,23 +258,144 @@ Fairness  definitions  explained.</p>
 </tr>
 </tbody>
 </table>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="biasbalancer.balancer.calculate_WMR">
-<span class="sig-prename descclassname"><span class="pre">biasbalancer.balancer.</span></span><span class="sig-name descname"><span class="pre">calculate_WMR</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">w_fp</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.balancer.calculate_WMR" title="Permalink to this definition"></a></dt>
-<dd><p>Calculate weighted misclassification rate</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>cm</strong> (<em>dataframe</em>) – long format confusion matrix as returned
-by get_confusion_matrix() in BiasBalancer</p></li>
-<li><p><strong>w_fp</strong> (<em>int</em><em> or </em><em>float</em>) – False positive error weight</p></li>
+<li><p><strong>method</strong> (<em>{'w_fp_influence'</em><em>, </em><em>'roc_curves'</em><em>, </em><em>'calibration'</em><em>, </em><em>'confusion_matrix'</em><em>, </em><em>'independence_check'}</em>) – The method to use for further analysis</p></li>
+<li><p><strong>plot</strong> (<em>bool</em>) – If True, a plot is made visualizing the results</p></li>
+<li><p><strong>output_table</strong> (<em>bool</em>) – If True, the results are returned in a dataframe</p></li>
+<li><p><strong>**kwargs</strong> – Keyword arguments are passed onto the corresponding analysis and method, which is named get_`method`.</p></li>
 </ul>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="biasbalancer.balancer.BiasBalancer.get_confusion_matrix">
+<span class="sig-name descname"><span class="pre">get_confusion_matrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">plot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.balancer.BiasBalancer.get_confusion_matrix" title="Permalink to this definition"></a></dt>
+<dd><p>Calculate the confusion matrix pr sensitive group</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>plot</strong> (<em>bool</em>) – If True, the confusion matrices are plotted</p>
+</dd>
+<dt class="field-even">Keyword Arguments</dt>
+<dd class="field-even"><p><strong>cm_print_n</strong> (<em>bool</em>) – If True, the number of observations is shown in each cell. Defaults to False.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="biasbalancer.balancer.BiasBalancer.get_rates">
+<span class="sig-name descname"><span class="pre">get_rates</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">plot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.balancer.BiasBalancer.get_rates" title="Permalink to this definition"></a></dt>
+<dd><p>Calculate group wise rates</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>plot</strong> (<em>bool</em>) – If True, the rates are visualized.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The calculated rates by group. The following rates are returned: FNR, FPR, FDR, FOR, PN/n, and PP/n.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>Dataframe</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="biasbalancer.balancer.BiasBalancer.get_relative_rates">
+<span class="sig-name descname"><span class="pre">get_relative_rates</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rates</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rate_names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.balancer.BiasBalancer.get_relative_rates" title="Permalink to this definition"></a></dt>
+<dd><p>Calculate relative difference in rates between group rate
+and minimum rate.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>rates</strong> (<em>DataFrame</em>) – Contains data frame with rates from which relative rates should be calculated. The dataframe must contain the columns ‘rate’, ‘grp’, and ‘rate_val’</p></li>
+<li><p><strong>rate_names</strong> (<em>list</em>) – list of names of rates for which to calculate relative rates</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="biasbalancer.balancer.BiasBalancer.get_WMR_rates">
+<span class="sig-name descname"><span class="pre">get_WMR_rates</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">w_fp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.balancer.BiasBalancer.get_WMR_rates" title="Permalink to this definition"></a></dt>
+<dd><p>Calculate weighted misclassification rate (WMR) by group</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>w_fp</strong> (<em>int</em><em> or </em><em>float</em>) – False positive error weight.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="biasbalancer.balancer.BiasBalancer.get_fairness_barometer">
+<span class="sig-name descname"><span class="pre">get_fairness_barometer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">plot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.balancer.BiasBalancer.get_fairness_barometer" title="Permalink to this definition"></a></dt>
+<dd><p>Calculate the fairness barometer</p>
+<p>To do: More documentation?</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>plot</strong> (<em>bool</em>) – If True, the result is visualized.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="biasbalancer.balancer.BiasBalancer.get_roc_curves">
+<span class="sig-name descname"><span class="pre">get_roc_curves</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">plot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.balancer.BiasBalancer.get_roc_curves" title="Permalink to this definition"></a></dt>
+<dd><p>Calculates ROC curves by sensitive group</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>plot</strong> (<em>bool</em>) – If True, the result is visualized.</p>
+</dd>
+<dt class="field-even">Keyword Arguments</dt>
+<dd class="field-even"><p><strong>threshold</strong> (<em>int</em><em>, </em><em>float</em><em> or </em><em>dict</em>) – The threshold value(s) used for classification (will be marked by dots on the ROC-curves). Can be a single number in [0,1] or a dict with a threshold for each sensitive group. Defaults to 0.5.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="biasbalancer.balancer.BiasBalancer.get_independence_check">
+<span class="sig-name descname"><span class="pre">get_independence_check</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">plot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.balancer.BiasBalancer.get_independence_check" title="Permalink to this definition"></a></dt>
+<dd><p>Get predicted positive rates and Confidence Intervals per
+sensitive group</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>plot</strong> (<em>bool</em>) – If True, the results are visualized</p>
+</dd>
+<dt class="field-even">Keyword Arguments</dt>
+<dd class="field-even"><p><strong>orientation</strong> (<em>{'h'</em><em>, </em><em>'v'}</em>) – Orientation of plot. Defaults to horizontal (‘h’).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="biasbalancer.balancer.BiasBalancer.get_calibration">
+<span class="sig-name descname"><span class="pre">get_calibration</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_bins</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.balancer.BiasBalancer.get_calibration" title="Permalink to this definition"></a></dt>
+<dd><p>Calculate calibration by group</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>n_bins</strong> (<em>int</em>) – Number of bins used to calculate the calibration curve.</p></li>
+<li><p><strong>plot</strong> (<em>bool</em>) – If True, the result is visualized.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="biasbalancer.balancer.BiasBalancer.get_w_fp_influence">
+<span class="sig-name descname"><span class="pre">get_w_fp_influence</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">plot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.balancer.BiasBalancer.get_w_fp_influence" title="Permalink to this definition"></a></dt>
+<dd><p>Investigate how w_fp influences WMQ or WMR</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>plot</strong> (<em>bool</em>) – If True, results are visualized</p>
+</dd>
+<dt class="field-even">Keyword Arguments</dt>
+<dd class="field-even"><p><strong>plot_WMQ</strong> (<em>bool</em>) – If True, the WMQ is plotted, and otherwise the WMR is plotted. Defaults to True.</p>
+</dd>
+</dl>
+</dd></dl>
+
 </dd></dl>
 
 </section>
@@ -316,12 +406,6 @@ by get_confusion_matrix() in BiasBalancer</p></li>
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">biasbalancer.descriptive_tool.</span></span><span class="sig-name descname"><span class="pre">DescribeData</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">y_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">a_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.descriptive_tool.DescribeData" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <dl class="py method">
-<dt class="sig sig-object py" id="biasbalancer.descriptive_tool.DescribeData.descriptive_table_to_tex">
-<span class="sig-name descname"><span class="pre">descriptive_table_to_tex</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">target_tex_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.descriptive_tool.DescribeData.descriptive_table_to_tex" title="Permalink to this definition"></a></dt>
-<dd><p>Formats self.agg_data to a latex table</p>
-</dd></dl>
-
-<dl class="py method">
 <dt class="sig sig-object py" id="biasbalancer.descriptive_tool.DescribeData.get_descriptive_table">
 <span class="sig-name descname"><span class="pre">get_descriptive_table</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.descriptive_tool.DescribeData.get_descriptive_table" title="Permalink to this definition"></a></dt>
 <dd><p>Positive rates and confidence intervals of data
@@ -329,9 +413,10 @@ aggregated by the sensitive variable</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="biasbalancer.descriptive_tool.DescribeData.plot_n_target_across_sens_var">
-<span class="sig-name descname"><span class="pre">plot_n_target_across_sens_var</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">orientation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'h'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.descriptive_tool.DescribeData.plot_n_target_across_sens_var" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<dt class="sig sig-object py" id="biasbalancer.descriptive_tool.DescribeData.descriptive_table_to_tex">
+<span class="sig-name descname"><span class="pre">descriptive_table_to_tex</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">target_tex_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.descriptive_tool.DescribeData.descriptive_table_to_tex" title="Permalink to this definition"></a></dt>
+<dd><p>Formats self.agg_data to a latex table</p>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="biasbalancer.descriptive_tool.DescribeData.plot_positive_rate">
@@ -354,6 +439,11 @@ aggregated by the sensitive variable</p>
 <p>Either n_tries or perplexity must be supplied. If both are supplied, the method raises an error.</p>
 </dd></dl>
 
+<dl class="py method">
+<dt class="sig sig-object py" id="biasbalancer.descriptive_tool.DescribeData.plot_n_target_across_sens_var">
+<span class="sig-name descname"><span class="pre">plot_n_target_across_sens_var</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">orientation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'h'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.descriptive_tool.DescribeData.plot_n_target_across_sens_var" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
 </dd></dl>
 
 </section>
@@ -363,26 +453,145 @@ aggregated by the sensitive variable</p>
 <dt class="sig sig-object py" id="biasbalancer.plots.BiasBalancerPlots">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">biasbalancer.plots.</span></span><span class="sig-name descname"><span class="pre">BiasBalancerPlots</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">BiasBalancer</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.plots.BiasBalancerPlots" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Plotting class used for plotting results from BiasBalancer</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>BiasBalancer</strong> (<a class="reference internal" href="#biasbalancer.balancer.BiasBalancer" title="biasbalancer.balancer.BiasBalancer"><em>biasbalancer.balancer.BiasBalancer</em></a>) – Object of type BiasBalancer.</p>
+</dd>
+<dt class="field-even">Keyword Arguments</dt>
+<dd class="field-even"><p><strong>(</strong> (<em>specific_col_idx</em>) – </p>
+</dd>
+</dl>
 <dl class="py method">
-<dt class="sig sig-object py" id="biasbalancer.plots.BiasBalancerPlots.format_text_level_1">
-<span class="sig-name descname"><span class="pre">format_text_level_1</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ax</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">text_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">font_sizes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">font_weights</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.plots.BiasBalancerPlots.format_text_level_1" title="Permalink to this definition"></a></dt>
-<dd><p>Plots a list of words with specific colors, sizes and font
-weights on a provided axis
-Function inspired by: <a class="reference external" href="https://matplotlib.org/2.0.2/examples/text_labels_and_annotations/rainbow_text.html">https://matplotlib.org/2.0.2/examples/text_labels_and_annotations/rainbow_text.html</a>
-:param ax: axis to plot text on
-:type ax: matplotlib axis
-:param x: x-coordinate of text start
-:type x: float
-:param y: y-coordinate of text start
-:type y: float
-:param text_list: List with words to plot
-:type text_list: list of strings
-:param color_list: List of colors for each word in text_list
-:type color_list: list
-:param font_sizes: List of font sizes for each word in text_list
-:type font_sizes: list
-:param font_sizes: List of font weigths for each word in text_list
-:type font_sizes: list</p>
+<dt class="sig sig-object py" id="biasbalancer.plots.BiasBalancerPlots.plot_level_1">
+<span class="sig-name descname"><span class="pre">plot_level_1</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">l1_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.plots.BiasBalancerPlots.plot_level_1" title="Permalink to this definition"></a></dt>
+<dd><p>Visualize the maximum gap in WMR by text</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>l1_data</strong> (<em>data frame</em>) – data frame with data returned from BiasBalancer.level_1()</p></li>
+<li><p><strong>ax</strong> (<em>matplotlib axis</em>) – Axes to plot on. Optional.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="biasbalancer.plots.BiasBalancerPlots.plot_level_2">
+<span class="sig-name descname"><span class="pre">plot_level_2</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rates</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">relative_rates</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">barometer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">suptitle</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.plots.BiasBalancerPlots.plot_level_2" title="Permalink to this definition"></a></dt>
+<dd><p>Create level 2 plot</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>rates</strong> (<em>DataFrame</em>) – DataFrame as returned by BiasBalancer.get_rates()</p></li>
+<li><p><strong>relative_rates</strong> (<em>DataFrame</em>) – DataFrame as returned by BiasBalancer.get_relative_rates()</p></li>
+<li><p><strong>barometer</strong> (<em>DataFrame</em>) – DataFrame as returned by BiasBalancer.get_fairness_barometer()</p></li>
+<li><p><strong>suptitle</strong> (<em>bool</em>) – If True, the BiasBalancer.model_name is used as suptitle. Defaults to False.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="biasbalancer.plots.BiasBalancerPlots.plot_rates">
+<span class="sig-name descname"><span class="pre">plot_rates</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rates</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.plots.BiasBalancerPlots.plot_rates" title="Permalink to this definition"></a></dt>
+<dd><p>Plot FPR, FNR, FDR, FOR for each group</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>rates</strong> (<em>DataFrame</em>) – As returned by BiasBalancer.get_rates()</p></li>
+<li><p><strong>ax</strong> (<em>matplotlib axis</em>) – Axis to be plotted on. Optional.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="biasbalancer.plots.BiasBalancerPlots.plot_relative_rates">
+<span class="sig-name descname"><span class="pre">plot_relative_rates</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">relative_rates</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">l2_plot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.plots.BiasBalancerPlots.plot_relative_rates" title="Permalink to this definition"></a></dt>
+<dd><p>Plot the rate ratio for each sensitive groups</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>relative_rates</strong> (<em>pd.DataFrame</em>) – DataFrame as returned by BiasBalancer.get_relative_rates()</p></li>
+<li><p><strong>ax</strong> (<em>matplotlib axis</em>) – Axis to plot on. Optional.</p></li>
+<li><p><strong>l2_plot</strong> (<em>bool</em>) – If True, format plot specifically for second level visualization</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="biasbalancer.plots.BiasBalancerPlots.plot_fairness_barometer">
+<span class="sig-name descname"><span class="pre">plot_fairness_barometer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fairness_barometer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.plots.BiasBalancerPlots.plot_fairness_barometer" title="Permalink to this definition"></a></dt>
+<dd><p>Plot fairness barometer</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fairness_barometer</strong> (<em>DataFrame</em>) – As returned by BiasBalancer.get_fairness_barometer()</p></li>
+<li><p><strong>ax</strong> (<em>matplotlib axis</em>) – Axis to plot on. Optional.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="biasbalancer.plots.BiasBalancerPlots.plot_confusion_matrix">
+<span class="sig-name descname"><span class="pre">plot_confusion_matrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cm_print_n</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.plots.BiasBalancerPlots.plot_confusion_matrix" title="Permalink to this definition"></a></dt>
+<dd><p>Plots confusion matrix by sensitive group</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cm</strong> (<em>dataframe</em>) – Confusion matrix as returned by balancer.get_confusion_matrix()</p></li>
+<li><p><strong>cm_print_n</strong> (<em>bool</em>) – If True, the number of observations is shown in each cell. Defaults to False.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="biasbalancer.plots.BiasBalancerPlots.plot_w_fp_influence">
+<span class="sig-name descname"><span class="pre">plot_w_fp_influence</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">plot_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_WMQ</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.plots.BiasBalancerPlots.plot_w_fp_influence" title="Permalink to this definition"></a></dt>
+<dd><p>Plots the influence of w_fp on WMQ or WMR</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>plot_df</strong> (<em>dataframe</em>) – As returned by balancer.get_w_fp_influence()</p></li>
+<li><p><strong>plot_WMQ</strong> (<em>bool</em>) – If True, WMQ is plotted, and otherwise WMR is plotted. Defaults to True.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="biasbalancer.plots.BiasBalancerPlots.plot_roc_curves">
+<span class="sig-name descname"><span class="pre">plot_roc_curves</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">roc_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.plots.BiasBalancerPlots.plot_roc_curves" title="Permalink to this definition"></a></dt>
+<dd><p>Visualizes ROC curves by sensitive group</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>roc_df</strong> (<em>dataframe</em>) – Dataframe as returned by balancer.get_roc_curves()</p></li>
+<li><p><strong>ax</strong> (<em>matplotlib.axes._subplots.AxesSubplot</em>) – Ax to plot on. If None, a new axis is created.</p></li>
+<li><p><strong>threshold</strong> (<em>int</em><em>, </em><em>float</em><em> or </em><em>dict</em>) – The threshold value(s) used for   classification (will be marked by dots on the ROC-curves). Can be a single number in [0,1] or a dict with a threshold for each sensitive group. Defaults to 0.5.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="biasbalancer.plots.BiasBalancerPlots.plot_independence_check">
+<span class="sig-name descname"><span class="pre">plot_independence_check</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">orientation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'h'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.plots.BiasBalancerPlots.plot_independence_check" title="Permalink to this definition"></a></dt>
+<dd><p>Bar plot of the percentage of predicted positives per
+sensitive group including a Wilson 95% CI</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>df</strong> (<em>pd.Dataframe</em>) – As returned by BiasBalancer.get_independence_check().</p></li>
+<li><p><strong>ax</strong> (<em>matplotlib.axes._subplots.AxesSubplot</em>) – Ax to plot on. If None, a new axis is created.</p></li>
+<li><p><strong>orientation</strong> (<em>{'h'</em><em>, </em><em>'v'}</em>) – Orientation of plot. Defaults to horizontal (‘h’).</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
@@ -399,77 +608,32 @@ Function inspired by: <a class="reference external" href="https://matplotlib.org
 </dl>
 </dd></dl>
 
-<dl class="py method">
-<dt class="sig sig-object py" id="biasbalancer.plots.BiasBalancerPlots.plot_confusion_matrix">
-<span class="sig-name descname"><span class="pre">plot_confusion_matrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cm</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.plots.BiasBalancerPlots.plot_confusion_matrix" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="biasbalancer.plots.BiasBalancerPlots.plot_fairness_barometer">
-<span class="sig-name descname"><span class="pre">plot_fairness_barometer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fairness_barometer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.plots.BiasBalancerPlots.plot_fairness_barometer" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="biasbalancer.plots.BiasBalancerPlots.plot_independence_check">
-<span class="sig-name descname"><span class="pre">plot_independence_check</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">orientation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'h'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.plots.BiasBalancerPlots.plot_independence_check" title="Permalink to this definition"></a></dt>
-<dd><p>Bar plot of the percentage of predicted positives per
-sensitive group including a Wilson 95% CI</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="biasbalancer.plots.BiasBalancerPlots.plot_level_1">
-<span class="sig-name descname"><span class="pre">plot_level_1</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">l1_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.plots.BiasBalancerPlots.plot_level_1" title="Permalink to this definition"></a></dt>
-<dd><p>Visualize the maximum gap in WMR by text</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>l1_data</strong> (<em>data frame</em>) – data frame with data returned in level_1</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="biasbalancer.plots.BiasBalancerPlots.plot_level_2">
-<span class="sig-name descname"><span class="pre">plot_level_2</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rates</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">relative_rates</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">barometer</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.plots.BiasBalancerPlots.plot_level_2" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="biasbalancer.plots.BiasBalancerPlots.plot_rates">
-<span class="sig-name descname"><span class="pre">plot_rates</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rates</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.plots.BiasBalancerPlots.plot_rates" title="Permalink to this definition"></a></dt>
-<dd><p>Plot FPR, FNR, FDR, FOR for each group</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="biasbalancer.plots.BiasBalancerPlots.plot_relative_rates">
-<span class="sig-name descname"><span class="pre">plot_relative_rates</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">relative_rates</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">l2_plot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.plots.BiasBalancerPlots.plot_relative_rates" title="Permalink to this definition"></a></dt>
-<dd><p>Plot the rate ratio for each sensitive groups</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>relative_rates</strong> (<em>pd.DataFrame</em>) – DataFrame as returned by BiasBalancer.get_relative_rates()</p></li>
-<li><p><strong>do</strong> (<em>ax</em><em> (</em><em>To</em>) – <p>)</p>
-</p></li>
-<li><p><strong>l2_plot</strong> (<em>bool</em>) – If True, format plot specifically for second level visualization</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="biasbalancer.plots.BiasBalancerPlots.plot_roc_curves">
-<span class="sig-name descname"><span class="pre">plot_roc_curves</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">roc_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.plots.BiasBalancerPlots.plot_roc_curves" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="biasbalancer.plots.BiasBalancerPlots.plot_w_fp_influence">
-<span class="sig-name descname"><span class="pre">plot_w_fp_influence</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">plot_df</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.plots.BiasBalancerPlots.plot_w_fp_influence" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="biasbalancer.plots.abs_percentage_tick">
-<span class="sig-prename descclassname"><span class="pre">biasbalancer.plots.</span></span><span class="sig-name descname"><span class="pre">abs_percentage_tick</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pos</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.plots.abs_percentage_tick" title="Permalink to this definition"></a></dt>
-<dd><p>Return absolute percentage value w/ % as string</p>
+<dt class="sig sig-object py" id="biasbalancer.plots.get_alpha_weights">
+<span class="sig-prename descclassname"><span class="pre">biasbalancer.plots.</span></span><span class="sig-name descname"><span class="pre">get_alpha_weights</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">w_fp</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.plots.get_alpha_weights" title="Permalink to this definition"></a></dt>
+<dd><p>Return alpha weight for each rate</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="biasbalancer.plots.custom_palette">
+<span class="sig-prename descclassname"><span class="pre">biasbalancer.plots.</span></span><span class="sig-name descname"><span class="pre">custom_palette</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_colors</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">specific_col_idx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.plots.custom_palette" title="Permalink to this definition"></a></dt>
+<dd><p>Returns a custom palette of n_colors (max 10 colors)</p>
+<p>The color palette has been created using this link:
+<a class="reference external" href="https://coolors.co/f94d50-f3722c-f8961e-f9844a-f9c74f-a1c680-3a9278-7ab8b6-577590-206683">https://coolors.co/f94d50-f3722c-f8961e-f9844a-f9c74f-a1c680-3a9278-7ab8b6-577590-206683</a>
+and added two colors “english lavender BD7585” and “Salmon Pink F193A1”</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>n_color</strong> – The number of desired colors max 10. Defaults to 1.</p></li>
+<li><p><strong>specific_col_idx</strong> – list of desired color indexes. Defaults to None.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A custom seaborn palette of n_colors or len(specific_col_idx) length</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
@@ -484,37 +648,6 @@ sensitive group including a Wilson 95% CI</p>
 <li><p><strong>color_variable</strong> (<em>pd.Series</em>) – Series of color groups used in bars.
 Each item in series is a list.</p></li>
 </ul>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="biasbalancer.plots.custom_palette">
-<span class="sig-prename descclassname"><span class="pre">biasbalancer.plots.</span></span><span class="sig-name descname"><span class="pre">custom_palette</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_colors</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">specific_col_idx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.plots.custom_palette" title="Permalink to this definition"></a></dt>
-<dd><p>Returns a custom palette of n_colors (max 10 colors)</p>
-<p>The color palette have been created using this link:
-<a class="reference external" href="https://coolors.co/f94d50-f3722c-f8961e-f9844a-f9c74f-a1c680-3a9278-7ab8b6-577590-206683">https://coolors.co/f94d50-f3722c-f8961e-f9844a-f9c74f-a1c680-3a9278-7ab8b6-577590-206683</a>
-and added two colors “english lavender BD7585” and “Salmon Pink F193A1”</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>n_color</strong> – The number of desired colors max 10. Defaults to 1.</p></li>
-<li><p><strong>specific_col_idx</strong> – list of desired color indexes. Defaults to None.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>A custom seaborn palette of n_colors length</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="biasbalancer.plots.desaturate">
-<span class="sig-prename descclassname"><span class="pre">biasbalancer.plots.</span></span><span class="sig-name descname"><span class="pre">desaturate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">color</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prop</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.75</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.plots.desaturate" title="Permalink to this definition"></a></dt>
-<dd><p>Desaturate color like in default seaborn plot</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>prop</strong> (<em>float</em>) – To do: is prop proportion??</p>
 </dd>
 </dl>
 </dd></dl>
@@ -536,6 +669,17 @@ and added two colors “english lavender BD7585” and “Salmon Pink F193A1”<
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="biasbalancer.plots.desaturate">
+<span class="sig-prename descclassname"><span class="pre">biasbalancer.plots.</span></span><span class="sig-name descname"><span class="pre">desaturate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">color</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prop</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.75</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.plots.desaturate" title="Permalink to this definition"></a></dt>
+<dd><p>Desaturate color like in default seaborn plot</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>prop</strong> (<em>float</em>) – Amount to desaturate</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="biasbalancer.plots.get_BW_fairness_barometer_legend_patches">
 <span class="sig-prename descclassname"><span class="pre">biasbalancer.plots.</span></span><span class="sig-name descname"><span class="pre">get_BW_fairness_barometer_legend_patches</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">plot_df</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.plots.get_BW_fairness_barometer_legend_patches" title="Permalink to this definition"></a></dt>
 <dd><p>Create patches in black and white for legend in fairness barometer</p>
@@ -552,44 +696,13 @@ and added two colors “english lavender BD7585” and “Salmon Pink F193A1”<
 </dl>
 </dd></dl>
 
-<dl class="py function">
-<dt class="sig sig-object py" id="biasbalancer.plots.get_alpha_weights">
-<span class="sig-prename descclassname"><span class="pre">biasbalancer.plots.</span></span><span class="sig-name descname"><span class="pre">get_alpha_weights</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">w_fp</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.plots.get_alpha_weights" title="Permalink to this definition"></a></dt>
-<dd><p>Return alpha weight for each rate</p>
-</dd></dl>
-
 </section>
 <section id="module-biasbalancer.utils">
 <span id="biasbalancer-utils-module"></span><h2>biasbalancer.utils module<a class="headerlink" href="#module-biasbalancer.utils" title="Permalink to this headline"></a></h2>
 <dl class="py function">
-<dt class="sig sig-object py" id="biasbalancer.utils.N_neg">
-<span class="sig-prename descclassname"><span class="pre">biasbalancer.utils.</span></span><span class="sig-name descname"><span class="pre">N_neg</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.utils.N_neg" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="biasbalancer.utils.N_pos">
-<span class="sig-prename descclassname"><span class="pre">biasbalancer.utils.</span></span><span class="sig-name descname"><span class="pre">N_pos</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.utils.N_pos" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="biasbalancer.utils.cm_dict_to_matrix">
-<span class="sig-prename descclassname"><span class="pre">biasbalancer.utils.</span></span><span class="sig-name descname"><span class="pre">cm_dict_to_matrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cm_dict</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.utils.cm_dict_to_matrix" title="Permalink to this definition"></a></dt>
-<dd><p>Convert a confusion dict to confusion matrix</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>cm_dict</strong> (<em>dict</em>) – Confusion dict with keys TP, FP, TN, FN</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>Numpy array of shape (2,2)</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="biasbalancer.utils.cm_matrix_to_dict">
-<span class="sig-prename descclassname"><span class="pre">biasbalancer.utils.</span></span><span class="sig-name descname"><span class="pre">cm_matrix_to_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cm_matrix</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.utils.cm_matrix_to_dict" title="Permalink to this definition"></a></dt>
-<dd><p>Convert a 2x2 confusion matrix to named dict</p>
-<p>Confusion matrix must be of form [[TP, FN], [FN, TN]]</p>
+<dt class="sig sig-object py" id="biasbalancer.utils.flatten_list">
+<span class="sig-prename descclassname"><span class="pre">biasbalancer.utils.</span></span><span class="sig-name descname"><span class="pre">flatten_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.utils.flatten_list" title="Permalink to this definition"></a></dt>
+<dd><p>Flattens a list of list</p>
 </dd></dl>
 
 <dl class="py function">
@@ -612,58 +725,34 @@ and added two colors “english lavender BD7585” and “Salmon Pink F193A1”<
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="biasbalancer.utils.extract_cm_values">
-<span class="sig-prename descclassname"><span class="pre">biasbalancer.utils.</span></span><span class="sig-name descname"><span class="pre">extract_cm_values</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grp</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.utils.extract_cm_values" title="Permalink to this definition"></a></dt>
-<dd><p>Extracts TP, TN, FP and TN from long format confusion matrix</p>
+<dt class="sig sig-object py" id="biasbalancer.utils.cm_dict_to_matrix">
+<span class="sig-prename descclassname"><span class="pre">biasbalancer.utils.</span></span><span class="sig-name descname"><span class="pre">cm_dict_to_matrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cm_dict</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.utils.cm_dict_to_matrix" title="Permalink to this definition"></a></dt>
+<dd><p>Convert a confusion dict to confusion matrix</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>df</strong> (<em>Dataframe</em>) – long format confusion matrix as returned
-by get_confusion_matrix() in FairKit</p></li>
-<li><p><strong>grp</strong> (<em>str</em>) – sensitive group name</p></li>
-</ul>
+<dd class="field-odd"><p><strong>cm_dict</strong> (<em>dict</em>) – Confusion dict with keys TP, FP, TN, FN</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Numpy array of shape (2,2)</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="biasbalancer.utils.flatten_list">
-<span class="sig-prename descclassname"><span class="pre">biasbalancer.utils.</span></span><span class="sig-name descname"><span class="pre">flatten_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.utils.flatten_list" title="Permalink to this definition"></a></dt>
-<dd><p>Flattens a list of list</p>
+<dt class="sig sig-object py" id="biasbalancer.utils.cm_matrix_to_dict">
+<span class="sig-prename descclassname"><span class="pre">biasbalancer.utils.</span></span><span class="sig-name descname"><span class="pre">cm_matrix_to_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cm_matrix</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.utils.cm_matrix_to_dict" title="Permalink to this definition"></a></dt>
+<dd><p>Convert a 2x2 confusion matrix to named dict</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>cm_matrix</strong> (<em>array</em>) – Confusion in form [[TP, FN], [FN, TN]]</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="biasbalancer.utils.flip_dataframe">
 <span class="sig-prename descclassname"><span class="pre">biasbalancer.utils.</span></span><span class="sig-name descname"><span class="pre">flip_dataframe</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">new_colname</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'index'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.utils.flip_dataframe" title="Permalink to this definition"></a></dt>
 <dd><p>Flips table such that first row becomes columns</p>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="biasbalancer.utils.frac_neg">
-<span class="sig-prename descclassname"><span class="pre">biasbalancer.utils.</span></span><span class="sig-name descname"><span class="pre">frac_neg</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.utils.frac_neg" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="biasbalancer.utils.frac_pos">
-<span class="sig-prename descclassname"><span class="pre">biasbalancer.utils.</span></span><span class="sig-name descname"><span class="pre">frac_pos</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.utils.frac_pos" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="biasbalancer.utils.label_case">
-<span class="sig-prename descclassname"><span class="pre">biasbalancer.utils.</span></span><span class="sig-name descname"><span class="pre">label_case</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">snake_case</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.utils.label_case" title="Permalink to this definition"></a></dt>
-<dd><p>Replace underscore with spaces and capitalize first letter of string, but keep WMR and WMQ capitalized</p>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="biasbalancer.utils.one_hot_encode_mixed_data">
-<span class="sig-prename descclassname"><span class="pre">biasbalancer.utils.</span></span><span class="sig-name descname"><span class="pre">one_hot_encode_mixed_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.utils.one_hot_encode_mixed_data" title="Permalink to this definition"></a></dt>
-<dd><p>To do: Documentation</p>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="biasbalancer.utils.round_func">
-<span class="sig-prename descclassname"><span class="pre">biasbalancer.utils.</span></span><span class="sig-name descname"><span class="pre">round_func</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">base</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.utils.round_func" title="Permalink to this definition"></a></dt>
-<dd><p>Costum round function, which rounds to the nearest base. Default base = 5</p>
 </dd></dl>
 
 <dl class="py function">
@@ -684,6 +773,12 @@ by get_confusion_matrix() in FairKit</p></li>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="biasbalancer.utils.label_case">
+<span class="sig-prename descclassname"><span class="pre">biasbalancer.utils.</span></span><span class="sig-name descname"><span class="pre">label_case</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">snake_case</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.utils.label_case" title="Permalink to this definition"></a></dt>
+<dd><p>Replace underscore with spaces and capitalize first letter of string, but keep WMR and WMQ capitalized</p>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="biasbalancer.utils.wilson_confint">
 <span class="sig-prename descclassname"><span class="pre">biasbalancer.utils.</span></span><span class="sig-name descname"><span class="pre">wilson_confint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_successes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">side</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.utils.wilson_confint" title="Permalink to this definition"></a></dt>
 <dd><p>Calculate Wilson proportion CI</p>
@@ -697,6 +792,55 @@ by get_confusion_matrix() in FairKit</p></li>
 </dd>
 </dl>
 </dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="biasbalancer.utils.extract_cm_values">
+<span class="sig-prename descclassname"><span class="pre">biasbalancer.utils.</span></span><span class="sig-name descname"><span class="pre">extract_cm_values</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grp</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.utils.extract_cm_values" title="Permalink to this definition"></a></dt>
+<dd><p>Extracts TP, TN, FP and TN from long format confusion matrix</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>df</strong> (<em>Dataframe</em>) – confusion matrix as returned
+by get_confusion_matrix() in BiasBalancer</p></li>
+<li><p><strong>grp</strong> (<em>str</em>) – sensitive group name</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="biasbalancer.utils.one_hot_encode_mixed_data">
+<span class="sig-prename descclassname"><span class="pre">biasbalancer.utils.</span></span><span class="sig-name descname"><span class="pre">one_hot_encode_mixed_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.utils.one_hot_encode_mixed_data" title="Permalink to this definition"></a></dt>
+<dd><p>Perform one hot encoding on categorical variables</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>X</strong> (<em>dataframe</em>) – Dataframe to perform encoding on</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Dataframe where all categorical variables are one hot encoded</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="biasbalancer.utils.N_pos">
+<span class="sig-prename descclassname"><span class="pre">biasbalancer.utils.</span></span><span class="sig-name descname"><span class="pre">N_pos</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.utils.N_pos" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="biasbalancer.utils.N_neg">
+<span class="sig-prename descclassname"><span class="pre">biasbalancer.utils.</span></span><span class="sig-name descname"><span class="pre">N_neg</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.utils.N_neg" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="biasbalancer.utils.frac_pos">
+<span class="sig-prename descclassname"><span class="pre">biasbalancer.utils.</span></span><span class="sig-name descname"><span class="pre">frac_pos</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.utils.frac_pos" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="biasbalancer.utils.frac_neg">
+<span class="sig-prename descclassname"><span class="pre">biasbalancer.utils.</span></span><span class="sig-name descname"><span class="pre">frac_neg</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.utils.frac_neg" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
 
 </section>
 <section id="module-biasbalancer">
