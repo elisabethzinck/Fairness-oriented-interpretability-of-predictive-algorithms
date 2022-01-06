@@ -109,6 +109,8 @@ class BiasBalancer:
     def level_1(self, plot=True, output_table=True):
         """First level of BiasBalancer computes *WMR* and *WMQ* for each sensitive group and presents the group with the largest *WMQ* in a visualization.
         
+        .. _level_1 Documentation:
+
         *WMR* is the *weighted misclassification rate* and can be calculated for each sensitive group. For group :math:`a` the :math:`\\textit{WMR}_a` is computed as
 
         .. math::
@@ -131,7 +133,7 @@ class BiasBalancer:
             output_table (bool): If True, the results are returned in a dataframe
         
         Returns: 
-            Dataframe: Dataframe with columns *WMR*, *n*, *WMR* and *WMQ*. The quantities are reported for each sensitive group. 
+            pd.DataFrame: Dataframe with columns ``WMR``, ``n``, ``WMR`` and ``WMQ``. The quantities are reported for each sensitive group. 
         """
 
         relative_wmr = self.get_relative_rates(self.WMR_rates)
@@ -150,9 +152,11 @@ class BiasBalancer:
             return l1_data
 
     def level_2(self, plot=True, output_table=True, suptitle=False):
-        """Second level of BiasBalancer creates a visual overview of the unfairness in the predictions.
+        """Second level of BiasBalancer creates a visual overview of the unfairness in the predictions. 
 
-        The overview consists of three elements structured in a visualization and three dataframes. It consists of absolute rates, relative rates and an unfairness barometer. 
+        .. _level_2 Documentation:
+        
+        The overview consists of three elements structured in a visualization and three data frames. It consists of absolute rates, relative rates and an unfairness barometer. 
         
         The absolute rates visualized are 
         
@@ -192,11 +196,11 @@ class BiasBalancer:
         Returns: 
             tuple: Tuple containing dataframes:
 
-                **rates** (dataframe): Dataframe with columns *rate*, *grp*, *rate_val*, *rate_val_lwr*, *rate_val_upr*. The rates are FPR, FNR, FDR, FOR for each sensitive group including 95% Wilson Confidence intervals.
+                **rates** (DataFrame): Data frame with columns ``rate``, ``grp``, ``rate_val``, ``rate_val_lwr``, ``rate_val_upr``. The rates are FPR, FNR, FDR, FOR for each sensitive group including 95% Wilson Confidence intervals.
                 
-                **relative_rates** (dataframe): Dataframe with columns *rate*, *grp*, *rate_val*, *relative_rate*.
+                **relative_rates** (DataFrame): Data frame with columns ``rate``, ``grp``, ``rate_val``, ``relative_rate``.
                 
-                **barometer** (dataframe): Dataframe with values to create the unfairness barometer. Columns are *criterion*, *relative_rate*, *discriminated_grp*. 
+                **barometer** (DataFrame): Data frame with values to create the unfairness barometer. Columns are ``criterion``, ``relative_rate``, ``discriminated_grp``. 
         
         .. [HARDT2016] Hardt, M., Price, E., and Srebro, N. (2016).
            Equality of opportunity in supervised learning.
@@ -320,8 +324,9 @@ class BiasBalancer:
 
         Keyword Arguments:
             cm_print_n (bool): If True, the number of observations is shown in each cell. Defaults to False. 
-
-
+        
+        Returns: 
+            DataFrame: Data frame in long format with information about false positives (FP), false negatives (FN), true positives (TP) and true negatives (TN) across the sensitive groups. The data frame includes the columns ``a``, ``type_obs``, ``number_obs``, ``fraction_obs``.
         """
         # Make dictionary of confusion matrices
         cm = {}
@@ -371,14 +376,14 @@ class BiasBalancer:
         return df
 
     def get_rates(self, plot=False):
-        """Calculate group wise rates
+        """Calculate group wise rates.
+        The gorupwise rates computed are FPR, FNR, FDR and FOR. These are listed in `level_2 Documentation`_. 
 
         Args: 
             plot (bool): If True, the rates are visualized. 
 
         Returns:
-            Dataframe:  The calculated rates by group. The following rates are returned: FNR, FPR, FDR, FOR, PN/n, and PP/n. 
-
+            Dataframe:  Data frame with the calculated rates and 95% Wilson confidence intervals by group. The following rates are returned: FNR, FPR, FDR, FOR, PN/n, and PP/n. The Data frame includes the columns ``rate``, ``grp``, ``rate_val``, ``rate_val_lwr`` and ``rate_val_upr``.
         """
         rates = []
         for grp in self.sens_grps:
@@ -415,8 +420,11 @@ class BiasBalancer:
         and minimum rate.
 
         Args:
-            rates (DataFrame): Contains data frame with rates from which relative rates should be calculated. The dataframe must contain the columns 'rate', 'grp', and 'rate_val'
-            rate_names (list): list of names of rates for which to calculate relative rates
+            rates (DataFrame): Contains data frame with rates from which relative rates should be calculated. The dataframe must contain the columns ``rate``, ``grp``, and ``rate_val``
+            rate_names (list): list of names of rates to calculate relative rates of
+        
+        Returns: 
+            DataFrame: Data frame with relative rates per group. The rates returned are FPR, FNR, FDR, and FOR. The data frame includes the columns ``rate``, ``grp``, ``rate_val`` and ``relative rate``. 
         """
         def get_minimum_rate(group):
             group['min_rate'] = group['rate_val'].agg('min')
@@ -453,6 +461,9 @@ class BiasBalancer:
 
         Args:
             w_fp (int or float): False positive error weight. 
+        
+        Returns: 
+            DataFrame: Data frame with columns ``grp``, ``rate`` and ``rate_val``. The rate computed is WMR per group. 
         """
         if w_fp is None:
             w_fp = self.w_fp
@@ -467,10 +478,13 @@ class BiasBalancer:
     def get_fairness_barometer(self, plot=False):
         """ Calculate the fairness barometer
 
-        To do: More documentation? 
+        For further explanation of the values and fairness criteria expressed by the fairness barometer see `level_2 Documentation`_.
 
         Args: 
             plot (bool): If True, the result is visualized. 
+        
+        Returns: 
+            Data frame with columns ``criterion``, ``relative_rate``, ``discriminated_grp``. 
         """
 
         # Decide unfavorable outcome used for independence measure
@@ -523,6 +537,9 @@ class BiasBalancer:
 
         Keyword Arguments:
             threshold (int, float or dict): The threshold value(s) used for classification (will be marked by dots on the ROC-curves). Can be a single number in [0,1] or a dict with a threshold for each sensitive group. Defaults to 0.5. 
+
+        Returns: 
+            DataFrame: Data frame with roc curve information for each sensitive group in long format. The columns are ``fpr``, ``tpr``, ``threshold``, ``sens_grp``.
         """
 
         roc_list = []
@@ -555,6 +572,8 @@ class BiasBalancer:
         Keyword Args:
             orientation ({'h', 'v'}): Orientation of plot. Defaults to horizontal ('h'). 
 
+        Returns: 
+            DataFrame: Data frame with columns ``a``, ``N``, ``N_predicted_label``, ``frac_predicted_label``, ``conf_lwr``, ``conf_upr`` and ``label``. 
         """
 
         # If w_fp >= 0.5, the 'positive' label is unfavourable and therefore plotted.
@@ -598,6 +617,8 @@ class BiasBalancer:
             n_bins (int): Number of bins used to calculate the calibration curve. 
             plot (bool): If True, the result is visualized. 
 
+        Returns: 
+            DataFrame: Data frame with calibration data partitioned into the speficied number of bins. The columns are ``a``, ``bin_center``, ``y_bin_mean``, ``y_bin_se``, ``bin_size``, ``y_bin_lwr``, ``y_bin_upr``. 
         """
         # To do: Check if it fails gracefully if a bin contains zero observations
         bins = np.linspace(0, 1, num=n_bins+1)
@@ -627,12 +648,17 @@ class BiasBalancer:
 
     def get_w_fp_influence(self, plot=False, **kwargs):
         """Investigate how w_fp influences WMQ or WMR
+        
+        *WMR* is the weighted misclassification rate and *WMQ* is the weighted misclassification quotient. For explanations about WMR and WMQ see `level_1 Documentation`_. 
 
         Args:
             plot (bool): If True, results are visualized
 
         Keyword Arguments: 
             plot_WMQ (bool): If True, the WMQ is plotted, and otherwise the WMR is plotted. Defaults to True. 
+
+        Returns: 
+            DataFrame: Data frame with columns ``index``, ``rate``, ``grp``, ``WMR``, ``WMQ``, and ``w_fp``. 
 
         """
         n_values = 100

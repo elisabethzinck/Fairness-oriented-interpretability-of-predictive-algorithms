@@ -12,10 +12,10 @@ biasbalancer.balancer module
    :undoc-members:
    :show-inheritance:
 
-biasbalancer.descriptive\_tool module
+biasbalancer.get\_compas\_data module
 -------------------------------------
 
-.. automodule:: biasbalancer.descriptive_tool
+.. automodule:: biasbalancer.get_compas_data
    :members:
    :undoc-members:
    :show-inheritance:

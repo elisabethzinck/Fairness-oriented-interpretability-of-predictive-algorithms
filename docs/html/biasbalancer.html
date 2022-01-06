@@ -43,7 +43,7 @@
 <li class="toctree-l2 current"><a class="current reference internal" href="#">biasbalancer package</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#submodules">Submodules</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#module-biasbalancer.balancer">biasbalancer.balancer module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#module-biasbalancer.descriptive_tool">biasbalancer.descriptive_tool module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-biasbalancer.get_compas_data">biasbalancer.get_compas_data module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#module-biasbalancer.plots">biasbalancer.plots module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#module-biasbalancer.utils">biasbalancer.utils module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#module-biasbalancer">Module contents</a></li>
@@ -97,6 +97,12 @@ by get_confusion_matrix() in BiasBalancer</p></li>
 <li><p><strong>w_fp</strong> (<em>int</em><em> or </em><em>float</em>) – False positive error weight. Must be in interval [0,1].</p></li>
 </ul>
 </dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Weighted misclassification rate</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>wmr (float)</p>
+</dd>
 </dl>
 </dd></dl>
 
@@ -121,13 +127,29 @@ by get_confusion_matrix() in BiasBalancer</p></li>
 <dl class="py method">
 <dt class="sig sig-object py" id="biasbalancer.balancer.BiasBalancer.level_1">
 <span class="sig-name descname"><span class="pre">level_1</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">plot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_table</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.balancer.BiasBalancer.level_1" title="Permalink to this definition"></a></dt>
-<dd><p>To do: Documentation (including description of what WMR and WMQ is)</p>
+<dd><p>First level of BiasBalancer computes <em>WMR</em> and <em>WMQ</em> for each sensitive group and presents the group with the largest <em>WMQ</em> in a visualization.</p>
+<p id="level-1-documentation"><em>WMR</em> is the <em>weighted misclassification rate</em> and can be calculated for each sensitive group. For group <span class="math notranslate nohighlight">\(a\)</span> the <span class="math notranslate nohighlight">\(\textit{WMR}_a\)</span> is computed as</p>
+<div class="math notranslate nohighlight">
+\[\textit{WMR}_a = c(w_{fp})\frac{w_{fp} FP_a + (1-w_{fp})FN_a}{n_a}\]</div>
+<p>where <span class="math notranslate nohighlight">\(FP_a\)</span> are the number of false positives in the group, <span class="math notranslate nohighlight">\(FN_a\)</span> are the number of false negatives in the group and <span class="math notranslate nohighlight">\(n_a\)</span> is the total number of observations in the group. <span class="math notranslate nohighlight">\(w_{fp}\in [0,1]\)</span> is the false positive weight indicating how severe a false positive is compared to a false negative. Larger values of <span class="math notranslate nohighlight">\(w_{fp}\)</span> emphazises larger severity of false positives. <span class="math notranslate nohighlight">\(c(w_{fp})\)</span> is a normalization constant ensuring <span class="math notranslate nohighlight">\(WMR \in [0,1]\)</span>. The normalization constant is computed as</p>
+<div class="math notranslate nohighlight">
+\[c(w_{FP}) = \min\left(\frac{1}{w_{fp}}, \frac{1}{1-w_{fp}}\right).\]</div>
+<p><em>WMQ</em> is the <em>weighted misclassification quotient</em>. Define <span class="math notranslate nohighlight">\(WMR_{min} := \min_{a\in A} WMR\)</span> then <em>WMQ</em> for group <span class="math notranslate nohighlight">\(a\)</span> is computed as</p>
+<div class="math notranslate nohighlight">
+\[\textit{WMQ}_a = \frac{\textit{WMR}_a - \textit{WMR}_{min}}{\textit{WMR}_{min}}\cdot100\%  \quad \text{for $a \in A$}\]</div>
+<p>By construction <span class="math notranslate nohighlight">\(WMQ_{min} := \min_{a\in A} WMQ = 0\)</span>. Other groups will have a positive value of <em>WMQ</em> and a larger <em>WMQ</em> suggests disfavoring between the groups.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>plot</strong> (<em>bool</em>) – If True, a plot is made visualizing the results</p></li>
+<li><p><strong>plot</strong> (<em>bool</em>) – If True, a plot is made visualizing which group has the largest <em>WMR</em></p></li>
 <li><p><strong>output_table</strong> (<em>bool</em>) – If True, the results are returned in a dataframe</p></li>
 </ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Dataframe with columns <code class="docutils literal notranslate"><span class="pre">WMR</span></code>, <code class="docutils literal notranslate"><span class="pre">n</span></code>, <code class="docutils literal notranslate"><span class="pre">WMR</span></code> and <code class="docutils literal notranslate"><span class="pre">WMQ</span></code>. The quantities are reported for each sensitive group.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>pd.DataFrame</p>
 </dd>
 </dl>
 </dd></dl>
@@ -135,9 +157,23 @@ by get_confusion_matrix() in BiasBalancer</p></li>
 <dl class="py method">
 <dt class="sig sig-object py" id="biasbalancer.balancer.BiasBalancer.level_2">
 <span class="sig-name descname"><span class="pre">level_2</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">plot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_table</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">suptitle</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.balancer.BiasBalancer.level_2" title="Permalink to this definition"></a></dt>
-<dd><p>To do: Documentation</p>
-<table class="docutils align-default" id="id9">
-<caption><span class="caption-text">Overview table of Fairness Criteria</span><a class="headerlink" href="#id9" title="Permalink to this table"></a></caption>
+<dd><p>Second level of BiasBalancer creates a visual overview of the unfairness in the predictions.</p>
+<p id="level-2-documentation">The overview consists of three elements structured in a visualization and three data frames. It consists of absolute rates, relative rates and an unfairness barometer.</p>
+<p>The absolute rates visualized are</p>
+<ul class="simple">
+<li><p>False Positive Rate <span class="math notranslate nohighlight">\(\left(FPR=\frac{FP}{N}\right)\)</span></p></li>
+<li><p>False Negative Rate <span class="math notranslate nohighlight">\(\left(FNR=\frac{FN}{P}\right)\)</span></p></li>
+<li><p>False Discovery Rate <span class="math notranslate nohighlight">\(\left(FDR=\frac{FP}{PP}\right)\)</span></p></li>
+<li><p>False Omission Rate <span class="math notranslate nohighlight">\(\left(FDR=\frac{FN}{PN}\right)\)</span></p></li>
+</ul>
+<p>where <em>FP</em> are false positives, <em>FN</em> are false negatives, <em>N</em> are negatives, <em>P</em> are positves, <em>PN</em> are predicted negatives and <em>PP</em> are predicted positives. The relative rates are computed for each group.</p>
+<p>The relative rates for group <span class="math notranslate nohighlight">\(a\)</span> are computed by</p>
+<div class="math notranslate nohighlight">
+\[ \begin{align}\begin{aligned}RR_a(r) &amp;= \frac{r_{a} - r_{min}}{r_{min}}\cdot100\%,\\r_{min} &amp;= \min_{a\in A} r_a,\end{aligned}\end{align} \]</div>
+<p>which is computed for rates <span class="math notranslate nohighlight">\(r \in \{\textit{FPR},~\textit{FNR},~\textit{FDR},~\textit{FOR},~\textit{WMR}\}\)</span>.</p>
+<p>The unfairness barometer indicates the level of unfairness present in the predictions according to different fairness criteria. The fairness criteria are summarized in the overview table below.</p>
+<table class="docutils align-default" id="id10">
+<caption><span class="caption-text">Overview table of Fairness Criteria</span><a class="headerlink" href="#id10" title="Permalink to this table"></a></caption>
 <colgroup>
 <col style="width: 25%" />
 <col style="width: 25%" />
@@ -184,6 +220,31 @@ by get_confusion_matrix() in BiasBalancer</p></li>
 </tr>
 </tbody>
 </table>
+<p>The quantity depicted in the unfairness barometer is called the <em>mean maximum relative rate (MMRR)</em>. Informally, this is the maximum relative rate across sensitive subgroups, if the criterion only depends on one rate. If the criterion depends on several rates it shows the mean of the different rate components instead. Formally for fairness criterion <span class="math notranslate nohighlight">\(f\)</span> this is computed by</p>
+<div class="math notranslate nohighlight">
+\[MMRR(f) = \frac{1}{|R_{balanced}(f)|}\sum_{r\in R_{balanced}(f)} \max_{a \in A} RR_a(r),\]</div>
+<p>where <span class="math notranslate nohighlight">\(|R_{balanced}(f)|\)</span> is the cardinality of the set of rates affecting the fairness criterion <span class="math notranslate nohighlight">\(f\)</span>. This is e.g. 1 for <em>Equal Opportunity</em> and 2 for <em>Separation</em>. Which criterion depends on what rates can also be found in the overview table above.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>plot</strong> (<em>bool</em>) – If True, a plot is made visualizing the results</p></li>
+<li><p><strong>output_table</strong> (<em>bool</em>) – If True, the results are returned in a dataframe</p></li>
+<li><p><strong>suptitle</strong> (<em>bool</em>) – If True, the BiasBalancer.model_name is used as suptitle. Defaults to False.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><p>Tuple containing dataframes:</p>
+<blockquote>
+<div><p><strong>rates</strong> (DataFrame): Data frame with columns <code class="docutils literal notranslate"><span class="pre">rate</span></code>, <code class="docutils literal notranslate"><span class="pre">grp</span></code>, <code class="docutils literal notranslate"><span class="pre">rate_val</span></code>, <code class="docutils literal notranslate"><span class="pre">rate_val_lwr</span></code>, <code class="docutils literal notranslate"><span class="pre">rate_val_upr</span></code>. The rates are FPR, FNR, FDR, FOR for each sensitive group including 95% Wilson Confidence intervals.</p>
+<p><strong>relative_rates</strong> (DataFrame): Data frame with columns <code class="docutils literal notranslate"><span class="pre">rate</span></code>, <code class="docutils literal notranslate"><span class="pre">grp</span></code>, <code class="docutils literal notranslate"><span class="pre">rate_val</span></code>, <code class="docutils literal notranslate"><span class="pre">relative_rate</span></code>.</p>
+<p><strong>barometer</strong> (DataFrame): Data frame with values to create the unfairness barometer. Columns are <code class="docutils literal notranslate"><span class="pre">criterion</span></code>, <code class="docutils literal notranslate"><span class="pre">relative_rate</span></code>, <code class="docutils literal notranslate"><span class="pre">discriminated_grp</span></code>.</p>
+</div></blockquote>
+</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>tuple</p>
+</dd>
+</dl>
 <dl class="citation">
 <dt class="label" id="hardt2016"><span class="brackets">HARDT2016</span><span class="fn-backref">(<a href="#id4">1</a>,<a href="#id7">2</a>)</span></dt>
 <dd><p>Hardt, M., Price, E., and Srebro, N. (2016).
@@ -196,15 +257,6 @@ Fairness and Machine Learning.</p>
 <dt class="label" id="ver2018"><span class="brackets">VER2018</span><span class="fn-backref">(<a href="#id3">1</a>,<a href="#id6">2</a>)</span></dt>
 <dd><p>Verma,  S.  and  Rubin,  J.  (2018).
 Fairness  definitions  explained.</p>
-</dd>
-</dl>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>plot</strong> (<em>bool</em>) – If True, a plot is made visualizing the results</p></li>
-<li><p><strong>output_table</strong> (<em>bool</em>) – If True, the results are returned in a dataframe</p></li>
-<li><p><strong>suptitle</strong> (<em>bool</em>) – If True, the BiasBalancer.model_name is used as suptitle. Defaults to False.</p></li>
-</ul>
 </dd>
 </dl>
 </dd></dl>
@@ -281,19 +333,26 @@ Fairness  definitions  explained.</p>
 <dt class="field-even">Keyword Arguments</dt>
 <dd class="field-even"><p><strong>cm_print_n</strong> (<em>bool</em>) – If True, the number of observations is shown in each cell. Defaults to False.</p>
 </dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Data frame in long format with information about false positives (FP), false negatives (FN), true positives (TP) and true negatives (TN) across the sensitive groups. The data frame includes the columns <code class="docutils literal notranslate"><span class="pre">a</span></code>, <code class="docutils literal notranslate"><span class="pre">type_obs</span></code>, <code class="docutils literal notranslate"><span class="pre">number_obs</span></code>, <code class="docutils literal notranslate"><span class="pre">fraction_obs</span></code>.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>DataFrame</p>
+</dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="biasbalancer.balancer.BiasBalancer.get_rates">
 <span class="sig-name descname"><span class="pre">get_rates</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">plot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.balancer.BiasBalancer.get_rates" title="Permalink to this definition"></a></dt>
-<dd><p>Calculate group wise rates</p>
+<dd><p>Calculate group wise rates.
+The gorupwise rates computed are FPR, FNR, FDR and FOR. These are listed in <a class="reference internal" href="#level-2-documentation">level_2 Documentation</a>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>plot</strong> (<em>bool</em>) – If True, the rates are visualized.</p>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p>The calculated rates by group. The following rates are returned: FNR, FPR, FDR, FOR, PN/n, and PP/n.</p>
+<dd class="field-even"><p>Data frame with the calculated rates and 95% Wilson confidence intervals by group. The following rates are returned: FNR, FPR, FDR, FOR, PN/n, and PP/n. The Data frame includes the columns <code class="docutils literal notranslate"><span class="pre">rate</span></code>, <code class="docutils literal notranslate"><span class="pre">grp</span></code>, <code class="docutils literal notranslate"><span class="pre">rate_val</span></code>, <code class="docutils literal notranslate"><span class="pre">rate_val_lwr</span></code> and <code class="docutils literal notranslate"><span class="pre">rate_val_upr</span></code>.</p>
 </dd>
 <dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p>Dataframe</p>
@@ -309,9 +368,15 @@ and minimum rate.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>rates</strong> (<em>DataFrame</em>) – Contains data frame with rates from which relative rates should be calculated. The dataframe must contain the columns ‘rate’, ‘grp’, and ‘rate_val’</p></li>
-<li><p><strong>rate_names</strong> (<em>list</em>) – list of names of rates for which to calculate relative rates</p></li>
+<li><p><strong>rates</strong> (<em>DataFrame</em>) – Contains data frame with rates from which relative rates should be calculated. The dataframe must contain the columns <code class="docutils literal notranslate"><span class="pre">rate</span></code>, <code class="docutils literal notranslate"><span class="pre">grp</span></code>, and <code class="docutils literal notranslate"><span class="pre">rate_val</span></code></p></li>
+<li><p><strong>rate_names</strong> (<em>list</em>) – list of names of rates to calculate relative rates of</p></li>
 </ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Data frame with relative rates per group. The rates returned are FPR, FNR, FDR, and FOR. The data frame includes the columns <code class="docutils literal notranslate"><span class="pre">rate</span></code>, <code class="docutils literal notranslate"><span class="pre">grp</span></code>, <code class="docutils literal notranslate"><span class="pre">rate_val</span></code> and <code class="docutils literal notranslate"><span class="pre">relative</span> <span class="pre">rate</span></code>.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>DataFrame</p>
 </dd>
 </dl>
 </dd></dl>
@@ -324,6 +389,12 @@ and minimum rate.</p>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>w_fp</strong> (<em>int</em><em> or </em><em>float</em>) – False positive error weight.</p>
 </dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Data frame with columns <code class="docutils literal notranslate"><span class="pre">grp</span></code>, <code class="docutils literal notranslate"><span class="pre">rate</span></code> and <code class="docutils literal notranslate"><span class="pre">rate_val</span></code>. The rate computed is WMR per group.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>DataFrame</p>
+</dd>
 </dl>
 </dd></dl>
 
@@ -331,10 +402,13 @@ and minimum rate.</p>
 <dt class="sig sig-object py" id="biasbalancer.balancer.BiasBalancer.get_fairness_barometer">
 <span class="sig-name descname"><span class="pre">get_fairness_barometer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">plot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.balancer.BiasBalancer.get_fairness_barometer" title="Permalink to this definition"></a></dt>
 <dd><p>Calculate the fairness barometer</p>
-<p>To do: More documentation?</p>
+<p>For further explanation of the values and fairness criteria expressed by the fairness barometer see <a class="reference internal" href="#level-2-documentation">level_2 Documentation</a>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>plot</strong> (<em>bool</em>) – If True, the result is visualized.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Data frame with columns <code class="docutils literal notranslate"><span class="pre">criterion</span></code>, <code class="docutils literal notranslate"><span class="pre">relative_rate</span></code>, <code class="docutils literal notranslate"><span class="pre">discriminated_grp</span></code>.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -349,6 +423,12 @@ and minimum rate.</p>
 </dd>
 <dt class="field-even">Keyword Arguments</dt>
 <dd class="field-even"><p><strong>threshold</strong> (<em>int</em><em>, </em><em>float</em><em> or </em><em>dict</em>) – The threshold value(s) used for classification (will be marked by dots on the ROC-curves). Can be a single number in [0,1] or a dict with a threshold for each sensitive group. Defaults to 0.5.</p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Data frame with roc curve information for each sensitive group in long format. The columns are <code class="docutils literal notranslate"><span class="pre">fpr</span></code>, <code class="docutils literal notranslate"><span class="pre">tpr</span></code>, <code class="docutils literal notranslate"><span class="pre">threshold</span></code>, <code class="docutils literal notranslate"><span class="pre">sens_grp</span></code>.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>DataFrame</p>
 </dd>
 </dl>
 </dd></dl>
@@ -365,6 +445,12 @@ sensitive group</p>
 <dt class="field-even">Keyword Arguments</dt>
 <dd class="field-even"><p><strong>orientation</strong> (<em>{'h'</em><em>, </em><em>'v'}</em>) – Orientation of plot. Defaults to horizontal (‘h’).</p>
 </dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Data frame with columns <code class="docutils literal notranslate"><span class="pre">a</span></code>, <code class="docutils literal notranslate"><span class="pre">N</span></code>, <code class="docutils literal notranslate"><span class="pre">N_predicted_label</span></code>, <code class="docutils literal notranslate"><span class="pre">frac_predicted_label</span></code>, <code class="docutils literal notranslate"><span class="pre">conf_lwr</span></code>, <code class="docutils literal notranslate"><span class="pre">conf_upr</span></code> and <code class="docutils literal notranslate"><span class="pre">label</span></code>.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>DataFrame</p>
+</dd>
 </dl>
 </dd></dl>
 
@@ -379,6 +465,12 @@ sensitive group</p>
 <li><p><strong>plot</strong> (<em>bool</em>) – If True, the result is visualized.</p></li>
 </ul>
 </dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Data frame with calibration data partitioned into the speficied number of bins. The columns are <code class="docutils literal notranslate"><span class="pre">a</span></code>, <code class="docutils literal notranslate"><span class="pre">bin_center</span></code>, <code class="docutils literal notranslate"><span class="pre">y_bin_mean</span></code>, <code class="docutils literal notranslate"><span class="pre">y_bin_se</span></code>, <code class="docutils literal notranslate"><span class="pre">bin_size</span></code>, <code class="docutils literal notranslate"><span class="pre">y_bin_lwr</span></code>, <code class="docutils literal notranslate"><span class="pre">y_bin_upr</span></code>.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>DataFrame</p>
+</dd>
 </dl>
 </dd></dl>
 
@@ -386,6 +478,7 @@ sensitive group</p>
 <dt class="sig sig-object py" id="biasbalancer.balancer.BiasBalancer.get_w_fp_influence">
 <span class="sig-name descname"><span class="pre">get_w_fp_influence</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">plot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.balancer.BiasBalancer.get_w_fp_influence" title="Permalink to this definition"></a></dt>
 <dd><p>Investigate how w_fp influences WMQ or WMR</p>
+<p><em>WMR</em> is the weighted misclassification rate and <em>WMQ</em> is the weighted misclassification quotient. For explanations about WMR and WMQ see <a class="reference internal" href="#level-1-documentation">level_1 Documentation</a>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>plot</strong> (<em>bool</em>) – If True, results are visualized</p>
@@ -393,57 +486,44 @@ sensitive group</p>
 <dt class="field-even">Keyword Arguments</dt>
 <dd class="field-even"><p><strong>plot_WMQ</strong> (<em>bool</em>) – If True, the WMQ is plotted, and otherwise the WMR is plotted. Defaults to True.</p>
 </dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Data frame with columns <code class="docutils literal notranslate"><span class="pre">index</span></code>, <code class="docutils literal notranslate"><span class="pre">rate</span></code>, <code class="docutils literal notranslate"><span class="pre">grp</span></code>, <code class="docutils literal notranslate"><span class="pre">WMR</span></code>, <code class="docutils literal notranslate"><span class="pre">WMQ</span></code>, and <code class="docutils literal notranslate"><span class="pre">w_fp</span></code>.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>DataFrame</p>
+</dd>
 </dl>
 </dd></dl>
 
 </dd></dl>
 
 </section>
-<section id="module-biasbalancer.descriptive_tool">
-<span id="biasbalancer-descriptive-tool-module"></span><h2>biasbalancer.descriptive_tool module<a class="headerlink" href="#module-biasbalancer.descriptive_tool" title="Permalink to this headline"></a></h2>
-<dl class="py class">
-<dt class="sig sig-object py" id="biasbalancer.descriptive_tool.DescribeData">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">biasbalancer.descriptive_tool.</span></span><span class="sig-name descname"><span class="pre">DescribeData</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">y_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">a_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.descriptive_tool.DescribeData" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<dl class="py method">
-<dt class="sig sig-object py" id="biasbalancer.descriptive_tool.DescribeData.get_descriptive_table">
-<span class="sig-name descname"><span class="pre">get_descriptive_table</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.descriptive_tool.DescribeData.get_descriptive_table" title="Permalink to this definition"></a></dt>
-<dd><p>Positive rates and confidence intervals of data
-aggregated by the sensitive variable</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="biasbalancer.descriptive_tool.DescribeData.descriptive_table_to_tex">
-<span class="sig-name descname"><span class="pre">descriptive_table_to_tex</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">target_tex_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.descriptive_tool.DescribeData.descriptive_table_to_tex" title="Permalink to this definition"></a></dt>
-<dd><p>Formats self.agg_data to a latex table</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="biasbalancer.descriptive_tool.DescribeData.plot_positive_rate">
-<span class="sig-name descname"><span class="pre">plot_positive_rate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">orientation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'v'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Positive</span> <span class="pre">Fraction</span> <span class="pre">per</span> <span class="pre">Group'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.descriptive_tool.DescribeData.plot_positive_rate" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="biasbalancer.descriptive_tool.DescribeData.plot_tSNE">
-<span class="sig-name descname"><span class="pre">plot_tSNE</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_tries</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">perplexity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.descriptive_tool.DescribeData.plot_tSNE" title="Permalink to this definition"></a></dt>
-<dd><p>Plot tSNE hightlighting sensitive groups.</p>
+<section id="module-biasbalancer.get_compas_data">
+<span id="biasbalancer-get-compas-data-module"></span><h2>biasbalancer.get_compas_data module<a class="headerlink" href="#module-biasbalancer.get_compas_data" title="Permalink to this headline"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="biasbalancer.get_compas_data.get_compas_data">
+<span class="sig-prename descclassname"><span class="pre">biasbalancer.get_compas_data.</span></span><span class="sig-name descname"><span class="pre">get_compas_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">normalize_decile_scores</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.get_compas_data.get_compas_data" title="Permalink to this definition"></a></dt>
+<dd><p>Returns preprocessed compas data for notebook walktrough</p>
+<p>The function returns a pre-processed version of the COMPAS dataset used for the ProPublica article “Machine Bias” <a class="reference internal" href="#angwin2016" id="id9"><span>[ANGWIN2016]</span></a>. The dataset is pre-processed in the following way:</p>
+<ul class="simple">
+<li><p>Subsetting to individuals with races African-American and Caucasian</p></li>
+<li><p>Exclude individuals with <code class="docutils literal notranslate"><span class="pre">days_b_screening_arrest</span></code> <span class="math notranslate nohighlight">\(\leq\)</span> 30 and <code class="docutils literal notranslate"><span class="pre">days_b_screening_arrest</span></code> <span class="math notranslate nohighlight">\(\geq\)</span> -30 because data quality is questionable</p></li>
+<li><p>Exclude individuals with <code class="docutils literal notranslate"><span class="pre">screening_date</span></code> &gt; ‘2014-04-01’ because these could not be followed for 2 years.</p></li>
+</ul>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>n_tries</strong> (<em>int</em>) – Number of perplexity values to try</p></li>
-<li><p><strong>perplexity</strong> (<em>int</em>) – Perplexity parameter for tSNE</p></li>
-<li><p><strong>verbose</strong> (<em>bool</em>) – Control verbosity of method</p></li>
-</ul>
+<dd class="field-odd"><p><strong>normalize_decile_scores</strong> (<em>bool</em>) – If true, the decile scores are normalized to be within [0,1]</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>data frame with preprocessed compas data.
+Columns of the dataframe are <code class="docutils literal notranslate"><span class="pre">id</span></code>, <code class="docutils literal notranslate"><span class="pre">sex</span></code>, <code class="docutils literal notranslate"><span class="pre">age</span></code>, <code class="docutils literal notranslate"><span class="pre">age_cat</span></code>, <code class="docutils literal notranslate"><span class="pre">race</span></code>, <code class="docutils literal notranslate"><span class="pre">decile_score</span></code>, <code class="docutils literal notranslate"><span class="pre">score_text</span></code>, <code class="docutils literal notranslate"><span class="pre">two_year_recid</span></code></p>
 </dd>
 </dl>
-<p>Either n_tries or perplexity must be supplied. If both are supplied, the method raises an error.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="biasbalancer.descriptive_tool.DescribeData.plot_n_target_across_sens_var">
-<span class="sig-name descname"><span class="pre">plot_n_target_across_sens_var</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">orientation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'h'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.descriptive_tool.DescribeData.plot_n_target_across_sens_var" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
+<dl class="citation">
+<dt class="label" id="angwin2016"><span class="brackets"><a class="fn-backref" href="#id9">ANGWIN2016</a></span></dt>
+<dd><p>Angwin, J., Larson, J., Mattu, S., and Kirchner, L. (2016). Machine Bias. propublica.org.</p>
+</dd>
+</dl>
 </dd></dl>
 
 </section>
