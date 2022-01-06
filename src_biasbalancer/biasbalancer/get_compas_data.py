@@ -1,9 +1,10 @@
 import pandas as pd
+from pathlib import Path
 def get_compas_data(normalize_decile_scores=False):
     """Returns preprocessed compas data for notebook walktrough
 
     The function returns a pre-processed version of the COMPAS dataset used for the ProPublica article "Machine Bias" [ANGWIN2016]_. The dataset is pre-processed in the following way:
-    
+
     * Subsetting to individuals with races African-American and Caucasian
     * Exclude individuals with ``days_b_screening_arrest`` :math:`\leq` 30 and ``days_b_screening_arrest`` :math:`\geq` -30 because data quality is questionable
     * Exclude individuals with ``screening_date`` > '2014-04-01' because these could not be followed for 2 years. 
@@ -19,7 +20,8 @@ def get_compas_data(normalize_decile_scores=False):
     .. [ANGWIN2016] Angwin, J., Larson, J., Mattu, S., and Kirchner, L. (2016). Machine Bias. propublica.org.
     
     """
-    raw_file_path = 'src_biasbalancer/data/raw/compas-scores-two-years.csv'
+    root_path = Path(__file__).parent.parent
+    raw_file_path = root_path / 'data/raw/compas-scores-two-years.csv'
     compas = pd.read_csv(raw_file_path)
 
     #Filter out rows where **days_b_screening_arrest** is over 30 or under -30
@@ -39,6 +41,9 @@ def get_compas_data(normalize_decile_scores=False):
     df = compas[['id', 'sex', 'age', 'age_cat', 'race', 
                 'decile_score','score_text', 'two_year_recid']]
     df = df.assign(pred = (df.score_text != 'Low'))
+
+    if normalize_decile_scores:
+        df['decile_score'] = df['decile_score']/10
 
     return(df)
 
