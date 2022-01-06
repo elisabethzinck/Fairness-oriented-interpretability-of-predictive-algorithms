@@ -279,7 +279,7 @@ class BiasBalancerPlots():
             ax (matplotlib axis): Axis to plot on. Optional. 
             """
         # To do: Make this more readable
-        plot_df = fairness_barometer
+        plot_df = fairness_barometer.copy(deep=True)
         plot_df['grey_bar'] = [rr if rr <=
                                20 else 20 for rr in plot_df['relative_rate']]
 
