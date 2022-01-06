@@ -1,16 +1,23 @@
 import pandas as pd
 def get_compas_data(normalize_decile_scores=False):
     """Returns preprocessed compas data for notebook walktrough
-        
-        Args:
-            normalize_decile_scores (bool): Returns scores in [0,1]
 
-        Returns: 
-            data frame with preprocessed compas data. 
-            Columns of the dataframe are 
-            TODO fix columsn in a nice manner
-            'id', 'sex', 'age', 'age_cat', 'race', 
-                'decile_score','score_text', 'two_year_recid'
+    The function returns a pre-processed version of the COMPAS dataset used for the ProPublica article "Machine Bias" [ANGWIN2016]_. The dataset is pre-processed in the following way:
+    
+    * Subsetting to individuals with races African-American and Caucasian
+    * Exclude individuals with ``days_b_screening_arrest`` :math:`\leq` 30 and ``days_b_screening_arrest`` :math:`\geq` -30 because data quality is questionable
+    * Exclude individuals with ``screening_date`` > '2014-04-01' because these could not be followed for 2 years. 
+        
+    Args:
+        normalize_decile_scores (bool): If true, the decile scores are normalized to be within [0,1]
+
+
+    Returns: 
+        data frame with preprocessed compas data. 
+        Columns of the dataframe are ``id``, ``sex``, ``age``, ``age_cat``, ``race``, ``decile_score``, ``score_text``, ``two_year_recid``
+
+    .. [ANGWIN2016] Angwin, J., Larson, J., Mattu, S., and Kirchner, L. (2016). Machine Bias. propublica.org.
+    
     """
     raw_file_path = 'src_biasbalancer/data/raw/compas-scores-two-years.csv'
     compas = pd.read_csv(raw_file_path)

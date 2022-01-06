@@ -20,6 +20,14 @@ biasbalancer.descriptive\_tool module
    :undoc-members:
    :show-inheritance:
 
+biasbalancer.get\_compas\_data module
+-------------------------------------
+
+.. automodule:: biasbalancer.get_compas_data
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 biasbalancer.plots module
 -------------------------
 
