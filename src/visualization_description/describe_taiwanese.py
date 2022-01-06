@@ -4,7 +4,7 @@ import numpy as np
 import os
 import matplotlib.pyplot as plt
 
-from biasbalancer.descriptive_tool import DescribeData
+from src.visualization_description.descriptive_tool import DescribeData
 
 update_report_figs = False
 fig_path_report = '../Thesis-report/00_figures/describe_data/'

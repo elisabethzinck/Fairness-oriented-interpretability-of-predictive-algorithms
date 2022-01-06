@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt 
 
-from biasbalancer.descriptive_tool import DescribeData
+from src.visualization_description.descriptive_tool import DescribeData
 from src.models.data_modules import CheXpertDataModule
 
 fig_path_report = '../Thesis-report/00_figures/cheXpert/'

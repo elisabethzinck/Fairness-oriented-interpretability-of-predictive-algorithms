@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 
 from sklearn.preprocessing import StandardScaler
 
-from biasbalancer.descriptive_tool import DescribeData
+from src.visualization_description.descriptive_tool import DescribeData
 from src.data.general_preprocess_functions import one_hot_encode_mixed_data
 
 figure_path = 'figures/descriptive_plots/'
