@@ -150,22 +150,60 @@ class BiasBalancer:
             return l1_data
 
     def level_2(self, plot=True, output_table=True, suptitle=False):
-        """To do: Documentation
+        """Second level of BiasBalancer creates a visual overview of the unfairness in the predictions.
+
+        The overview consists of three elements structured in a visualization and three dataframes. It consists of absolute rates, relative rates and an unfairness barometer. 
+        
+        The absolute rates visualized are 
+        
+        * False Positive Rate :math:`\left(FPR=\\frac{FP}{N}\\right)`
+        * False Negative Rate :math:`\left(FNR=\\frac{FN}{P}\\right)`
+        * False Discovery Rate :math:`\left(FDR=\\frac{FP}{PP}\\right)`
+        * False Omission Rate :math:`\left(FDR=\\frac{FN}{PN}\\right)` 
+
+        where *FP* are false positives, *FN* are false negatives, *N* are negatives, *P* are positves, *PN* are predicted negatives and *PP* are predicted positives. The relative rates are computed for each group.
+
+        The relative rates for group :math:`a` are computed by
+            
+        .. math::
+            RR_a(r) &= \\frac{r_{a} - r_{min}}{r_{min}}\cdot100\%, \n
+            r_{min} &= \min_{a\in A} r_a,
+
+        which is computed for rates :math:`r \in \{\\textit{FPR},~\\textit{FNR},~\\textit{FDR},~\\textit{FOR},~\\textit{WMR}\}`. 
+
+        The unfairness barometer indicates the level of unfairness present in the predictions according to different fairness criteria. The fairness criteria are summarized in the overview table below. 
 
         .. csv-table:: Overview table of Fairness Criteria
            :file: ../../references/overview_table.csv
            :header-rows: 1
+
+        The quantity depicted in the unfairness barometer is called the *mean maximum relative rate (MMRR)*. Informally, this is the maximum relative rate across sensitive subgroups, if the criterion only depends on one rate. If the criterion depends on several rates it shows the mean of the different rate components instead. Formally for fairness criterion :math:`f` this is computed by 
+
+        .. math::
+            MMRR(f) = \\frac{1}{|R_{balanced}(f)|}\sum_{r\in R_{balanced}(f)} \max_{a \in A} RR_a(r),
+
+        where :math:`|R_{balanced}(f)|` is the cardinality of the set of rates affecting the fairness criterion :math:`f`. This is e.g. 1 for *Equal Opportunity* and 2 for *Separation*. Which criterion depends on what rates can also be found in the overview table above.
+
+        Args:
+            plot (bool): If True, a plot is made visualizing the results
+            output_table (bool): If True, the results are returned in a dataframe
+            suptitle (bool): If True, the BiasBalancer.model_name is used as suptitle. Defaults to False.
+
+        Returns: 
+            tuple: Tuple containing dataframes:
+
+                **rates** (dataframe): Dataframe with columns *rate*, *grp*, *rate_val*, *rate_val_lwr*, *rate_val_upr*. The rates are FPR, FNR, FDR, FOR for each sensitive group including 95% Wilson Confidence intervals.
+                
+                **relative_rates** (dataframe): Dataframe with columns *rate*, *grp*, *rate_val*, *relative_rate*.
+                
+                **barometer** (dataframe): Dataframe with values to create the unfairness barometer. Columns are *criterion*, *relative_rate*, *discriminated_grp*. 
+        
         .. [HARDT2016] Hardt, M., Price, E., and Srebro, N. (2016).
            Equality of opportunity in supervised learning.
         .. [BAR2019]  Barocas, S., Hardt, M., and Narayanan, A. (2019).
            Fairness and Machine Learning.
         .. [VER2018] Verma,  S.  and  Rubin,  J.  (2018).
            Fairness  definitions  explained.
-
-        Args:
-            plot (bool): If True, a plot is made visualizing the results
-            output_table (bool): If True, the results are returned in a dataframe
-            suptitle (bool): If True, the BiasBalancer.model_name is used as suptitle. Defaults to False. 
         """
         rates = (pd.concat(
             [self.rates, self.WMR_rates]
