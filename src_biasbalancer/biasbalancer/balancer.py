@@ -16,6 +16,9 @@ def calculate_WMR(cm, grp, w_fp):
         cm (dataframe): confusion matrix as returned 
                         by get_confusion_matrix() in BiasBalancer
         w_fp (int or float): False positive error weight. Must be in interval [0,1].
+
+    Returns: 
+        wmr (float): Weighted misclassification rate
     """
 
     # Input check of w_fp
@@ -103,13 +106,32 @@ class BiasBalancer:
     ###############################################################
     #                  LAYER METHODS
     ###############################################################
-
     def level_1(self, plot=True, output_table=True):
-        """To do: Documentation (including description of what WMR and WMQ is)
+        """First level of BiasBalancer computes *WMR* and *WMQ* for each sensitive group and presents the group with the largest *WMQ* in a visualization.
+        
+        *WMR* is the *weighted misclassification rate* and can be calculated for each sensitive group. For group :math:`a` the :math:`\\textit{WMR}_a` is computed as
+
+        .. math::
+            \\textit{WMR}_a = c(w_{fp})\\frac{w_{fp} FP_a + (1-w_{fp})FN_a}{n_a}
+
+        where :math:`FP_a` are the number of false positives in the group, :math:`FN_a` are the number of false negatives in the group and :math:`n_a` is the total number of observations in the group. :math:`w_{fp}\in [0,1]` is the false positive weight indicating how severe a false positive is compared to a false negative. Larger values of :math:`w_{fp}` emphazises larger severity of false positives. :math:`c(w_{fp})` is a normalization constant ensuring :math:`WMR \in [0,1]`. The normalization constant is computed as 
+        
+        .. math:: 
+                c(w_{FP}) = \min\left(\\frac{1}{w_{fp}}, \\frac{1}{1-w_{fp}}\\right).
+
+        *WMQ* is the *weighted misclassification quotient*. Define :math:`WMR_{min} := \min_{a\in A} WMR` then *WMQ* for group :math:`a` is computed as 
+
+        .. math:: 
+            \\textit{WMQ}_a = \\frac{\\textit{WMR}_a - \\textit{WMR}_{min}}{\\textit{WMR}_{min}}\cdot100\%  \quad \\text{for $a \in A$}
+
+        By construction :math:`WMQ_{min} := \min_{a\in A} WMQ = 0`. Other groups will have a positive value of *WMQ* and a larger *WMQ* suggests disfavoring between the groups. 
 
         Args:
-            plot (bool): If True, a plot is made visualizing the results
+            plot (bool): If True, a plot is made visualizing which group has the largest *WMR*
             output_table (bool): If True, the results are returned in a dataframe
+        
+        Returns: 
+            Dataframe: Dataframe with columns *WMR*, *n*, *WMR* and *WMQ*. The quantities are reported for each sensitive group. 
         """
 
         relative_wmr = self.get_relative_rates(self.WMR_rates)
