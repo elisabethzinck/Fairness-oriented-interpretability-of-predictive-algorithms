@@ -23,10 +23,11 @@ class BiasBalancerPlots():
     """Plotting class used for plotting results from BiasBalancer
 
     Args: 
-        BiasBalancer (biasbalancer.balancer.BiasBalancer): Object of type BiasBalancer. 
+        BiasBalancer (biasbalancer.balancer.BiasBalancer): Instance from the BiasBalancer class. 
 
     Keyword arguments: 
-        specific_col_idx ("""
+        specific_col_idx (list): list of max length 11 to get specific colors form the color scheme. The items can be integers from 0-11.
+    """
 
     def __init__(self, BiasBalancer, **kwargs):
 
@@ -63,8 +64,8 @@ class BiasBalancerPlots():
         """ Visualize the maximum gap in WMR by text
 
         Args:
-            l1_data (data frame): data frame with data returned from BiasBalancer.level_1()
-            ax (matplotlib axis): Axes to plot on. Optional. 
+            l1_data (DataFrame): data frame with data returned from :meth:`BiasBalancer.level_1()`
+            ax (matplotlib axis): Axis to plot on. Optional. 
         """
 
         def format_text_level_1(ax, x, y, text_list, color_list, font_sizes, font_weights):
@@ -141,10 +142,10 @@ class BiasBalancerPlots():
         """Create level 2 plot
 
         Args: 
-            rates (DataFrame): DataFrame as returned by BiasBalancer.get_rates()
-            relative_rates (DataFrame): DataFrame as returned by BiasBalancer.get_relative_rates()
-            barometer (DataFrame): DataFrame as returned by BiasBalancer.get_fairness_barometer()
-            suptitle (bool): If True, the BiasBalancer.model_name is used as suptitle. Defaults to False. 
+            rates (DataFrame): DataFrame as returned by :meth:`BiasBalancer.get_rates()`
+            relative_rates (DataFrame): DataFrame as returned by :meth:`BiasBalancer.get_relative_rates()`
+            barometer (DataFrame): DataFrame as returned by :meth:`BiasBalancer.get_fairness_barometer()`
+            suptitle (bool): If True, the :attr:`BiasBalancer.model_name` is used as suptitle. Defaults to False. 
 
         """
         gs = GridSpec(nrows=10, ncols=3)
@@ -166,10 +167,10 @@ class BiasBalancerPlots():
                        fontsize=self._title_size+1)
 
     def plot_rates(self, rates, ax=None):
-        """Plot FPR, FNR, FDR, FOR for each group
+        """Plot FPR, FNR, FDR, FOR for each group including 95% Wilson confidence intervals. 
 
         Args: 
-            rates (DataFrame): As returned by BiasBalancer.get_rates()
+            rates (DataFrame): As returned by :meth:`BiasBalancer.get_rates()`
             ax (matplotlib axis): Axis to be plotted on. Optional. 
         """
 
@@ -218,10 +219,9 @@ class BiasBalancerPlots():
         """Plot the rate ratio for each sensitive groups
 
         Args:
-            relative_rates (pd.DataFrame): DataFrame as returned by BiasBalancer.get_relative_rates()
+            relative_rates (DataFrame): DataFrame as returned by :meth:`BiasBalancer.get_relative_rates()`
             ax (matplotlib axis): Axis to plot on. Optional.  
-            l2_plot (bool): If True, format plot specifically for second level visualization
-
+            l2_plot (bool): If True, format plot specifically for second level visualization.
         """
         # Manually sets the vertical spacing in the plot
         if l2_plot:
@@ -275,7 +275,7 @@ class BiasBalancerPlots():
         """Plot fairness barometer
 
         Args: 
-            fairness_barometer (DataFrame): As returned by BiasBalancer.get_fairness_barometer()
+            fairness_barometer (DataFrame): As returned by :meth:`BiasBalancer.get_fairness_barometer()`
             ax (matplotlib axis): Axis to plot on. Optional. 
             """
         # To do: Make this more readable
@@ -335,7 +335,7 @@ class BiasBalancerPlots():
         """
         n_grps = len(self.sens_grps)
 
-        # To Do: Fix grid, when we have e.g. 4 groups
+        # TODO: Fix grid, when we have e.g. 4 groups
         # make gridspec for groups
         ncols = min(n_grps, 3)
         nrows = ceil(n_grps/ncols)
@@ -403,10 +403,12 @@ class BiasBalancerPlots():
                            y=1.05)
 
     def plot_w_fp_influence(self, plot_df, plot_WMQ=True):
-        """ Plots the influence of w_fp on WMQ or WMR
+        """ Plots the influence of w_fp on WMQ or WMR. 
+        
+        *WMR* is the weighted misclassification rate and *WMQ* is the weighted misclassification quotient. For explanations about WMR and WMQ see `level_1 Documentation`_. 
 
         Args: 
-            plot_df (dataframe): As returned by balancer.get_w_fp_influence()
+            plot_df (dataframe): As returned by :meth:`balancer.get_w_fp_influence()`
             plot_WMQ (bool): If True, WMQ is plotted, and otherwise WMR is plotted. Defaults to True. 
         """
         fig = plt.figure()
@@ -436,8 +438,8 @@ class BiasBalancerPlots():
         """ Visualizes ROC curves by sensitive group
 
         Args:
-            roc_df (dataframe): Dataframe as returned by balancer.get_roc_curves()
-            ax (matplotlib.axes._subplots.AxesSubplot): Ax to plot on. If None, a new axis is created. 
+            roc_df (dataframe): Dataframe as returned by :meth:`balancer.get_roc_curves()`
+            ax (matplotlib axis): Ax to plot on. If None, a new axis is created. 
             threshold (int, float or dict): The threshold value(s) used for   classification (will be marked by dots on the ROC-curves). Can be a single number in [0,1] or a dict with a threshold for each sensitive group. Defaults to 0.5. 
         """
 
@@ -536,13 +538,12 @@ class BiasBalancerPlots():
 
     def plot_independence_check(self, df, ax=None, orientation='h'):
         """ Bar plot of the percentage of predicted positives per
-        sensitive group including a Wilson 95% CI 
+        sensitive group including a Wilson 95% Confidence interval. 
 
         Args:
-            df (pd.Dataframe): As returned by BiasBalancer.get_independence_check(). 
-            ax (matplotlib.axes._subplots.AxesSubplot): Ax to plot on. If None, a new axis is created. 
+            df (Dataframe): As returned by :meth:`BiasBalancer.get_independence_check()` 
+            ax (matplotlib axis): Axis to plot on. If None, a new axis is created. 
             orientation ({'h', 'v'}): Orientation of plot. Defaults to horizontal ('h'). 
-
         """
         assert orientation in ["v", "h"], "Choose orientation 'v' or 'h'"
 
@@ -601,8 +602,8 @@ class BiasBalancerPlots():
         """Plot calibration by sensitive groups
 
         Args:
-            calibration_df (pd.DataFrame): As returned by BiasBalancer.get_calibration()
-            ax (matplotlib.axes): Axes object to plot on. Optional. 
+            calibration_df (DataFrame): As returned by :meth:`BiasBalancer.get_calibration()`
+            ax (matplotlib axis): Axes object to plot on. Optional. 
         """
 
         n_bins = calibration_df.bin_center.nunique()
@@ -651,7 +652,14 @@ class BiasBalancerPlots():
 # General plotting functions
 ###################################
 def get_alpha_weights(w_fp):
-    """Return alpha weight for each rate"""
+    """Return alpha weight for determining opacity of each rate. The rates are FPR, FNR, FDR and FOR. These are also listed in `level_2 Documentation`_. 
+    
+    Args:   
+        w_fp (int or float): False positive weight. Must be in interval [0,1].
+
+    Returns: 
+        Dict: dict with weights for each rate. Rate names are keys and weights are values. 
+    """
     c = 0.2  # Factor added to make colors stronger
     if w_fp == 0.5:
         alpha_weights = {'FPR': 1, 'FNR': 1, 'FDR': 1, 'FOR': 1, 'WMR': 1}
@@ -665,21 +673,21 @@ def get_alpha_weights(w_fp):
 
 
 def custom_palette(n_colors=1, specific_col_idx=None):
-    """Returns a custom palette of n_colors (max 10 colors)
+    """Returns a custom palette of n_colors (max 11 colors)
 
-        The color palette has been created using this link: 
-        https://coolors.co/f94d50-f3722c-f8961e-f9844a-f9c74f-a1c680-3a9278-7ab8b6-577590-206683
-        and added two colors "english lavender BD7585" and "Salmon Pink F193A1"
+        The color palette has been created using `Coolors`_ 
+        and added two colors "cinnamon satin (Hex #BD7585)" and "Salmon Pink (Hex: #F193A1)"
+
+        .. _Coolors: https://coolors.co/f94d50-f3722c-f8961e-f9844a-f9c74f-a1c680-3a9278-7ab8b6-577590-206683
 
         Args:
             n_color: The number of desired colors max 10. Defaults to 1.
             specific_col_idx: list of desired color indexes. Defaults to None.
 
         Returns: 
-            A custom seaborn palette of n_colors or len(specific_col_idx) length 
+            list: List of RGB tuples made as a custom color palette of length `n_colors` or `len(specific_col_idx)` using seaborn.
     """
-    # To do: This is the old color palette.
-    # Perhaps change idx for 8 colors to match cheXpert
+    # TODO: Perhaps change idx for 8 colors to match cheXpert
     colors = ["f94d50", "f3722c", "f8961e", "f9844a", "f9c74f", "a1c680",
               "3a9278", "7ab8b6", "577590", "206683", "F193A1", "B66879"]
 
@@ -726,7 +734,7 @@ def add_colors_with_stripes(ax, color_dict, color_variable):
     """Add colors to barplot including striped colors.
 
     Args:
-        ax (AxesSubplot): ax of plot to color
+        ax (matplotlib axis): ax of plot to color
         color_dict (dict): Dict of colors with keys as color group
         color_variable (pd.Series): Series of color groups used in bars. 
             Each item in series is a list. 
@@ -754,10 +762,10 @@ def error_bar(ax, plot_df, bar_mid, orientation="v"):
     """Draws error bars on ax with barplot.
 
     Args: 
-        ax(matplotlib.axes): ax with barplot 
-        plot_df(pandas data frame): must include columns "conf_lwr" and "conf_upr"
+        ax(matplotlib axis): axis with barplot 
+        plot_df(DataFrame): must include columns ``conf_lwr`` and ``conf_upr``
         bar_mid(float): mid point of bar to put error bar on 
-        orientation: 'v' or 'h' for vertical or horizontal 
+        orientation({'v', 'h'}): ``v`` or ``h`` for vertical or horizontal 
     """
     # input check
     assert orientation in ["v", "h"], "Choose orientation 'v' or 'h'"
@@ -794,6 +802,9 @@ def desaturate(color, prop=0.75):
 
     Args: 
         prop (float): Amount to desaturate
+    
+    Returns: 
+        tuple: RGB tuple with the desaturated color.
     """
     h, l, s = colorsys.rgb_to_hls(*color)
     s *= prop
@@ -802,13 +813,13 @@ def desaturate(color, prop=0.75):
 
 
 def get_BW_fairness_barometer_legend_patches(plot_df):
-    """Create patches in black and white for legend in fairness barometer
+    """Create black and white patches legend in fairness barometer
 
     Args: 
-        plot_df (dataframe): Data frame used to create fairness barometer plot
+        plot_df (DataFrame): Data frame used to create fairness barometer plot
 
     Returns: 
-        patches (list): List of matplotlib patches to put in legend handles 
+        list: List of matplotlib patches to put in legend handles 
     """
     plot_df = plot_df.query("relative_rate > 20")
     n_cols = plot_df.discriminated_grp.apply(len).unique()
