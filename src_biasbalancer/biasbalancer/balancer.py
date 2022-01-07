@@ -9,7 +9,7 @@ import biasbalancer.utils as bbutils
 import biasbalancer.plots as bbplots
 
 class BiasBalancer:
-    """:class:`BiasBalancer` is a toolkit for fairness analysis of a binary classifier.  It facilitates  nuanced  fairness  analyses  taking  several  fairness criteria  into  account  enabling  the  user  to  get  a  fuller  overview  of  the  potential  interactions between the criteria. The fairness criteria handled by :class:`BiasBalancer` is documented in the `overview table of fairness criteria`_
+    """:class:`BiasBalancer` is a toolkit for fairness analysis of a binary classifier.  It facilitates  nuanced  fairness  analyses  taking  several  fairness criteria  into  account  enabling  the  user  to  get  a  fuller  overview  of  the  potential  interactions between fairness criteria. The fairness criteria included in :class:`BiasBalancer` are documented in the `overview table of fairness criteria`_
 
     :class:`BiasBalancer` consists of three levels, where each level increasingly nuances the fairness analysis. 
     
@@ -19,8 +19,6 @@ class BiasBalancer:
     
     The third level includes several methods enabling further investigation into potential unfairness identified in level two. See `level_3 Documentation`_ for information about the specific analyses.
 
-    TODO: Should we write about how it is initialized or is args enough
-
     Args:
         data (DataFrame): DataFrame containing data used for evaluation
         y_name (str): Name of target variable
@@ -29,6 +27,15 @@ class BiasBalancer:
         a_name (str): Name of sensitive variable 
         w_fp (int or float): False positive error weight
         model_name (str): Name of the model or dataset used. Is used for plot titles. 
+
+    Examples: 
+        >>> from biasbalancer.balancer import BiasBalancer
+        >>> from biasbalancer.get_compas_data import get_compas_data 
+        >>> compas = get_compas_data(normalize_decile_scores = True)
+        >>> bb  = BiasBalancer(data = compas, y_name = "two_year_recid", y_hat_name = "pred", a_name = "race", r_name = "decile_score", w_fp = 0.9)
+        >>> bb.level_1()
+        >>> bb.level_2()
+        >>> bb.level_3(method = 'w_fp_influence')
     """
 
     def __init__(self, data, y_name, y_hat_name, a_name, r_name, w_fp, model_name=None, **kwargs):
@@ -94,7 +101,7 @@ class BiasBalancer:
         .. math::
             \\textit{WMR}_a = c(w_{fp})\\frac{w_{fp} FP_a + (1-w_{fp})FN_a}{n_a}
 
-        where :math:`FP_a` are the number of false positives in the group, :math:`FN_a` are the number of false negatives in the group and :math:`n_a` is the total number of observations in the group. :math:`w_{fp}\in [0,1]` is the false positive weight indicating how severe a false positive is compared to a false negative. Larger values of :math:`w_{fp}` emphazises larger severity of false positives. :math:`c(w_{fp})` is a normalization constant ensuring :math:`WMR \in [0,1]`. The normalization constant is computed as 
+        where :math:`FP_a` is the number of false positives in the group, :math:`FN_a` is the number of false negatives in the group and :math:`n_a` is the total number of observations in the group. :math:`w_{fp}\in [0,1]` is the false positive weight indicating how severe a false positive is compared to a false negative. Larger values of :math:`w_{fp}` emphazises larger severity of false positives. :math:`c(w_{fp})` is a normalization constant ensuring :math:`WMR \in [0,1]`. The normalization constant is computed as 
         
         .. math:: 
                 c(w_{FP}) = \min\left(\\frac{1}{w_{fp}}, \\frac{1}{1-w_{fp}}\\right).
@@ -104,14 +111,14 @@ class BiasBalancer:
         .. math:: 
             \\textit{WMQ}_a = \\frac{\\textit{WMR}_a - \\textit{WMR}_{min}}{\\textit{WMR}_{min}}\cdot100\%  \quad \\text{for $a \in A$}
 
-        By construction :math:`WMQ_{min} := \min_{a\in A} WMQ = 0`. Other groups will have a positive value of *WMQ* and a larger *WMQ* suggests disfavoring between the groups. 
+        A larger *WMQ* suggests disfavoring between the groups. 
 
         Args:
             plot (bool): If True, a plot is made visualizing which group has the largest *WMR*
             output_table (bool): If True, the results are returned in a dataframe
         
         Returns: 
-            DataFrame: Dataframe with columns ``WMR``, ``n``, ``WMR`` and ``WMQ``. The quantities are reported for each sensitive group. 
+            DataFrame: Dataframe with columns ``grp``, ``n``, ``WMR`` and ``WMQ``. The quantities are reported for each sensitive group. 
         """
 
         relative_wmr = self.get_relative_rates(self.WMR_rates)
@@ -134,7 +141,7 @@ class BiasBalancer:
 
         .. _level_2 Documentation:
         
-        The overview consists of three elements structured in a visualization and three data frames. It consists of absolute rates, relative rates and an unfairness barometer. 
+        The overview consists of three elements structured in a visualization and three data frames. The three elements are: Absolute rates, relative rates and an unfairness barometer. 
         
         The absolute rates visualized are 
         
@@ -143,15 +150,15 @@ class BiasBalancer:
         * False Discovery Rate :math:`\left(FDR=\\frac{FP}{PP}\\right)`
         * False Omission Rate :math:`\left(FDR=\\frac{FN}{PN}\\right)` 
 
-        where *FP* are false positives, *FN* are false negatives, *N* are negatives, *P* are positves, *PN* are predicted negatives and *PP* are predicted positives. The relative rates are computed for each group.
-
-        The relative rates for group :math:`a` are computed by
+        where *FP* are false positives, *FN* are false negatives, *N* are negatives, *P* are positives, *PN* are predicted negatives and *PP* are predicted positives. 
+        
+        The relative rates are computed for each group and rate. The relative rates for group :math:`a` are computed as
             
         .. math::
             RR_a(r) &= \\frac{r_{a} - r_{min}}{r_{min}}\cdot100\%, \n
             r_{min} &= \min_{a\in A} r_a,
 
-        which is computed for rates :math:`r \in \{\\textit{FPR},~\\textit{FNR},~\\textit{FDR},~\\textit{FOR},~\\textit{WMR}\}`. 
+        for rates :math:`r \in \{\\textit{FPR},~\\textit{FNR},~\\textit{FDR},~\\textit{FOR},~\\textit{WMR}\}`. 
 
         The unfairness barometer indicates the level of unfairness present in the predictions according to different fairness criteria. The fairness criteria are summarized in the overview table below. 
 
@@ -161,7 +168,7 @@ class BiasBalancer:
            :file: ../../references/overview_table.csv
            :header-rows: 1
 
-        The quantity depicted in the unfairness barometer is called the *mean maximum relative rate (MMRR)*. Informally, this is the maximum relative rate across sensitive subgroups, if the criterion only depends on one rate. If the criterion depends on several rates it shows the mean of the different rate components instead. Formally for fairness criterion :math:`f` this is computed by 
+        The quantity depicted in the unfairness barometer is called the *mean maximum relative rate (MMRR)*. Informally, this is the maximum relative rate across sensitive subgroups, if the criterion only depends on one rate. If the criterion depends on several rates it shows the mean of the different rate components instead. Formally, for fairness criterion :math:`f`, this is computed by 
 
         .. math::
             MMRR(f) = \\frac{1}{|R_{balanced}(f)|}\sum_{r\in R_{balanced}(f)} \max_{a \in A} RR_a(r),
@@ -239,7 +246,7 @@ class BiasBalancer:
         +-------------------+------------------------------------+-----------------------------------------+        
 
         Args:
-            method ({``w_fp_influence``, ``roc_curves``, ``calibration``, ``confusion_matrix``, ``independence_check``}): The method to use for further analysis
+            method ({'w_fp_influence', 'roc_curves', 'calibration', 'confusion_matrix', 'independence_check'}): The method to use for further analysis
             plot (bool): If True, a plot is made visualizing the results
             output_table (bool): If True, the results are returned in a dataframe
             **kwargs: Keyword arguments are passed onto the corresponding analysis and method, which is named get_`method`.
@@ -448,7 +455,7 @@ class BiasBalancer:
         """Calculate weighted misclassification rate (WMR) by group
 
         Args:
-            w_fp (int or float): False positive error weight. 
+            w_fp (int or float): False positive weight. 
         
         Returns: 
             DataFrame: Data frame with columns ``grp``, ``rate`` and ``rate_val``. The rate computed is WMR per group. 
@@ -551,7 +558,7 @@ class BiasBalancer:
         return roc
 
     def get_independence_check(self, plot=False, **kwargs):
-        """Get predicted positive rates and Confidence Intervals per 
+        """Get predicted positive rates and confidence intervals per 
         sensitive group
 
         Args:
@@ -635,7 +642,7 @@ class BiasBalancer:
         return calibration_df
 
     def get_w_fp_influence(self, plot=False, **kwargs):
-        """Investigate how w_fp influences WMQ or WMR
+        """Investigate how the false positive weight influences WMQ or WMR
         
         *WMR* is the weighted misclassification rate and *WMQ* is the weighted misclassification quotient. For explanations about WMR and WMQ see `level_1 Documentation`_. 
 

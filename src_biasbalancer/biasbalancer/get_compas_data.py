@@ -6,11 +6,11 @@ def get_compas_data(normalize_decile_scores=False):
     The function returns a pre-processed version of the COMPAS dataset used for the ProPublica article "Machine Bias" [ANGWIN2016]_. The dataset is pre-processed in the following way:
 
     * Subsetting to individuals with races African-American and Caucasian
-    * Exclude individuals with ``days_b_screening_arrest`` :math:`\leq` 30 and ``days_b_screening_arrest`` :math:`\geq` -30 because data quality is questionable
+    * Exclude individuals with ``days_b_screening_arrest`` :math:`>` 30 and ``days_b_screening_arrest`` :math:`<` -30 because data quality is questionable
     * Exclude individuals with ``screening_date`` > '2014-04-01' because these could not be followed for 2 years. 
         
     Args:
-        normalize_decile_scores (bool): If true, the decile scores are normalized to be within [0,1]
+        normalize_decile_scores (bool): If true, the decile scores are normalized to be within [0,1] by dividing original scores by 10. 
 
 
     Returns: 

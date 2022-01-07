@@ -9,16 +9,15 @@ from statsmodels.stats.proportion import proportion_confint
 ##############################################
 
 
-def flatten_list(t):
+def flatten_list(input_list):
     """Flattens a list of list
-    TODO: this is probably a list comprehension from stack overflow... should we make a link or rewrite it to not look exactly like: https://stackoverflow.com/questions/952914/how-to-make-a-flat-list-out-of-a-list-of-lists
     
     Args: 
-        t (list): list of lists 
+        input_list (list): list of lists 
     Returns: 
         list: Flattened list 
     """
-    flat_list = [item for sublist in t for item in sublist]
+    flat_list = [item for sub_list in input_list for item in sub_list]
     return flat_list
 
 
@@ -67,7 +66,7 @@ def cm_matrix_to_dict(cm_matrix):
     """Convert a 2x2 confusion matrix to named dict
 
     Args:
-        cm_matrix (array): Confusion in form [[TP, FN], [FN, TN]]
+        cm_matrix (array): Confusion matrix in form [[TP, FN], [FN, TN]]
     
     Returns: 
         dict: Dict with keys ``TP``, ``TN``, ``FN``, ``TN``.
