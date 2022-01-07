@@ -25,7 +25,7 @@ class BiasBalancer:
         y_hat_name (str): Name of binary output variable
         r_name (str): Name of variable containing scores (predicted probabilities) 
         a_name (str): Name of sensitive variable 
-        w_fp (int or float): False positive error weight
+        w_fp (int or float): False positive weight
         model_name (str): Name of the model or dataset used. Is used for plot titles. 
 
     Examples: 
