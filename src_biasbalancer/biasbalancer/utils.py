@@ -10,13 +10,22 @@ from statsmodels.stats.proportion import proportion_confint
 
 
 def flatten_list(t):
-    """Flattens a list of list"""
+    """Flattens a list of list
+    TODO: this is probably a list comprehension from stack overflow... should we make a link or rewrite it to not look exactly like: https://stackoverflow.com/questions/952914/how-to-make-a-flat-list-out-of-a-list-of-lists
+    
+    Args: 
+        t (list): list of lists 
+    Returns: 
+        list: Flattened list 
+    """
     flat_list = [item for sublist in t for item in sublist]
     return flat_list
 
 
 def cm_vals_to_matrix(TP, FN, FP, TN):
     """Converts values of TP, FN, FP and TN into a confusion matrix
+
+    Creates a confusion matrix with the elements [[TP, FN], [FP, TN]]. 
 
     Args:
         TP (int): True Positives
@@ -25,7 +34,7 @@ def cm_vals_to_matrix(TP, FN, FP, TN):
         TN (int): True Negatives
 
     Returns: 
-        Numpy array of shape (2,2) 
+        array: Confusion matrix as a Numpy array of shape (2,2). 
     """
     cm_matrix = np.array(
         [
@@ -43,7 +52,7 @@ def cm_dict_to_matrix(cm_dict):
         cm_dict (dict): Confusion dict with keys TP, FP, TN, FN
 
     Returns: 
-        Numpy array of shape (2,2) 
+        array: Confusion matrix as a Numpy array of shape (2,2).
     """
     cm_matrix = np.array(
         [
@@ -59,6 +68,9 @@ def cm_matrix_to_dict(cm_matrix):
 
     Args:
         cm_matrix (array): Confusion in form [[TP, FN], [FN, TN]]
+    
+    Returns: 
+        dict: Dict with keys ``TP``, ``TN``, ``FN``, ``TN``.
     """
     TN, FP, FN, TP = cm_matrix.ravel()
     cm_dict = {'TP': TP, 'FN': FN, 'FP': FP, 'TN': TN}
@@ -66,7 +78,15 @@ def cm_matrix_to_dict(cm_matrix):
 
 
 def flip_dataframe(df, new_colname='index'):
-    """Flips table such that first row becomes columns"""
+    """Flips table such that first row becomes columns
+    
+    Args: 
+        df (DataFrame): Data frame to be flipped.
+        new_colname (str): Name of new column. Defaults to 'index'.
+    
+    Returns: 
+        DataFrame: flipped data frame.
+    """
     colnames = [new_colname] + df.iloc[:, 0].tolist()
     df = df.T.reset_index()
     df.columns = colnames
@@ -75,15 +95,14 @@ def flip_dataframe(df, new_colname='index'):
 
 
 def value_counts_df(df, col_name):
-    """pd.value_counts() for dataframes
+    """Helper function to use pd.value_counts() for dataframes
 
     Args:
-        df (pd.DataFrame): Dataframe containing column to use value_counts on
+        df (DataFrame): Dataframe containing column to use value_counts on
         col_names (str): Name of column to count values for. Must be present in df. 
 
     Returns:
-        Dataframe with column names `col_name` and `n`.
-
+        DataFrame: Data frame with column names `col_name` and `n`.
     """
     if col_name not in df.columns:
         raise ValueError(
@@ -96,7 +115,14 @@ def value_counts_df(df, col_name):
 
 
 def label_case(snake_case):
-    "Replace underscore with spaces and capitalize first letter of string, but keep WMR and WMQ capitalized"
+    """Specialized helper function to replace underscore with spaces and capitalize first letter of string, but keep WMR and WMQ capitalized
+    
+    Args: 
+        snake_case (str): String written in snake case to be reformatted. 
+    
+    Returns: 
+        str: The reformatted string.
+    """
     label_case = (snake_case
                   .replace("_", ' ')
                   .capitalize()
@@ -106,12 +132,15 @@ def label_case(snake_case):
 
 
 def wilson_confint(n_successes, n, side):
-    """Calculate Wilson proportion CI
+    """Calculate Wilson proportion confidence interval at an :math:`\\alpha`` level of 5%.
 
     Args: 
         n_successes (int): Count
         n (int): Number of observations
-        side ({'lwr', 'upr'}): Return lower or upper side of interval
+        side ({'lwr', 'upr'}): Should the function return lower or upper side of interval?
+    
+    Returns: 
+        float: Upper or lower side of the confidence interval as requested by the input. 
     """
     conf = proportion_confint(
         count=n_successes,
@@ -132,8 +161,11 @@ def extract_cm_values(df, grp):
 
     Args: 
         df (Dataframe): confusion matrix as returned 
-                        by get_confusion_matrix() in BiasBalancer
-        grp (str): sensitive group name 
+                        by :meth:`Bias.Balancer.get_confusion_matrix()`
+        grp (str): name of sensitive group to retrieve matrix from 
+    
+    Returns: 
+        tuple: Tuple with elements *TP* (true positives), *FN* (false negatives)*FP* (false positives), *TN* (true negatives).
     """
     cm_data = df.query(f"a=='{grp}'").set_index('type_obs')
     TP = cm_data.at['TP', 'number_obs']
@@ -148,10 +180,11 @@ def one_hot_encode_mixed_data(X):
     """Perform one hot encoding on categorical variables
 
     Args:
-        X (dataframe): Dataframe to perform encoding on
+        X (dataframe): Dataframe to perform encoding on with both numerical and categorial variables
 
     Returns: 
-        Dataframe where all categorical variables are one hot encoded """
+        DataFrame: Data frame where all categorical variables are one hot encoded and numeric variables remain numeric
+    """
     # splitting into categorical and numerical columns
     X_cat = X.loc[:, (X.dtypes == 'object').values]
     X_num = X.drop(columns=X_cat.columns)
@@ -172,9 +205,15 @@ def one_hot_encode_mixed_data(X):
 ################################################
 #             lambda functions
 ################################################
-def N_pos(x): return np.count_nonzero(x)
-def N_neg(x): return len(x)-np.count_nonzero(x)
-def frac_pos(x): return (np.count_nonzero(x)/len(x))
-
-
-def frac_neg(x): return (len(x)-np.count_nonzero(x))/len(x)
+def N_pos(x):
+    """Helper function to use with pandas GroupBy. Calculates the number of positive elements"""
+    return np.count_nonzero(x)
+def N_neg(x):
+    """Helper function to use with pandas GroupBy. Calculates the number of negative elements"""
+    return len(x)-np.count_nonzero(x)
+def frac_pos(x): 
+    """Helper function to use with pandas GroupBy. Calculates the fraction of positive elements"""
+    return (np.count_nonzero(x)/len(x))
+def frac_neg(x): 
+    """Helper function to use with pandas GroupBy. Calculates the fraction of negative elements"""
+    return (len(x)-np.count_nonzero(x))/len(x)
