@@ -14,7 +14,7 @@ def get_compas_data(normalize_decile_scores=False):
 
 
     Returns: 
-        data frame with preprocessed compas data. 
+        DataFrame: data frame with preprocessed compas data. 
         Columns of the dataframe are ``id``, ``sex``, ``age``, ``age_cat``, ``race``, ``decile_score``, ``score_text``, ``two_year_recid``
 
     .. [ANGWIN2016] Angwin, J., Larson, J., Mattu, S., and Kirchner, L. (2016). Machine Bias. propublica.org.
