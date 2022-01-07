@@ -658,7 +658,7 @@ def get_alpha_weights(w_fp):
         w_fp (int or float): False positive weight. Must be in interval [0,1].
 
     Returns: 
-        Dict: dict with weights for each rate. Rate names are keys and weights are values. 
+        dict: Dict with weights for each rate. Rate names are keys and weights are values. 
     """
     c = 0.2  # Factor added to make colors stronger
     if w_fp == 0.5:
