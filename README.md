@@ -2,7 +2,7 @@
 *Write introduction here*
 
 ## biasbalancer 
-*Write about what BiasBalancer can do here*. The documentation of biasbalancer is found [here](https://elisabethzinck.github.io/Fairness-oriented-interpretability-of-predictive-algorithms/html/index.html). The tutorial notebook (located in [`src_biasbalancer/biasbalancer_tutorial.ipynb`](https://github.com/elisabethzinck/Fairness-oriented-interpretability-of-predictive-algorithms/blob/main/src_biasbalancer/biasbalancer_tutorial.ipynb)) gives a brief introduction to biasbalancer and showcases the use of the toolkit using the classical COMPAS dataset. 
+*Write about what BiasBalancer can do here*. The documentation of biasbalancer is found [here](https://elisabethzinck.github.io/Fairness-oriented-interpretability-of-predictive-algorithms/html/biasbalancer.html). The tutorial notebook (located in [`src_biasbalancer/biasbalancer_tutorial.ipynb`](https://github.com/elisabethzinck/Fairness-oriented-interpretability-of-predictive-algorithms/blob/main/src_biasbalancer/biasbalancer_tutorial.ipynb)) gives a brief introduction to biasbalancer and showcases the use of the toolkit using the classical COMPAS dataset. 
 
 ### Installation
 All source code for biasbalancer is found in the folder `src_biasbalancer`. Biasbalancer can be installed as a package in the following way: 
