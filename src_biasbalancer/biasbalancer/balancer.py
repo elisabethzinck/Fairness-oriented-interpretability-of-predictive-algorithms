@@ -15,10 +15,10 @@ def calculate_WMR(cm, grp, w_fp):
     Args:
         cm (dataframe): confusion matrix as returned 
                         by get_confusion_matrix() in BiasBalancer
-        w_fp (int or float): False positive error weight. Must be in interval [0,1].
+        w_fp (int or float): False positive weight. Must be in interval [0,1].
 
     Returns: 
-        wmr (float): Weighted misclassification rate
+        float: Weighted misclassification rate
     """
 
     # Input check of w_fp
@@ -133,7 +133,7 @@ class BiasBalancer:
             output_table (bool): If True, the results are returned in a dataframe
         
         Returns: 
-            pd.DataFrame: Dataframe with columns ``WMR``, ``n``, ``WMR`` and ``WMQ``. The quantities are reported for each sensitive group. 
+            DataFrame: Dataframe with columns ``WMR``, ``n``, ``WMR`` and ``WMQ``. The quantities are reported for each sensitive group. 
         """
 
         relative_wmr = self.get_relative_rates(self.WMR_rates)
@@ -196,11 +196,11 @@ class BiasBalancer:
         Returns: 
             tuple: Tuple containing dataframes:
 
-                **rates** (DataFrame): Data frame with columns ``rate``, ``grp``, ``rate_val``, ``rate_val_lwr``, ``rate_val_upr``. The rates are FPR, FNR, FDR, FOR for each sensitive group including 95% Wilson Confidence intervals.
+                **rates** (*DataFrame*): Data frame with columns ``rate``, ``grp``, ``rate_val``, ``rate_val_lwr``, ``rate_val_upr``. The rates are FPR, FNR, FDR, FOR for each sensitive group including 95% Wilson Confidence intervals.
                 
-                **relative_rates** (DataFrame): Data frame with columns ``rate``, ``grp``, ``rate_val``, ``relative_rate``.
+                **relative_rates** (*DataFrame*): Data frame with columns ``rate``, ``grp``, ``rate_val``, ``relative_rate``.
                 
-                **barometer** (DataFrame): Data frame with values to create the unfairness barometer. Columns are ``criterion``, ``relative_rate``, ``discriminated_grp``. 
+                **barometer** (*DataFrame*): Data frame with values to create the unfairness barometer. Columns are ``criterion``, ``relative_rate``, ``discriminated_grp``. 
         
         .. [HARDT2016] Hardt, M., Price, E., and Srebro, N. (2016).
            Equality of opportunity in supervised learning.
@@ -226,7 +226,11 @@ class BiasBalancer:
             return rates.query("rate != 'WMR'"), relative_rates, barometer
 
     def level_3(self, method, plot=True, output_table=True, **kwargs):
-        """To do: Documentation here
+        """Third level of BiasBalancer provides several methods enabling further investigation of the fairness analysis results from level 2. 
+
+        The function includes the methods ``w_fp_influence``, ``roc_curves``, ``calibration``, ``confusion_matrix``, and ``independence_check``.
+
+        The table below summarizes when to use each method and for what purpose: 
 
         +-------------------+------------------------------------+-----------------------------------------+
         |Method	            |When…                               |What                                     |
@@ -253,11 +257,13 @@ class BiasBalancer:
         +-------------------+------------------------------------+-----------------------------------------+        
 
         Args:
-            method ({'w_fp_influence', 'roc_curves', 'calibration', 'confusion_matrix', 'independence_check'}): The method to use for further analysis
+            method ({``w_fp_influence``, ``roc_curves``, ``calibration``, ``confusion_matrix``, ``independence_check``}): The method to use for further analysis
             plot (bool): If True, a plot is made visualizing the results
             output_table (bool): If True, the results are returned in a dataframe
-            **kwargs: Keyword arguments are passed onto the corresponding analysis and method, which is named get_`method`. 
+            **kwargs: Keyword arguments are passed onto the corresponding analysis and method, which is named get_`method`.
 
+        Returns: 
+            DataFrame: Data frame of which the columns depend on the method chosen. The data returned is the data used for the visualization that is created if ``plot=True``.
         """
 
         method_options = [
@@ -377,7 +383,7 @@ class BiasBalancer:
 
     def get_rates(self, plot=False):
         """Calculate group wise rates.
-        The gorupwise rates computed are FPR, FNR, FDR and FOR. These are listed in `level_2 Documentation`_. 
+        The groupwise rates computed are FPR, FNR, FDR and FOR. These are listed in `level_2 Documentation`_. 
 
         Args: 
             plot (bool): If True, the rates are visualized. 
@@ -484,7 +490,7 @@ class BiasBalancer:
             plot (bool): If True, the result is visualized. 
         
         Returns: 
-            Data frame with columns ``criterion``, ``relative_rate``, ``discriminated_grp``. 
+            DataFrame: Data frame with columns ``criterion``, ``relative_rate``, ``discriminated_grp``. 
         """
 
         # Decide unfavorable outcome used for independence measure
