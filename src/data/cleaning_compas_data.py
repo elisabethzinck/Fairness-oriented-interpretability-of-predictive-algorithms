@@ -9,9 +9,8 @@ if __name__ == "__main__":
 
     filter_b_screening = True
 
-    # filter away the b_screening_date >30 or <-30? 
     if filter_b_screening: 
-        # We need to filter out rows where **days_b_screening_arrest** is over 30 or under -30
+        # We need only choose the rows where **days_b_screening_arrest** is between -30 and 30
         # See article \cite{Larson2016} for info
         (compas.query
             ("days_b_screening_arrest<=30 and days_b_screening_arrest>=-30",
