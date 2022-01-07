@@ -89,12 +89,11 @@
 <dt class="sig sig-object py" id="biasbalancer.balancer.BiasBalancer">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">biasbalancer.balancer.</span></span><span class="sig-name descname"><span class="pre">BiasBalancer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_hat_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">a_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">w_fp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.balancer.BiasBalancer" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p><a class="reference internal" href="#biasbalancer.balancer.BiasBalancer" title="biasbalancer.balancer.BiasBalancer"><code class="xref py py-class docutils literal notranslate"><span class="pre">BiasBalancer</span></code></a> is a toolkit for fairness analysis of a binary classifier.  It facilitates  nuanced  fairness  analyses  taking  several  fairness criteria  into  account  enabling  the  user  to  get  a  fuller  overview  of  the  potential  interactions between the criteria. The fairness criteria handled by <a class="reference internal" href="#biasbalancer.balancer.BiasBalancer" title="biasbalancer.balancer.BiasBalancer"><code class="xref py py-class docutils literal notranslate"><span class="pre">BiasBalancer</span></code></a> is documented in the <a class="reference internal" href="#overview-table-of-fairness-criteria">overview table of fairness criteria</a></p>
+<p><a class="reference internal" href="#biasbalancer.balancer.BiasBalancer" title="biasbalancer.balancer.BiasBalancer"><code class="xref py py-class docutils literal notranslate"><span class="pre">BiasBalancer</span></code></a> is a toolkit for fairness analysis of a binary classifier.  It facilitates  nuanced  fairness  analyses  taking  several  fairness criteria  into  account  enabling  the  user  to  get  a  fuller  overview  of  the  potential  interactions between fairness criteria. The fairness criteria included in <a class="reference internal" href="#biasbalancer.balancer.BiasBalancer" title="biasbalancer.balancer.BiasBalancer"><code class="xref py py-class docutils literal notranslate"><span class="pre">BiasBalancer</span></code></a> are documented in the <a class="reference internal" href="#overview-table-of-fairness-criteria">overview table of fairness criteria</a></p>
 <p><a class="reference internal" href="#biasbalancer.balancer.BiasBalancer" title="biasbalancer.balancer.BiasBalancer"><code class="xref py py-class docutils literal notranslate"><span class="pre">BiasBalancer</span></code></a> consists of three levels, where each level increasingly nuances the fairness analysis.</p>
 <p>The first level calculates a unified assessment of unfairness taking the severity of false positives relative to false negatives into account. For explanation of the computed quantity see <a class="reference internal" href="#level-1-documentation">level_1 Documentation</a>.</p>
 <p>The second level gives a comprehensive overview of disparities across sensitive groups including a barometer quantifying violations of a number of fairness criteria. See <a class="reference internal" href="#level-2-documentation">level_2 Documentation</a>.</p>
 <p>The third level includes several methods enabling further investigation into potential unfairness identified in level two. See <a class="reference internal" href="#level-3-documentation">level_3 Documentation</a> for information about the specific analyses.</p>
-<p>TODO: Should we write about how it is initialized or is args enough</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -108,6 +107,16 @@
 </ul>
 </dd>
 </dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biasbalancer.balancer</span> <span class="kn">import</span> <span class="n">BiasBalancer</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biasbalancer.get_compas_data</span> <span class="kn">import</span> <span class="n">get_compas_data</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">compas</span> <span class="o">=</span> <span class="n">get_compas_data</span><span class="p">(</span><span class="n">normalize_decile_scores</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">bb</span>  <span class="o">=</span> <span class="n">BiasBalancer</span><span class="p">(</span><span class="n">data</span> <span class="o">=</span> <span class="n">compas</span><span class="p">,</span> <span class="n">y_name</span> <span class="o">=</span> <span class="s2">&quot;two_year_recid&quot;</span><span class="p">,</span> <span class="n">y_hat_name</span> <span class="o">=</span> <span class="s2">&quot;pred&quot;</span><span class="p">,</span> <span class="n">a_name</span> <span class="o">=</span> <span class="s2">&quot;race&quot;</span><span class="p">,</span> <span class="n">r_name</span> <span class="o">=</span> <span class="s2">&quot;decile_score&quot;</span><span class="p">,</span> <span class="n">w_fp</span> <span class="o">=</span> <span class="mf">0.9</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">bb</span><span class="o">.</span><span class="n">level_1</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">bb</span><span class="o">.</span><span class="n">level_2</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">bb</span><span class="o">.</span><span class="n">level_3</span><span class="p">(</span><span class="n">method</span> <span class="o">=</span> <span class="s1">&#39;w_fp_influence&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
 <dl class="py method">
 <dt class="sig sig-object py" id="biasbalancer.balancer.BiasBalancer.level_1">
 <span class="sig-name descname"><span class="pre">level_1</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">plot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_table</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.balancer.BiasBalancer.level_1" title="Permalink to this definition"></a></dt>
@@ -115,13 +124,13 @@
 <p id="level-1-documentation"><em>WMR</em> is the <em>weighted misclassification rate</em> and can be calculated for each sensitive group. For group <span class="math notranslate nohighlight">\(a\)</span> the <span class="math notranslate nohighlight">\(\textit{WMR}_a\)</span> is computed as</p>
 <div class="math notranslate nohighlight">
 \[\textit{WMR}_a = c(w_{fp})\frac{w_{fp} FP_a + (1-w_{fp})FN_a}{n_a}\]</div>
-<p>where <span class="math notranslate nohighlight">\(FP_a\)</span> are the number of false positives in the group, <span class="math notranslate nohighlight">\(FN_a\)</span> are the number of false negatives in the group and <span class="math notranslate nohighlight">\(n_a\)</span> is the total number of observations in the group. <span class="math notranslate nohighlight">\(w_{fp}\in [0,1]\)</span> is the false positive weight indicating how severe a false positive is compared to a false negative. Larger values of <span class="math notranslate nohighlight">\(w_{fp}\)</span> emphazises larger severity of false positives. <span class="math notranslate nohighlight">\(c(w_{fp})\)</span> is a normalization constant ensuring <span class="math notranslate nohighlight">\(WMR \in [0,1]\)</span>. The normalization constant is computed as</p>
+<p>where <span class="math notranslate nohighlight">\(FP_a\)</span> is the number of false positives in the group, <span class="math notranslate nohighlight">\(FN_a\)</span> is the number of false negatives in the group and <span class="math notranslate nohighlight">\(n_a\)</span> is the total number of observations in the group. <span class="math notranslate nohighlight">\(w_{fp}\in [0,1]\)</span> is the false positive weight indicating how severe a false positive is compared to a false negative. Larger values of <span class="math notranslate nohighlight">\(w_{fp}\)</span> emphazises larger severity of false positives. <span class="math notranslate nohighlight">\(c(w_{fp})\)</span> is a normalization constant ensuring <span class="math notranslate nohighlight">\(WMR \in [0,1]\)</span>. The normalization constant is computed as</p>
 <div class="math notranslate nohighlight">
 \[c(w_{FP}) = \min\left(\frac{1}{w_{fp}}, \frac{1}{1-w_{fp}}\right).\]</div>
 <p><em>WMQ</em> is the <em>weighted misclassification quotient</em>. Define <span class="math notranslate nohighlight">\(WMR_{min} := \min_{a\in A} WMR\)</span> then <em>WMQ</em> for group <span class="math notranslate nohighlight">\(a\)</span> is computed as</p>
 <div class="math notranslate nohighlight">
 \[\textit{WMQ}_a = \frac{\textit{WMR}_a - \textit{WMR}_{min}}{\textit{WMR}_{min}}\cdot100\%  \quad \text{for $a \in A$}\]</div>
-<p>By construction <span class="math notranslate nohighlight">\(WMQ_{min} := \min_{a\in A} WMQ = 0\)</span>. Other groups will have a positive value of <em>WMQ</em> and a larger <em>WMQ</em> suggests disfavoring between the groups.</p>
+<p>A larger <em>WMQ</em> suggests disfavoring between the groups.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -130,7 +139,7 @@
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p>Dataframe with columns <code class="docutils literal notranslate"><span class="pre">WMR</span></code>, <code class="docutils literal notranslate"><span class="pre">n</span></code>, <code class="docutils literal notranslate"><span class="pre">WMR</span></code> and <code class="docutils literal notranslate"><span class="pre">WMQ</span></code>. The quantities are reported for each sensitive group.</p>
+<dd class="field-even"><p>Dataframe with columns <code class="docutils literal notranslate"><span class="pre">grp</span></code>, <code class="docutils literal notranslate"><span class="pre">n</span></code>, <code class="docutils literal notranslate"><span class="pre">WMR</span></code> and <code class="docutils literal notranslate"><span class="pre">WMQ</span></code>. The quantities are reported for each sensitive group.</p>
 </dd>
 <dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p>DataFrame</p>
@@ -142,7 +151,7 @@
 <dt class="sig sig-object py" id="biasbalancer.balancer.BiasBalancer.level_2">
 <span class="sig-name descname"><span class="pre">level_2</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">plot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_table</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">suptitle</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.balancer.BiasBalancer.level_2" title="Permalink to this definition"></a></dt>
 <dd><p>Second level of BiasBalancer creates a visual overview of the unfairness in the predictions.</p>
-<p id="level-2-documentation">The overview consists of three elements structured in a visualization and three data frames. It consists of absolute rates, relative rates and an unfairness barometer.</p>
+<p id="level-2-documentation">The overview consists of three elements structured in a visualization and three data frames. The three elements are: Absolute rates, relative rates and an unfairness barometer.</p>
 <p>The absolute rates visualized are</p>
 <ul class="simple">
 <li><p>False Positive Rate <span class="math notranslate nohighlight">\(\left(FPR=\frac{FP}{N}\right)\)</span></p></li>
@@ -150,11 +159,11 @@
 <li><p>False Discovery Rate <span class="math notranslate nohighlight">\(\left(FDR=\frac{FP}{PP}\right)\)</span></p></li>
 <li><p>False Omission Rate <span class="math notranslate nohighlight">\(\left(FDR=\frac{FN}{PN}\right)\)</span></p></li>
 </ul>
-<p>where <em>FP</em> are false positives, <em>FN</em> are false negatives, <em>N</em> are negatives, <em>P</em> are positves, <em>PN</em> are predicted negatives and <em>PP</em> are predicted positives. The relative rates are computed for each group.</p>
-<p>The relative rates for group <span class="math notranslate nohighlight">\(a\)</span> are computed by</p>
+<p>where <em>FP</em> are false positives, <em>FN</em> are false negatives, <em>N</em> are negatives, <em>P</em> are positives, <em>PN</em> are predicted negatives and <em>PP</em> are predicted positives.</p>
+<p>The relative rates are computed for each group and rate. The relative rates for group <span class="math notranslate nohighlight">\(a\)</span> are computed as</p>
 <div class="math notranslate nohighlight">
 \[ \begin{align}\begin{aligned}RR_a(r) &amp;= \frac{r_{a} - r_{min}}{r_{min}}\cdot100\%,\\r_{min} &amp;= \min_{a\in A} r_a,\end{aligned}\end{align} \]</div>
-<p>which is computed for rates <span class="math notranslate nohighlight">\(r \in \{\textit{FPR},~\textit{FNR},~\textit{FDR},~\textit{FOR},~\textit{WMR}\}\)</span>.</p>
+<p>for rates <span class="math notranslate nohighlight">\(r \in \{\textit{FPR},~\textit{FNR},~\textit{FDR},~\textit{FOR},~\textit{WMR}\}\)</span>.</p>
 <p>The unfairness barometer indicates the level of unfairness present in the predictions according to different fairness criteria. The fairness criteria are summarized in the overview table below.</p>
 <span id="overview-table-of-fairness-criteria"></span><table class="docutils align-default" id="id10">
 <caption><span class="caption-text">Overview table of Fairness Criteria</span><a class="headerlink" href="#id10" title="Permalink to this table"></a></caption>
@@ -204,7 +213,7 @@
 </tr>
 </tbody>
 </table>
-<p>The quantity depicted in the unfairness barometer is called the <em>mean maximum relative rate (MMRR)</em>. Informally, this is the maximum relative rate across sensitive subgroups, if the criterion only depends on one rate. If the criterion depends on several rates it shows the mean of the different rate components instead. Formally for fairness criterion <span class="math notranslate nohighlight">\(f\)</span> this is computed by</p>
+<p>The quantity depicted in the unfairness barometer is called the <em>mean maximum relative rate (MMRR)</em>. Informally, this is the maximum relative rate across sensitive subgroups, if the criterion only depends on one rate. If the criterion depends on several rates it shows the mean of the different rate components instead. Formally, for fairness criterion <span class="math notranslate nohighlight">\(f\)</span>, this is computed by</p>
 <div class="math notranslate nohighlight">
 \[MMRR(f) = \frac{1}{|R_{balanced}(f)|}\sum_{r\in R_{balanced}(f)} \max_{a \in A} RR_a(r),\]</div>
 <p>where <span class="math notranslate nohighlight">\(|R_{balanced}(f)|\)</span> is the cardinality of the set of rates affecting the fairness criterion <span class="math notranslate nohighlight">\(f\)</span>. This is e.g. 1 for <em>Equal Opportunity</em> and 2 for <em>Separation</em>. Which criterion depends on what rates can also be found in the overview table above.</p>
@@ -299,7 +308,7 @@ Fairness  definitions  explained.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>method</strong> ({<code class="docutils literal notranslate"><span class="pre">w_fp_influence</span></code>, <code class="docutils literal notranslate"><span class="pre">roc_curves</span></code>, <code class="docutils literal notranslate"><span class="pre">calibration</span></code>, <code class="docutils literal notranslate"><span class="pre">confusion_matrix</span></code>, <code class="docutils literal notranslate"><span class="pre">independence_check</span></code>}) – The method to use for further analysis</p></li>
+<li><p><strong>method</strong> (<em>{'w_fp_influence'</em><em>, </em><em>'roc_curves'</em><em>, </em><em>'calibration'</em><em>, </em><em>'confusion_matrix'</em><em>, </em><em>'independence_check'}</em>) – The method to use for further analysis</p></li>
 <li><p><strong>plot</strong> (<em>bool</em>) – If True, a plot is made visualizing the results</p></li>
 <li><p><strong>output_table</strong> (<em>bool</em>) – If True, the results are returned in a dataframe</p></li>
 <li><p><strong>**kwargs</strong> – Keyword arguments are passed onto the corresponding analysis and method, which is named get_`method`.</p></li>
@@ -379,7 +388,7 @@ and minimum rate.</p>
 <dd><p>Calculate weighted misclassification rate (WMR) by group</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>w_fp</strong> (<em>int</em><em> or </em><em>float</em>) – False positive error weight.</p>
+<dd class="field-odd"><p><strong>w_fp</strong> (<em>int</em><em> or </em><em>float</em>) – False positive weight.</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>Data frame with columns <code class="docutils literal notranslate"><span class="pre">grp</span></code>, <code class="docutils literal notranslate"><span class="pre">rate</span></code> and <code class="docutils literal notranslate"><span class="pre">rate_val</span></code>. The rate computed is WMR per group.</p>
@@ -431,7 +440,7 @@ and minimum rate.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="biasbalancer.balancer.BiasBalancer.get_independence_check">
 <span class="sig-name descname"><span class="pre">get_independence_check</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">plot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.balancer.BiasBalancer.get_independence_check" title="Permalink to this definition"></a></dt>
-<dd><p>Get predicted positive rates and Confidence Intervals per
+<dd><p>Get predicted positive rates and confidence intervals per
 sensitive group</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -472,7 +481,7 @@ sensitive group</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="biasbalancer.balancer.BiasBalancer.get_w_fp_influence">
 <span class="sig-name descname"><span class="pre">get_w_fp_influence</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">plot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.balancer.BiasBalancer.get_w_fp_influence" title="Permalink to this definition"></a></dt>
-<dd><p>Investigate how w_fp influences WMQ or WMR</p>
+<dd><p>Investigate how the false positive weight influences WMQ or WMR</p>
 <p><em>WMR</em> is the weighted misclassification rate and <em>WMQ</em> is the weighted misclassification quotient. For explanations about WMR and WMQ see <a class="reference internal" href="#level-1-documentation">level_1 Documentation</a>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -523,12 +532,12 @@ by <a class="reference internal" href="#biasbalancer.balancer.BiasBalancer.get_c
 <p>The function returns a pre-processed version of the COMPAS dataset used for the ProPublica article “Machine Bias” <a class="reference internal" href="#angwin2016" id="id9"><span>[ANGWIN2016]</span></a>. The dataset is pre-processed in the following way:</p>
 <ul class="simple">
 <li><p>Subsetting to individuals with races African-American and Caucasian</p></li>
-<li><p>Exclude individuals with <code class="docutils literal notranslate"><span class="pre">days_b_screening_arrest</span></code> <span class="math notranslate nohighlight">\(\leq\)</span> 30 and <code class="docutils literal notranslate"><span class="pre">days_b_screening_arrest</span></code> <span class="math notranslate nohighlight">\(\geq\)</span> -30 because data quality is questionable</p></li>
+<li><p>Exclude individuals with <code class="docutils literal notranslate"><span class="pre">days_b_screening_arrest</span></code> <span class="math notranslate nohighlight">\(&gt;\)</span> 30 and <code class="docutils literal notranslate"><span class="pre">days_b_screening_arrest</span></code> <span class="math notranslate nohighlight">\(&lt;\)</span> -30 because data quality is questionable</p></li>
 <li><p>Exclude individuals with <code class="docutils literal notranslate"><span class="pre">screening_date</span></code> &gt; ‘2014-04-01’ because these could not be followed for 2 years.</p></li>
 </ul>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>normalize_decile_scores</strong> (<em>bool</em>) – If true, the decile scores are normalized to be within [0,1]</p>
+<dd class="field-odd"><p><strong>normalize_decile_scores</strong> (<em>bool</em>) – If true, the decile scores are normalized to be within [0,1] by dividing original scores by 10.</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>data frame with preprocessed compas data.
@@ -820,12 +829,11 @@ Each item in series is a list.</p></li>
 <span id="biasbalancer-utils-module"></span><h2>biasbalancer.utils module<a class="headerlink" href="#module-biasbalancer.utils" title="Permalink to this headline"></a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="biasbalancer.utils.flatten_list">
-<span class="sig-prename descclassname"><span class="pre">biasbalancer.utils.</span></span><span class="sig-name descname"><span class="pre">flatten_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.utils.flatten_list" title="Permalink to this definition"></a></dt>
-<dd><p>Flattens a list of list
-TODO: this is probably a list comprehension from stack overflow… should we make a link or rewrite it to not look exactly like: <a class="reference external" href="https://stackoverflow.com/questions/952914/how-to-make-a-flat-list-out-of-a-list-of-lists">https://stackoverflow.com/questions/952914/how-to-make-a-flat-list-out-of-a-list-of-lists</a></p>
+<span class="sig-prename descclassname"><span class="pre">biasbalancer.utils.</span></span><span class="sig-name descname"><span class="pre">flatten_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_list</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.utils.flatten_list" title="Permalink to this definition"></a></dt>
+<dd><p>Flattens a list of list</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>t</strong> (<em>list</em>) – list of lists</p>
+<dd class="field-odd"><p><strong>input_list</strong> (<em>list</em>) – list of lists</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>Flattened list</p>
@@ -882,7 +890,7 @@ TODO: this is probably a list comprehension from stack overflow… should we mak
 <dd><p>Convert a 2x2 confusion matrix to named dict</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>cm_matrix</strong> (<em>array</em>) – Confusion in form [[TP, FN], [FN, TN]]</p>
+<dd class="field-odd"><p><strong>cm_matrix</strong> (<em>array</em>) – Confusion matrix in form [[TP, FN], [FN, TN]]</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>Dict with keys <code class="docutils literal notranslate"><span class="pre">TP</span></code>, <code class="docutils literal notranslate"><span class="pre">TN</span></code>, <code class="docutils literal notranslate"><span class="pre">FN</span></code>, <code class="docutils literal notranslate"><span class="pre">TN</span></code>.</p>
