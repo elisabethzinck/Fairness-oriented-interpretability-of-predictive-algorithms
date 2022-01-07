@@ -64,7 +64,7 @@ class BiasBalancerPlots():
         """ Visualize the maximum gap in WMR by text
 
         Args:
-            l1_data (DataFrame): data frame with data returned from :meth:`BiasBalancer.level_1()`
+            l1_data (DataFrame): data frame with data returned from :meth:`biasbalancer.balancer.BiasBalancer.level_1()`
             ax (matplotlib axis): Axis to plot on. Optional. 
         """
 
@@ -142,10 +142,10 @@ class BiasBalancerPlots():
         """Create level 2 plot
 
         Args: 
-            rates (DataFrame): DataFrame as returned by :meth:`BiasBalancer.get_rates()`
-            relative_rates (DataFrame): DataFrame as returned by :meth:`BiasBalancer.get_relative_rates()`
-            barometer (DataFrame): DataFrame as returned by :meth:`BiasBalancer.get_fairness_barometer()`
-            suptitle (bool): If True, the :attr:`BiasBalancer.model_name` is used as suptitle. Defaults to False. 
+            rates (DataFrame): DataFrame as returned by :meth:`biasbalancer.balancer.BiasBalancer.get_rates()`
+            relative_rates (DataFrame): DataFrame as returned by :meth:`biasbalancer.balancer.BiasBalancer.get_relative_rates()`
+            barometer (DataFrame): DataFrame as returned by :meth:`biasbalancer.balancer.BiasBalancer.get_fairness_barometer()`
+            suptitle (bool): If True, the :attr:`biasbalancer.balancer.BiasBalancer.model_name` is used as suptitle. Defaults to False. 
 
         """
         gs = GridSpec(nrows=10, ncols=3)
@@ -170,7 +170,7 @@ class BiasBalancerPlots():
         """Plot FPR, FNR, FDR, FOR for each group including 95% Wilson confidence intervals. 
 
         Args: 
-            rates (DataFrame): As returned by :meth:`BiasBalancer.get_rates()`
+            rates (DataFrame): As returned by :meth:`biasbalancer.balancer.BiasBalancer.get_rates()`
             ax (matplotlib axis): Axis to be plotted on. Optional. 
         """
 
@@ -219,7 +219,7 @@ class BiasBalancerPlots():
         """Plot the rate ratio for each sensitive groups
 
         Args:
-            relative_rates (DataFrame): DataFrame as returned by :meth:`BiasBalancer.get_relative_rates()`
+            relative_rates (DataFrame): DataFrame as returned by :meth:`biasbalancer.balancer.BiasBalancer.get_relative_rates()`
             ax (matplotlib axis): Axis to plot on. Optional.  
             l2_plot (bool): If True, format plot specifically for second level visualization.
         """
@@ -275,7 +275,7 @@ class BiasBalancerPlots():
         """Plot fairness barometer
 
         Args: 
-            fairness_barometer (DataFrame): As returned by :meth:`BiasBalancer.get_fairness_barometer()`
+            fairness_barometer (DataFrame): As returned by :meth:`biasbalancer.balancer.BiasBalancer.get_fairness_barometer()`
             ax (matplotlib axis): Axis to plot on. Optional. 
             """
         # To do: Make this more readable
@@ -330,7 +330,7 @@ class BiasBalancerPlots():
         """ Plots confusion matrix by sensitive group
 
         Args:
-            cm (dataframe): Confusion matrix as returned by balancer.get_confusion_matrix()
+            cm (dataframe): Confusion matrix as returned by :meth:`biasbalancer.balancer.BiasBalancer.get_confusion_matrix()`
             cm_print_n (bool): If True, the number of observations is shown in each cell. Defaults to False. 
         """
         n_grps = len(self.sens_grps)
@@ -541,7 +541,7 @@ class BiasBalancerPlots():
         sensitive group including a Wilson 95% Confidence interval. 
 
         Args:
-            df (Dataframe): As returned by :meth:`BiasBalancer.get_independence_check()` 
+            df (Dataframe): As returned by :meth:`biasbalancer.balancer.BiasBalancer.get_independence_check()` 
             ax (matplotlib axis): Axis to plot on. If None, a new axis is created. 
             orientation ({'h', 'v'}): Orientation of plot. Defaults to horizontal ('h'). 
         """
@@ -602,7 +602,7 @@ class BiasBalancerPlots():
         """Plot calibration by sensitive groups
 
         Args:
-            calibration_df (DataFrame): As returned by :meth:`BiasBalancer.get_calibration()`
+            calibration_df (DataFrame): As returned by :meth:`biasbalancer.balancer.BiasBalancer.get_calibration()`
             ax (matplotlib axis): Axes object to plot on. Optional. 
         """
 

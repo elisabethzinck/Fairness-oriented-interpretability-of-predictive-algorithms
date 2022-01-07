@@ -14,7 +14,7 @@ def calculate_WMR(cm, grp, w_fp):
 
     Args:
         cm (dataframe): confusion matrix as returned 
-                        by get_confusion_matrix() in BiasBalancer
+                        by :meth:`BiasBalancer.get_confusion_matrix()` in BiasBalancer
         w_fp (int or float): False positive weight. Must be in interval [0,1].
 
     Returns: 
@@ -41,10 +41,20 @@ def calculate_WMR(cm, grp, w_fp):
 
 
 class BiasBalancer:
-    """To do: More extensive documentation
+    """:class:`BiasBalancer` is a toolkit for fairness analysis of a binary classifier.  It facilitates  nuanced  fairness  analyses  taking  several  fairness criteria  into  account  enabling  the  user  to  get  a  fuller  overview  of  the  potential  interactions between the criteria. The fairness criteria handled by :class:`BiasBalancer` is documented in the `overview table of fairness criteria`_
+
+    :class:`BiasBalancer` consists of three levels, where each level increasingly nuances the fairness analysis. 
+    
+    The first level calculates a unified assessment of unfairness taking the severity of false positives relative to false negatives into account. For explanation of the computed quantity see `level_1 Documentation`_.
+      
+    The second level gives a comprehensive overview of disparities across sensitive groups including a barometer quantifying violations of a number of fairness criteria. See `level_2 Documentation`_.
+    
+    The third level includes several methods enabling further investigation into potential unfairness identified in level two. See `level_3 Documentation`_ for information about the specific analyses.
+
+    TODO: Should we write about how it is initialized or is args enough
 
     Args:
-        data (pd.DataFrame): DataFrame containing data used for evaluation
+        data (DataFrame): DataFrame containing data used for evaluation
         y_name (str): Name of target variable
         y_hat_name (str): Name of binary output variable
         r_name (str): Name of variable containing scores (predicted probabilities) 
@@ -177,6 +187,8 @@ class BiasBalancer:
 
         The unfairness barometer indicates the level of unfairness present in the predictions according to different fairness criteria. The fairness criteria are summarized in the overview table below. 
 
+        .. _overview table of fairness criteria:
+
         .. csv-table:: Overview table of Fairness Criteria
            :file: ../../references/overview_table.csv
            :header-rows: 1
@@ -227,6 +239,8 @@ class BiasBalancer:
 
     def level_3(self, method, plot=True, output_table=True, **kwargs):
         """Third level of BiasBalancer provides several methods enabling further investigation of the fairness analysis results from level 2. 
+
+        .. _level_3 Documentation:
 
         The function includes the methods ``w_fp_influence``, ``roc_curves``, ``calibration``, ``confusion_matrix``, and ``independence_check``.
 
