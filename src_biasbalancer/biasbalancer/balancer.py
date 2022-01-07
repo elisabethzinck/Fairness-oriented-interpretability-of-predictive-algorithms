@@ -8,38 +8,6 @@ from sklearn.metrics import confusion_matrix, roc_curve
 import biasbalancer.utils as bbutils
 import biasbalancer.plots as bbplots
 
-
-def calculate_WMR(cm, grp, w_fp):
-    """Calculate the weighted misclassification rate (WMR)
-
-    Args:
-        cm (dataframe): confusion matrix as returned 
-                        by :meth:`BiasBalancer.get_confusion_matrix()` in BiasBalancer
-        w_fp (int or float): False positive weight. Must be in interval [0,1].
-
-    Returns: 
-        float: Weighted misclassification rate
-    """
-
-    # Input check of w_fp
-    if not isinstance(w_fp, int) and not isinstance(w_fp, float):
-        raise TypeError("w_fp must be a float or integer.")
-    if w_fp < 0 or w_fp > 1:
-        raise ValueError(
-            f"w_fp must be in interval [0,1]. You supplied w_fp = {w_fp}")
-
-    # normalization constant
-    if w_fp < 0.5:
-        c = 1/(1-w_fp)
-    else:
-        c = 1/w_fp
-
-    TP, FN, FP, TN = bbutils.extract_cm_values(cm, grp)
-    n = sum([TP, TN, FN, FP])
-    wmr = c*(w_fp*FP + (1-w_fp)*FN)/n
-    return wmr
-
-
 class BiasBalancer:
     """:class:`BiasBalancer` is a toolkit for fairness analysis of a binary classifier.  It facilitates  nuanced  fairness  analyses  taking  several  fairness criteria  into  account  enabling  the  user  to  get  a  fuller  overview  of  the  potential  interactions between the criteria. The fairness criteria handled by :class:`BiasBalancer` is documented in the `overview table of fairness criteria`_
 
@@ -700,6 +668,36 @@ class BiasBalancer:
             self.BBplot.plot_w_fp_influence(relative_wmrs, plot_WMQ=plot_WMQ)
 
         return relative_wmrs
+
+def calculate_WMR(cm, grp, w_fp):
+    """Calculate the weighted misclassification rate (WMR)
+
+    Args:
+        cm (dataframe): confusion matrix as returned 
+                        by :meth:`BiasBalancer.get_confusion_matrix()` in BiasBalancer
+        w_fp (int or float): False positive weight. Must be in interval [0,1].
+
+    Returns: 
+        float: Weighted misclassification rate
+    """
+
+    # Input check of w_fp
+    if not isinstance(w_fp, int) and not isinstance(w_fp, float):
+        raise TypeError("w_fp must be a float or integer.")
+    if w_fp < 0 or w_fp > 1:
+        raise ValueError(
+            f"w_fp must be in interval [0,1]. You supplied w_fp = {w_fp}")
+
+    # normalization constant
+    if w_fp < 0.5:
+        c = 1/(1-w_fp)
+    else:
+        c = 1/w_fp
+
+    TP, FN, FP, TN = bbutils.extract_cm_values(cm, grp)
+    n = sum([TP, TN, FN, FP])
+    wmr = c*(w_fp*FP + (1-w_fp)*FN)/n
+    return wmr
 
 
 # %% Main
