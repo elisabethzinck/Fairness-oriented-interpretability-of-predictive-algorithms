@@ -85,36 +85,20 @@
 </section>
 <section id="module-biasbalancer.balancer">
 <span id="biasbalancer-balancer-module"></span><h2>biasbalancer.balancer module<a class="headerlink" href="#module-biasbalancer.balancer" title="Permalink to this headline"></a></h2>
-<dl class="py function">
-<dt class="sig sig-object py" id="biasbalancer.balancer.calculate_WMR">
-<span class="sig-prename descclassname"><span class="pre">biasbalancer.balancer.</span></span><span class="sig-name descname"><span class="pre">calculate_WMR</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">w_fp</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.balancer.calculate_WMR" title="Permalink to this definition"></a></dt>
-<dd><p>Calculate the weighted misclassification rate (WMR)</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>cm</strong> (<em>dataframe</em>) – confusion matrix as returned
-by get_confusion_matrix() in BiasBalancer</p></li>
-<li><p><strong>w_fp</strong> (<em>int</em><em> or </em><em>float</em>) – False positive error weight. Must be in interval [0,1].</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>Weighted misclassification rate</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>wmr (float)</p>
-</dd>
-</dl>
-</dd></dl>
-
 <dl class="py class">
 <dt class="sig sig-object py" id="biasbalancer.balancer.BiasBalancer">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">biasbalancer.balancer.</span></span><span class="sig-name descname"><span class="pre">BiasBalancer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_hat_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">a_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">w_fp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.balancer.BiasBalancer" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>To do: More extensive documentation</p>
+<p><a class="reference internal" href="#biasbalancer.balancer.BiasBalancer" title="biasbalancer.balancer.BiasBalancer"><code class="xref py py-class docutils literal notranslate"><span class="pre">BiasBalancer</span></code></a> is a toolkit for fairness analysis of a binary classifier.  It facilitates  nuanced  fairness  analyses  taking  several  fairness criteria  into  account  enabling  the  user  to  get  a  fuller  overview  of  the  potential  interactions between the criteria. The fairness criteria handled by <a class="reference internal" href="#biasbalancer.balancer.BiasBalancer" title="biasbalancer.balancer.BiasBalancer"><code class="xref py py-class docutils literal notranslate"><span class="pre">BiasBalancer</span></code></a> is documented in the <a class="reference internal" href="#overview-table-of-fairness-criteria">overview table of fairness criteria</a></p>
+<p><a class="reference internal" href="#biasbalancer.balancer.BiasBalancer" title="biasbalancer.balancer.BiasBalancer"><code class="xref py py-class docutils literal notranslate"><span class="pre">BiasBalancer</span></code></a> consists of three levels, where each level increasingly nuances the fairness analysis.</p>
+<p>The first level calculates a unified assessment of unfairness taking the severity of false positives relative to false negatives into account. For explanation of the computed quantity see <a class="reference internal" href="#level-1-documentation">level_1 Documentation</a>.</p>
+<p>The second level gives a comprehensive overview of disparities across sensitive groups including a barometer quantifying violations of a number of fairness criteria. See <a class="reference internal" href="#level-2-documentation">level_2 Documentation</a>.</p>
+<p>The third level includes several methods enabling further investigation into potential unfairness identified in level two. See <a class="reference internal" href="#level-3-documentation">level_3 Documentation</a> for information about the specific analyses.</p>
+<p>TODO: Should we write about how it is initialized or is args enough</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>data</strong> (<em>pd.DataFrame</em>) – DataFrame containing data used for evaluation</p></li>
+<li><p><strong>data</strong> (<em>DataFrame</em>) – DataFrame containing data used for evaluation</p></li>
 <li><p><strong>y_name</strong> (<em>str</em>) – Name of target variable</p></li>
 <li><p><strong>y_hat_name</strong> (<em>str</em>) – Name of binary output variable</p></li>
 <li><p><strong>r_name</strong> (<em>str</em>) – Name of variable containing scores (predicted probabilities)</p></li>
@@ -149,7 +133,7 @@ by get_confusion_matrix() in BiasBalancer</p></li>
 <dd class="field-even"><p>Dataframe with columns <code class="docutils literal notranslate"><span class="pre">WMR</span></code>, <code class="docutils literal notranslate"><span class="pre">n</span></code>, <code class="docutils literal notranslate"><span class="pre">WMR</span></code> and <code class="docutils literal notranslate"><span class="pre">WMQ</span></code>. The quantities are reported for each sensitive group.</p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>pd.DataFrame</p>
+<dd class="field-odd"><p>DataFrame</p>
 </dd>
 </dl>
 </dd></dl>
@@ -172,7 +156,7 @@ by get_confusion_matrix() in BiasBalancer</p></li>
 \[ \begin{align}\begin{aligned}RR_a(r) &amp;= \frac{r_{a} - r_{min}}{r_{min}}\cdot100\%,\\r_{min} &amp;= \min_{a\in A} r_a,\end{aligned}\end{align} \]</div>
 <p>which is computed for rates <span class="math notranslate nohighlight">\(r \in \{\textit{FPR},~\textit{FNR},~\textit{FDR},~\textit{FOR},~\textit{WMR}\}\)</span>.</p>
 <p>The unfairness barometer indicates the level of unfairness present in the predictions according to different fairness criteria. The fairness criteria are summarized in the overview table below.</p>
-<table class="docutils align-default" id="id10">
+<span id="overview-table-of-fairness-criteria"></span><table class="docutils align-default" id="id10">
 <caption><span class="caption-text">Overview table of Fairness Criteria</span><a class="headerlink" href="#id10" title="Permalink to this table"></a></caption>
 <colgroup>
 <col style="width: 25%" />
@@ -235,9 +219,9 @@ by get_confusion_matrix() in BiasBalancer</p></li>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p><p>Tuple containing dataframes:</p>
 <blockquote>
-<div><p><strong>rates</strong> (DataFrame): Data frame with columns <code class="docutils literal notranslate"><span class="pre">rate</span></code>, <code class="docutils literal notranslate"><span class="pre">grp</span></code>, <code class="docutils literal notranslate"><span class="pre">rate_val</span></code>, <code class="docutils literal notranslate"><span class="pre">rate_val_lwr</span></code>, <code class="docutils literal notranslate"><span class="pre">rate_val_upr</span></code>. The rates are FPR, FNR, FDR, FOR for each sensitive group including 95% Wilson Confidence intervals.</p>
-<p><strong>relative_rates</strong> (DataFrame): Data frame with columns <code class="docutils literal notranslate"><span class="pre">rate</span></code>, <code class="docutils literal notranslate"><span class="pre">grp</span></code>, <code class="docutils literal notranslate"><span class="pre">rate_val</span></code>, <code class="docutils literal notranslate"><span class="pre">relative_rate</span></code>.</p>
-<p><strong>barometer</strong> (DataFrame): Data frame with values to create the unfairness barometer. Columns are <code class="docutils literal notranslate"><span class="pre">criterion</span></code>, <code class="docutils literal notranslate"><span class="pre">relative_rate</span></code>, <code class="docutils literal notranslate"><span class="pre">discriminated_grp</span></code>.</p>
+<div><p><strong>rates</strong> (<em>DataFrame</em>): Data frame with columns <code class="docutils literal notranslate"><span class="pre">rate</span></code>, <code class="docutils literal notranslate"><span class="pre">grp</span></code>, <code class="docutils literal notranslate"><span class="pre">rate_val</span></code>, <code class="docutils literal notranslate"><span class="pre">rate_val_lwr</span></code>, <code class="docutils literal notranslate"><span class="pre">rate_val_upr</span></code>. The rates are FPR, FNR, FDR, FOR for each sensitive group including 95% Wilson Confidence intervals.</p>
+<p><strong>relative_rates</strong> (<em>DataFrame</em>): Data frame with columns <code class="docutils literal notranslate"><span class="pre">rate</span></code>, <code class="docutils literal notranslate"><span class="pre">grp</span></code>, <code class="docutils literal notranslate"><span class="pre">rate_val</span></code>, <code class="docutils literal notranslate"><span class="pre">relative_rate</span></code>.</p>
+<p><strong>barometer</strong> (<em>DataFrame</em>): Data frame with values to create the unfairness barometer. Columns are <code class="docutils literal notranslate"><span class="pre">criterion</span></code>, <code class="docutils literal notranslate"><span class="pre">relative_rate</span></code>, <code class="docutils literal notranslate"><span class="pre">discriminated_grp</span></code>.</p>
 </div></blockquote>
 </p>
 </dd>
@@ -264,7 +248,9 @@ Fairness  definitions  explained.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="biasbalancer.balancer.BiasBalancer.level_3">
 <span class="sig-name descname"><span class="pre">level_3</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">method</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_table</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.balancer.BiasBalancer.level_3" title="Permalink to this definition"></a></dt>
-<dd><p>To do: Documentation here</p>
+<dd><p>Third level of BiasBalancer provides several methods enabling further investigation of the fairness analysis results from level 2.</p>
+<p id="level-3-documentation">The function includes the methods <code class="docutils literal notranslate"><span class="pre">w_fp_influence</span></code>, <code class="docutils literal notranslate"><span class="pre">roc_curves</span></code>, <code class="docutils literal notranslate"><span class="pre">calibration</span></code>, <code class="docutils literal notranslate"><span class="pre">confusion_matrix</span></code>, and <code class="docutils literal notranslate"><span class="pre">independence_check</span></code>.</p>
+<p>The table below summarizes when to use each method and for what purpose:</p>
 <table class="docutils align-default">
 <colgroup>
 <col style="width: 20%" />
@@ -313,11 +299,17 @@ Fairness  definitions  explained.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>method</strong> (<em>{'w_fp_influence'</em><em>, </em><em>'roc_curves'</em><em>, </em><em>'calibration'</em><em>, </em><em>'confusion_matrix'</em><em>, </em><em>'independence_check'}</em>) – The method to use for further analysis</p></li>
+<li><p><strong>method</strong> ({<code class="docutils literal notranslate"><span class="pre">w_fp_influence</span></code>, <code class="docutils literal notranslate"><span class="pre">roc_curves</span></code>, <code class="docutils literal notranslate"><span class="pre">calibration</span></code>, <code class="docutils literal notranslate"><span class="pre">confusion_matrix</span></code>, <code class="docutils literal notranslate"><span class="pre">independence_check</span></code>}) – The method to use for further analysis</p></li>
 <li><p><strong>plot</strong> (<em>bool</em>) – If True, a plot is made visualizing the results</p></li>
 <li><p><strong>output_table</strong> (<em>bool</em>) – If True, the results are returned in a dataframe</p></li>
 <li><p><strong>**kwargs</strong> – Keyword arguments are passed onto the corresponding analysis and method, which is named get_`method`.</p></li>
 </ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Data frame of which the columns depend on the method chosen. The data returned is the data used for the visualization that is created if <code class="docutils literal notranslate"><span class="pre">plot=True</span></code>.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>DataFrame</p>
 </dd>
 </dl>
 </dd></dl>
@@ -346,7 +338,7 @@ Fairness  definitions  explained.</p>
 <dt class="sig sig-object py" id="biasbalancer.balancer.BiasBalancer.get_rates">
 <span class="sig-name descname"><span class="pre">get_rates</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">plot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.balancer.BiasBalancer.get_rates" title="Permalink to this definition"></a></dt>
 <dd><p>Calculate group wise rates.
-The gorupwise rates computed are FPR, FNR, FDR and FOR. These are listed in <a class="reference internal" href="#level-2-documentation">level_2 Documentation</a>.</p>
+The groupwise rates computed are FPR, FNR, FDR and FOR. These are listed in <a class="reference internal" href="#level-2-documentation">level_2 Documentation</a>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>plot</strong> (<em>bool</em>) – If True, the rates are visualized.</p>
@@ -409,6 +401,9 @@ and minimum rate.</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>Data frame with columns <code class="docutils literal notranslate"><span class="pre">criterion</span></code>, <code class="docutils literal notranslate"><span class="pre">relative_rate</span></code>, <code class="docutils literal notranslate"><span class="pre">discriminated_grp</span></code>.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>DataFrame</p>
 </dd>
 </dl>
 </dd></dl>
@@ -497,6 +492,27 @@ sensitive group</p>
 
 </dd></dl>
 
+<dl class="py function">
+<dt class="sig sig-object py" id="biasbalancer.balancer.calculate_WMR">
+<span class="sig-prename descclassname"><span class="pre">biasbalancer.balancer.</span></span><span class="sig-name descname"><span class="pre">calculate_WMR</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">w_fp</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.balancer.calculate_WMR" title="Permalink to this definition"></a></dt>
+<dd><p>Calculate the weighted misclassification rate (WMR)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cm</strong> (<em>dataframe</em>) – confusion matrix as returned
+by <a class="reference internal" href="#biasbalancer.balancer.BiasBalancer.get_confusion_matrix" title="biasbalancer.balancer.BiasBalancer.get_confusion_matrix"><code class="xref py py-meth docutils literal notranslate"><span class="pre">BiasBalancer.get_confusion_matrix()</span></code></a> in BiasBalancer</p></li>
+<li><p><strong>w_fp</strong> (<em>int</em><em> or </em><em>float</em>) – False positive weight. Must be in interval [0,1].</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Weighted misclassification rate</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 <section id="module-biasbalancer.get_compas_data">
 <span id="biasbalancer-get-compas-data-module"></span><h2>biasbalancer.get_compas_data module<a class="headerlink" href="#module-biasbalancer.get_compas_data" title="Permalink to this headline"></a></h2>
@@ -518,6 +534,9 @@ sensitive group</p>
 <dd class="field-even"><p>data frame with preprocessed compas data.
 Columns of the dataframe are <code class="docutils literal notranslate"><span class="pre">id</span></code>, <code class="docutils literal notranslate"><span class="pre">sex</span></code>, <code class="docutils literal notranslate"><span class="pre">age</span></code>, <code class="docutils literal notranslate"><span class="pre">age_cat</span></code>, <code class="docutils literal notranslate"><span class="pre">race</span></code>, <code class="docutils literal notranslate"><span class="pre">decile_score</span></code>, <code class="docutils literal notranslate"><span class="pre">score_text</span></code>, <code class="docutils literal notranslate"><span class="pre">two_year_recid</span></code></p>
 </dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>DataFrame</p>
+</dd>
 </dl>
 <dl class="citation">
 <dt class="label" id="angwin2016"><span class="brackets"><a class="fn-backref" href="#id9">ANGWIN2016</a></span></dt>
@@ -536,10 +555,10 @@ Columns of the dataframe are <code class="docutils literal notranslate"><span cl
 <p>Plotting class used for plotting results from BiasBalancer</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>BiasBalancer</strong> (<a class="reference internal" href="#biasbalancer.balancer.BiasBalancer" title="biasbalancer.balancer.BiasBalancer"><em>biasbalancer.balancer.BiasBalancer</em></a>) – Object of type BiasBalancer.</p>
+<dd class="field-odd"><p><strong>BiasBalancer</strong> (<a class="reference internal" href="#biasbalancer.balancer.BiasBalancer" title="biasbalancer.balancer.BiasBalancer"><em>biasbalancer.balancer.BiasBalancer</em></a>) – Instance from the BiasBalancer class.</p>
 </dd>
 <dt class="field-even">Keyword Arguments</dt>
-<dd class="field-even"><p><strong>(</strong> (<em>specific_col_idx</em>) – </p>
+<dd class="field-even"><p><strong>specific_col_idx</strong> (<em>list</em>) – list of max length 11 to get specific colors form the color scheme. The items can be integers from 0-11.</p>
 </dd>
 </dl>
 <dl class="py method">
@@ -549,8 +568,8 @@ Columns of the dataframe are <code class="docutils literal notranslate"><span cl
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>l1_data</strong> (<em>data frame</em>) – data frame with data returned from BiasBalancer.level_1()</p></li>
-<li><p><strong>ax</strong> (<em>matplotlib axis</em>) – Axes to plot on. Optional.</p></li>
+<li><p><strong>l1_data</strong> (<em>DataFrame</em>) – data frame with data returned from <a class="reference internal" href="#biasbalancer.balancer.BiasBalancer.level_1" title="biasbalancer.balancer.BiasBalancer.level_1"><code class="xref py py-meth docutils literal notranslate"><span class="pre">biasbalancer.balancer.BiasBalancer.level_1()</span></code></a></p></li>
+<li><p><strong>ax</strong> (<em>matplotlib axis</em>) – Axis to plot on. Optional.</p></li>
 </ul>
 </dd>
 </dl>
@@ -563,10 +582,10 @@ Columns of the dataframe are <code class="docutils literal notranslate"><span cl
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>rates</strong> (<em>DataFrame</em>) – DataFrame as returned by BiasBalancer.get_rates()</p></li>
-<li><p><strong>relative_rates</strong> (<em>DataFrame</em>) – DataFrame as returned by BiasBalancer.get_relative_rates()</p></li>
-<li><p><strong>barometer</strong> (<em>DataFrame</em>) – DataFrame as returned by BiasBalancer.get_fairness_barometer()</p></li>
-<li><p><strong>suptitle</strong> (<em>bool</em>) – If True, the BiasBalancer.model_name is used as suptitle. Defaults to False.</p></li>
+<li><p><strong>rates</strong> (<em>DataFrame</em>) – DataFrame as returned by <a class="reference internal" href="#biasbalancer.balancer.BiasBalancer.get_rates" title="biasbalancer.balancer.BiasBalancer.get_rates"><code class="xref py py-meth docutils literal notranslate"><span class="pre">biasbalancer.balancer.BiasBalancer.get_rates()</span></code></a></p></li>
+<li><p><strong>relative_rates</strong> (<em>DataFrame</em>) – DataFrame as returned by <a class="reference internal" href="#biasbalancer.balancer.BiasBalancer.get_relative_rates" title="biasbalancer.balancer.BiasBalancer.get_relative_rates"><code class="xref py py-meth docutils literal notranslate"><span class="pre">biasbalancer.balancer.BiasBalancer.get_relative_rates()</span></code></a></p></li>
+<li><p><strong>barometer</strong> (<em>DataFrame</em>) – DataFrame as returned by <a class="reference internal" href="#biasbalancer.balancer.BiasBalancer.get_fairness_barometer" title="biasbalancer.balancer.BiasBalancer.get_fairness_barometer"><code class="xref py py-meth docutils literal notranslate"><span class="pre">biasbalancer.balancer.BiasBalancer.get_fairness_barometer()</span></code></a></p></li>
+<li><p><strong>suptitle</strong> (<em>bool</em>) – If True, the <code class="xref py py-attr docutils literal notranslate"><span class="pre">biasbalancer.balancer.BiasBalancer.model_name</span></code> is used as suptitle. Defaults to False.</p></li>
 </ul>
 </dd>
 </dl>
@@ -575,11 +594,11 @@ Columns of the dataframe are <code class="docutils literal notranslate"><span cl
 <dl class="py method">
 <dt class="sig sig-object py" id="biasbalancer.plots.BiasBalancerPlots.plot_rates">
 <span class="sig-name descname"><span class="pre">plot_rates</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rates</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.plots.BiasBalancerPlots.plot_rates" title="Permalink to this definition"></a></dt>
-<dd><p>Plot FPR, FNR, FDR, FOR for each group</p>
+<dd><p>Plot FPR, FNR, FDR, FOR for each group including 95% Wilson confidence intervals.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>rates</strong> (<em>DataFrame</em>) – As returned by BiasBalancer.get_rates()</p></li>
+<li><p><strong>rates</strong> (<em>DataFrame</em>) – As returned by <a class="reference internal" href="#biasbalancer.balancer.BiasBalancer.get_rates" title="biasbalancer.balancer.BiasBalancer.get_rates"><code class="xref py py-meth docutils literal notranslate"><span class="pre">biasbalancer.balancer.BiasBalancer.get_rates()</span></code></a></p></li>
 <li><p><strong>ax</strong> (<em>matplotlib axis</em>) – Axis to be plotted on. Optional.</p></li>
 </ul>
 </dd>
@@ -593,9 +612,9 @@ Columns of the dataframe are <code class="docutils literal notranslate"><span cl
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>relative_rates</strong> (<em>pd.DataFrame</em>) – DataFrame as returned by BiasBalancer.get_relative_rates()</p></li>
+<li><p><strong>relative_rates</strong> (<em>DataFrame</em>) – DataFrame as returned by <a class="reference internal" href="#biasbalancer.balancer.BiasBalancer.get_relative_rates" title="biasbalancer.balancer.BiasBalancer.get_relative_rates"><code class="xref py py-meth docutils literal notranslate"><span class="pre">biasbalancer.balancer.BiasBalancer.get_relative_rates()</span></code></a></p></li>
 <li><p><strong>ax</strong> (<em>matplotlib axis</em>) – Axis to plot on. Optional.</p></li>
-<li><p><strong>l2_plot</strong> (<em>bool</em>) – If True, format plot specifically for second level visualization</p></li>
+<li><p><strong>l2_plot</strong> (<em>bool</em>) – If True, format plot specifically for second level visualization.</p></li>
 </ul>
 </dd>
 </dl>
@@ -608,7 +627,7 @@ Columns of the dataframe are <code class="docutils literal notranslate"><span cl
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>fairness_barometer</strong> (<em>DataFrame</em>) – As returned by BiasBalancer.get_fairness_barometer()</p></li>
+<li><p><strong>fairness_barometer</strong> (<em>DataFrame</em>) – As returned by <a class="reference internal" href="#biasbalancer.balancer.BiasBalancer.get_fairness_barometer" title="biasbalancer.balancer.BiasBalancer.get_fairness_barometer"><code class="xref py py-meth docutils literal notranslate"><span class="pre">biasbalancer.balancer.BiasBalancer.get_fairness_barometer()</span></code></a></p></li>
 <li><p><strong>ax</strong> (<em>matplotlib axis</em>) – Axis to plot on. Optional.</p></li>
 </ul>
 </dd>
@@ -622,7 +641,7 @@ Columns of the dataframe are <code class="docutils literal notranslate"><span cl
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>cm</strong> (<em>dataframe</em>) – Confusion matrix as returned by balancer.get_confusion_matrix()</p></li>
+<li><p><strong>cm</strong> (<em>dataframe</em>) – Confusion matrix as returned by <a class="reference internal" href="#biasbalancer.balancer.BiasBalancer.get_confusion_matrix" title="biasbalancer.balancer.BiasBalancer.get_confusion_matrix"><code class="xref py py-meth docutils literal notranslate"><span class="pre">biasbalancer.balancer.BiasBalancer.get_confusion_matrix()</span></code></a></p></li>
 <li><p><strong>cm_print_n</strong> (<em>bool</em>) – If True, the number of observations is shown in each cell. Defaults to False.</p></li>
 </ul>
 </dd>
@@ -632,11 +651,12 @@ Columns of the dataframe are <code class="docutils literal notranslate"><span cl
 <dl class="py method">
 <dt class="sig sig-object py" id="biasbalancer.plots.BiasBalancerPlots.plot_w_fp_influence">
 <span class="sig-name descname"><span class="pre">plot_w_fp_influence</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">plot_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_WMQ</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.plots.BiasBalancerPlots.plot_w_fp_influence" title="Permalink to this definition"></a></dt>
-<dd><p>Plots the influence of w_fp on WMQ or WMR</p>
+<dd><p>Plots the influence of w_fp on WMQ or WMR.</p>
+<p><em>WMR</em> is the weighted misclassification rate and <em>WMQ</em> is the weighted misclassification quotient. For explanations about WMR and WMQ see <a class="reference internal" href="#level-1-documentation">level_1 Documentation</a>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>plot_df</strong> (<em>dataframe</em>) – As returned by balancer.get_w_fp_influence()</p></li>
+<li><p><strong>plot_df</strong> (<em>dataframe</em>) – As returned by <code class="xref py py-meth docutils literal notranslate"><span class="pre">balancer.get_w_fp_influence()</span></code></p></li>
 <li><p><strong>plot_WMQ</strong> (<em>bool</em>) – If True, WMQ is plotted, and otherwise WMR is plotted. Defaults to True.</p></li>
 </ul>
 </dd>
@@ -650,8 +670,8 @@ Columns of the dataframe are <code class="docutils literal notranslate"><span cl
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>roc_df</strong> (<em>dataframe</em>) – Dataframe as returned by balancer.get_roc_curves()</p></li>
-<li><p><strong>ax</strong> (<em>matplotlib.axes._subplots.AxesSubplot</em>) – Ax to plot on. If None, a new axis is created.</p></li>
+<li><p><strong>roc_df</strong> (<em>dataframe</em>) – Dataframe as returned by <code class="xref py py-meth docutils literal notranslate"><span class="pre">balancer.get_roc_curves()</span></code></p></li>
+<li><p><strong>ax</strong> (<em>matplotlib axis</em>) – Ax to plot on. If None, a new axis is created.</p></li>
 <li><p><strong>threshold</strong> (<em>int</em><em>, </em><em>float</em><em> or </em><em>dict</em>) – The threshold value(s) used for   classification (will be marked by dots on the ROC-curves). Can be a single number in [0,1] or a dict with a threshold for each sensitive group. Defaults to 0.5.</p></li>
 </ul>
 </dd>
@@ -662,12 +682,12 @@ Columns of the dataframe are <code class="docutils literal notranslate"><span cl
 <dt class="sig sig-object py" id="biasbalancer.plots.BiasBalancerPlots.plot_independence_check">
 <span class="sig-name descname"><span class="pre">plot_independence_check</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">orientation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'h'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.plots.BiasBalancerPlots.plot_independence_check" title="Permalink to this definition"></a></dt>
 <dd><p>Bar plot of the percentage of predicted positives per
-sensitive group including a Wilson 95% CI</p>
+sensitive group including a Wilson 95% Confidence interval.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>df</strong> (<em>pd.Dataframe</em>) – As returned by BiasBalancer.get_independence_check().</p></li>
-<li><p><strong>ax</strong> (<em>matplotlib.axes._subplots.AxesSubplot</em>) – Ax to plot on. If None, a new axis is created.</p></li>
+<li><p><strong>df</strong> (<em>Dataframe</em>) – As returned by <a class="reference internal" href="#biasbalancer.balancer.BiasBalancer.get_independence_check" title="biasbalancer.balancer.BiasBalancer.get_independence_check"><code class="xref py py-meth docutils literal notranslate"><span class="pre">biasbalancer.balancer.BiasBalancer.get_independence_check()</span></code></a></p></li>
+<li><p><strong>ax</strong> (<em>matplotlib axis</em>) – Axis to plot on. If None, a new axis is created.</p></li>
 <li><p><strong>orientation</strong> (<em>{'h'</em><em>, </em><em>'v'}</em>) – Orientation of plot. Defaults to horizontal (‘h’).</p></li>
 </ul>
 </dd>
@@ -681,8 +701,8 @@ sensitive group including a Wilson 95% CI</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>calibration_df</strong> (<em>pd.DataFrame</em>) – As returned by BiasBalancer.get_calibration()</p></li>
-<li><p><strong>ax</strong> (<em>matplotlib.axes</em>) – Axes object to plot on. Optional.</p></li>
+<li><p><strong>calibration_df</strong> (<em>DataFrame</em>) – As returned by <a class="reference internal" href="#biasbalancer.balancer.BiasBalancer.get_calibration" title="biasbalancer.balancer.BiasBalancer.get_calibration"><code class="xref py py-meth docutils literal notranslate"><span class="pre">biasbalancer.balancer.BiasBalancer.get_calibration()</span></code></a></p></li>
+<li><p><strong>ax</strong> (<em>matplotlib axis</em>) – Axes object to plot on. Optional.</p></li>
 </ul>
 </dd>
 </dl>
@@ -693,16 +713,26 @@ sensitive group including a Wilson 95% CI</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="biasbalancer.plots.get_alpha_weights">
 <span class="sig-prename descclassname"><span class="pre">biasbalancer.plots.</span></span><span class="sig-name descname"><span class="pre">get_alpha_weights</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">w_fp</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.plots.get_alpha_weights" title="Permalink to this definition"></a></dt>
-<dd><p>Return alpha weight for each rate</p>
+<dd><p>Return alpha weight for determining opacity of each rate. The rates are FPR, FNR, FDR and FOR. These are also listed in <a class="reference internal" href="#level-2-documentation">level_2 Documentation</a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>w_fp</strong> (<em>int</em><em> or </em><em>float</em>) – False positive weight. Must be in interval [0,1].</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Dict with weights for each rate. Rate names are keys and weights are values.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="biasbalancer.plots.custom_palette">
 <span class="sig-prename descclassname"><span class="pre">biasbalancer.plots.</span></span><span class="sig-name descname"><span class="pre">custom_palette</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_colors</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">specific_col_idx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.plots.custom_palette" title="Permalink to this definition"></a></dt>
-<dd><p>Returns a custom palette of n_colors (max 10 colors)</p>
-<p>The color palette has been created using this link:
-<a class="reference external" href="https://coolors.co/f94d50-f3722c-f8961e-f9844a-f9c74f-a1c680-3a9278-7ab8b6-577590-206683">https://coolors.co/f94d50-f3722c-f8961e-f9844a-f9c74f-a1c680-3a9278-7ab8b6-577590-206683</a>
-and added two colors “english lavender BD7585” and “Salmon Pink F193A1”</p>
+<dd><p>Returns a custom palette of n_colors (max 11 colors)</p>
+<p>The color palette has been created using <a class="reference external" href="https://coolors.co/f94d50-f3722c-f8961e-f9844a-f9c74f-a1c680-3a9278-7ab8b6-577590-206683">Coolors</a>
+and added two colors “cinnamon satin (Hex #BD7585)” and “Salmon Pink (Hex: #F193A1)”</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -711,7 +741,10 @@ and added two colors “english lavender BD7585” and “Salmon Pink F193A1”<
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p>A custom seaborn palette of n_colors or len(specific_col_idx) length</p>
+<dd class="field-even"><p>List of RGB tuples made as a custom color palette of length <cite>n_colors</cite> or <cite>len(specific_col_idx)</cite> using seaborn.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>list</p>
 </dd>
 </dl>
 </dd></dl>
@@ -723,7 +756,7 @@ and added two colors “english lavender BD7585” and “Salmon Pink F193A1”<
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>ax</strong> (<em>AxesSubplot</em>) – ax of plot to color</p></li>
+<li><p><strong>ax</strong> (<em>matplotlib axis</em>) – ax of plot to color</p></li>
 <li><p><strong>color_dict</strong> (<em>dict</em>) – Dict of colors with keys as color group</p></li>
 <li><p><strong>color_variable</strong> (<em>pd.Series</em>) – Series of color groups used in bars.
 Each item in series is a list.</p></li>
@@ -739,10 +772,10 @@ Each item in series is a list.</p></li>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>ax</strong> (<em>matplotlib.axes</em>) – ax with barplot</p></li>
-<li><p><strong>plot_df</strong> (<em>pandas data frame</em>) – must include columns “conf_lwr” and “conf_upr”</p></li>
+<li><p><strong>ax</strong> (<em>matplotlib axis</em>) – axis with barplot</p></li>
+<li><p><strong>plot_df</strong> (<em>DataFrame</em>) – must include columns <code class="docutils literal notranslate"><span class="pre">conf_lwr</span></code> and <code class="docutils literal notranslate"><span class="pre">conf_upr</span></code></p></li>
 <li><p><strong>bar_mid</strong> (<em>float</em>) – mid point of bar to put error bar on</p></li>
-<li><p><strong>orientation</strong> – ‘v’ or ‘h’ for vertical or horizontal</p></li>
+<li><p><strong>orientation</strong> (<em>{'v'</em><em>, </em><em>'h'}</em>) – <code class="docutils literal notranslate"><span class="pre">v</span></code> or <code class="docutils literal notranslate"><span class="pre">h</span></code> for vertical or horizontal</p></li>
 </ul>
 </dd>
 </dl>
@@ -756,22 +789,28 @@ Each item in series is a list.</p></li>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>prop</strong> (<em>float</em>) – Amount to desaturate</p>
 </dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>RGB tuple with the desaturated color.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>tuple</p>
+</dd>
 </dl>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="biasbalancer.plots.get_BW_fairness_barometer_legend_patches">
 <span class="sig-prename descclassname"><span class="pre">biasbalancer.plots.</span></span><span class="sig-name descname"><span class="pre">get_BW_fairness_barometer_legend_patches</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">plot_df</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.plots.get_BW_fairness_barometer_legend_patches" title="Permalink to this definition"></a></dt>
-<dd><p>Create patches in black and white for legend in fairness barometer</p>
+<dd><p>Create black and white patches legend in fairness barometer</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>plot_df</strong> (<em>dataframe</em>) – Data frame used to create fairness barometer plot</p>
+<dd class="field-odd"><p><strong>plot_df</strong> (<em>DataFrame</em>) – Data frame used to create fairness barometer plot</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>List of matplotlib patches to put in legend handles</p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>patches (list)</p>
+<dd class="field-odd"><p>list</p>
 </dd>
 </dl>
 </dd></dl>
@@ -782,13 +821,26 @@ Each item in series is a list.</p></li>
 <dl class="py function">
 <dt class="sig sig-object py" id="biasbalancer.utils.flatten_list">
 <span class="sig-prename descclassname"><span class="pre">biasbalancer.utils.</span></span><span class="sig-name descname"><span class="pre">flatten_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.utils.flatten_list" title="Permalink to this definition"></a></dt>
-<dd><p>Flattens a list of list</p>
+<dd><p>Flattens a list of list
+TODO: this is probably a list comprehension from stack overflow… should we make a link or rewrite it to not look exactly like: <a class="reference external" href="https://stackoverflow.com/questions/952914/how-to-make-a-flat-list-out-of-a-list-of-lists">https://stackoverflow.com/questions/952914/how-to-make-a-flat-list-out-of-a-list-of-lists</a></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>t</strong> (<em>list</em>) – list of lists</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Flattened list</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="biasbalancer.utils.cm_vals_to_matrix">
 <span class="sig-prename descclassname"><span class="pre">biasbalancer.utils.</span></span><span class="sig-name descname"><span class="pre">cm_vals_to_matrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">TP</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">FN</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">FP</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">TN</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.utils.cm_vals_to_matrix" title="Permalink to this definition"></a></dt>
 <dd><p>Converts values of TP, FN, FP and TN into a confusion matrix</p>
+<p>Creates a confusion matrix with the elements [[TP, FN], [FP, TN]].</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -799,7 +851,10 @@ Each item in series is a list.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p>Numpy array of shape (2,2)</p>
+<dd class="field-even"><p>Confusion matrix as a Numpy array of shape (2,2).</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>array</p>
 </dd>
 </dl>
 </dd></dl>
@@ -813,7 +868,10 @@ Each item in series is a list.</p></li>
 <dd class="field-odd"><p><strong>cm_dict</strong> (<em>dict</em>) – Confusion dict with keys TP, FP, TN, FN</p>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p>Numpy array of shape (2,2)</p>
+<dd class="field-even"><p>Confusion matrix as a Numpy array of shape (2,2).</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>array</p>
 </dd>
 </dl>
 </dd></dl>
@@ -826,6 +884,12 @@ Each item in series is a list.</p></li>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>cm_matrix</strong> (<em>array</em>) – Confusion in form [[TP, FN], [FN, TN]]</p>
 </dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Dict with keys <code class="docutils literal notranslate"><span class="pre">TP</span></code>, <code class="docutils literal notranslate"><span class="pre">TN</span></code>, <code class="docutils literal notranslate"><span class="pre">FN</span></code>, <code class="docutils literal notranslate"><span class="pre">TN</span></code>.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
 </dl>
 </dd></dl>
 
@@ -833,21 +897,38 @@ Each item in series is a list.</p></li>
 <dt class="sig sig-object py" id="biasbalancer.utils.flip_dataframe">
 <span class="sig-prename descclassname"><span class="pre">biasbalancer.utils.</span></span><span class="sig-name descname"><span class="pre">flip_dataframe</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">new_colname</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'index'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.utils.flip_dataframe" title="Permalink to this definition"></a></dt>
 <dd><p>Flips table such that first row becomes columns</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>df</strong> (<em>DataFrame</em>) – Data frame to be flipped.</p></li>
+<li><p><strong>new_colname</strong> (<em>str</em>) – Name of new column. Defaults to ‘index’.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>flipped data frame.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>DataFrame</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="biasbalancer.utils.value_counts_df">
 <span class="sig-prename descclassname"><span class="pre">biasbalancer.utils.</span></span><span class="sig-name descname"><span class="pre">value_counts_df</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">col_name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.utils.value_counts_df" title="Permalink to this definition"></a></dt>
-<dd><p>pd.value_counts() for dataframes</p>
+<dd><p>Helper function to use pd.value_counts() for dataframes</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>df</strong> (<em>pd.DataFrame</em>) – Dataframe containing column to use value_counts on</p></li>
+<li><p><strong>df</strong> (<em>DataFrame</em>) – Dataframe containing column to use value_counts on</p></li>
 <li><p><strong>col_names</strong> (<em>str</em>) – Name of column to count values for. Must be present in df.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p>Dataframe with column names <cite>col_name</cite> and <cite>n</cite>.</p>
+<dd class="field-even"><p>Data frame with column names <cite>col_name</cite> and <cite>n</cite>.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>DataFrame</p>
 </dd>
 </dl>
 </dd></dl>
@@ -855,20 +936,37 @@ Each item in series is a list.</p></li>
 <dl class="py function">
 <dt class="sig sig-object py" id="biasbalancer.utils.label_case">
 <span class="sig-prename descclassname"><span class="pre">biasbalancer.utils.</span></span><span class="sig-name descname"><span class="pre">label_case</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">snake_case</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.utils.label_case" title="Permalink to this definition"></a></dt>
-<dd><p>Replace underscore with spaces and capitalize first letter of string, but keep WMR and WMQ capitalized</p>
+<dd><p>Specialized helper function to replace underscore with spaces and capitalize first letter of string, but keep WMR and WMQ capitalized</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>snake_case</strong> (<em>str</em>) – String written in snake case to be reformatted.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The reformatted string.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="biasbalancer.utils.wilson_confint">
 <span class="sig-prename descclassname"><span class="pre">biasbalancer.utils.</span></span><span class="sig-name descname"><span class="pre">wilson_confint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_successes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">side</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.utils.wilson_confint" title="Permalink to this definition"></a></dt>
-<dd><p>Calculate Wilson proportion CI</p>
+<dd><p>Calculate Wilson proportion confidence interval at an <span class="math notranslate nohighlight">\(\alpha\)</span> level of 5%.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>n_successes</strong> (<em>int</em>) – Count</p></li>
 <li><p><strong>n</strong> (<em>int</em>) – Number of observations</p></li>
-<li><p><strong>side</strong> (<em>{'lwr'</em><em>, </em><em>'upr'}</em>) – Return lower or upper side of interval</p></li>
+<li><p><strong>side</strong> (<em>{'lwr'</em><em>, </em><em>'upr'}</em>) – Should the function return lower or upper side of interval?</p></li>
 </ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Upper or lower side of the confidence interval as requested by the input.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>float</p>
 </dd>
 </dl>
 </dd></dl>
@@ -881,9 +979,15 @@ Each item in series is a list.</p></li>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>df</strong> (<em>Dataframe</em>) – confusion matrix as returned
-by get_confusion_matrix() in BiasBalancer</p></li>
-<li><p><strong>grp</strong> (<em>str</em>) – sensitive group name</p></li>
+by <code class="xref py py-meth docutils literal notranslate"><span class="pre">Bias.Balancer.get_confusion_matrix()</span></code></p></li>
+<li><p><strong>grp</strong> (<em>str</em>) – name of sensitive group to retrieve matrix from</p></li>
 </ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Tuple with elements <em>TP</em> (true positives), <em>FN</em> (false negatives)*FP* (false positives), <em>TN</em> (true negatives).</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>tuple</p>
 </dd>
 </dl>
 </dd></dl>
@@ -894,10 +998,13 @@ by get_confusion_matrix() in BiasBalancer</p></li>
 <dd><p>Perform one hot encoding on categorical variables</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>X</strong> (<em>dataframe</em>) – Dataframe to perform encoding on</p>
+<dd class="field-odd"><p><strong>X</strong> (<em>dataframe</em>) – Dataframe to perform encoding on with both numerical and categorial variables</p>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p>Dataframe where all categorical variables are one hot encoded</p>
+<dd class="field-even"><p>Data frame where all categorical variables are one hot encoded and numeric variables remain numeric</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>DataFrame</p>
 </dd>
 </dl>
 </dd></dl>
@@ -905,22 +1012,26 @@ by get_confusion_matrix() in BiasBalancer</p></li>
 <dl class="py function">
 <dt class="sig sig-object py" id="biasbalancer.utils.N_pos">
 <span class="sig-prename descclassname"><span class="pre">biasbalancer.utils.</span></span><span class="sig-name descname"><span class="pre">N_pos</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.utils.N_pos" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Helper function to use with pandas GroupBy. Calculates the number of positive elements</p>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="biasbalancer.utils.N_neg">
 <span class="sig-prename descclassname"><span class="pre">biasbalancer.utils.</span></span><span class="sig-name descname"><span class="pre">N_neg</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.utils.N_neg" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Helper function to use with pandas GroupBy. Calculates the number of negative elements</p>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="biasbalancer.utils.frac_pos">
 <span class="sig-prename descclassname"><span class="pre">biasbalancer.utils.</span></span><span class="sig-name descname"><span class="pre">frac_pos</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.utils.frac_pos" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Helper function to use with pandas GroupBy. Calculates the fraction of positive elements</p>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="biasbalancer.utils.frac_neg">
 <span class="sig-prename descclassname"><span class="pre">biasbalancer.utils.</span></span><span class="sig-name descname"><span class="pre">frac_neg</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biasbalancer.utils.frac_neg" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Helper function to use with pandas GroupBy. Calculates the fraction of negative elements</p>
+</dd></dl>
 
 </section>
 <section id="module-biasbalancer">
