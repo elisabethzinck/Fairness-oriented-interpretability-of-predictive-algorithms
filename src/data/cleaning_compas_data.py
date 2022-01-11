@@ -7,21 +7,14 @@ if __name__ == "__main__":
     compas.head()
     folder = "data/processed/compas/"
 
-    filter_b_screening = True
-
-    if filter_b_screening: 
-        # We need only choose the rows where **days_b_screening_arrest** is between -30 and 30
-        # See article \cite{Larson2016} for info
-        (compas.query
-            ("days_b_screening_arrest<=30 and days_b_screening_arrest>=-30",
-            inplace = True))
-        assert(compas.shape[0] == 6172)
-        #output file paths
-        processed_file_path = f'{folder}compas-scores-two-years-subset.csv'
-        processed_file_path_preds = f'{folder}compas-scores-two-years-pred.csv'
-    else: 
-        processed_file_path =  f'{folder}compas-scores-two-years-w-b-screening-30.csv'
-        processed_file_path_preds = f'{folder}compas-scores-two-years-pred-w-b-screening-30.csv'
+    # We need only choose the rows where **days_b_screening_arrest** is between -30 and 30
+    # See article \cite{Larson2016} for info
+    (compas.query
+        ("days_b_screening_arrest<=30 and days_b_screening_arrest>=-30",
+        inplace = True))
+    assert(compas.shape[0] == 6172)
+    #output file paths
+    processed_file_path_preds = f'{folder}compas-scores-two-years-pred.csv'
 
     #subsetting 'African-American' and 'Caucasian'
     (compas.query
@@ -34,7 +27,6 @@ if __name__ == "__main__":
 
     # Dropping irrelevant columns and writing to csv 
     compas.drop(columns = ['violent_recid', 'decile_score.1'], inplace=True)
-    compas.to_csv(processed_file_path, index = False)
 
     # Data frame with predictions 
     predictions = compas[['id', 'sex', 'age', 'age_cat', 'race', 

@@ -19,17 +19,15 @@ update_report_figs = False
 run_t_sne = False
 
 #%% Load data
-file_path_full = 'data\\processed\\german_credit_full.csv'
 file_path = 'data\\processed\\german_credit.csv'
 
 data = pd.read_csv(file_path)
-data_full = pd.read_csv(file_path_full)
 
 #%% Plot number of bad payers by sensitive variable 
 desc = DescribeData(y_name='credit_score', 
                     a_name = 'sex',
                     id_name = 'person_id',
-                    data = data_full, 
+                    data = data, 
                     data_name = 'German Credit Score')
 
 desc.plot_n_target_across_sens_var(
