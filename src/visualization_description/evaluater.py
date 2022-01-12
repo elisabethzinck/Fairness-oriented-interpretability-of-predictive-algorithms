@@ -167,7 +167,7 @@ def get_l1_overview_table(print_latex = True):
         l1 = balancer.level_1(plot = False)
         l1max = l1.loc[l1.WMQ == max(l1.WMQ)]
         
-        acc = np.mean(balancer.y == balancer.y_hat)*100
+        acc = np.mean(balancer.classifier.y == balancer.classifier.y_hat)*100
         dataset_name, model_name = static_split(balancer.model_name, ': ', 2)
         tab = pd.DataFrame({
             'Dataset': dataset_name,
@@ -215,7 +215,7 @@ def make_all_plots(balancer, save_plots = False, plot_path = None, ext = '.png',
             plt.close()
 
     if kwargs.get("run_level_2") or run_all:
-        balancer.level_2(output_table = False, **kwargs)
+        balancer.level_2(output_table = False)
         if save_plots: 
             plt.savefig(plot_path+'l2'+ext, bbox_inches='tight', facecolor = 'w')
             plt.close()
@@ -225,7 +225,7 @@ def make_all_plots(balancer, save_plots = False, plot_path = None, ext = '.png',
             'w_fp_influence', 'roc_curves', 'calibration', 
             'confusion_matrix', 'independence_check']
         for method in method_options:
-            balancer.level_3(method = method, output_table = False, **kwargs)
+            balancer.level_3(method = method, output_table = False, **{"cm_print_n":True})
             if save_plots: 
                 path = plot_path+'l3_'+method+ext
                 plt.savefig(path, bbox_inches='tight', facecolor = 'w')
