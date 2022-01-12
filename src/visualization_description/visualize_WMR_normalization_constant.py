@@ -41,7 +41,7 @@ def viz_wfp(fig, ax, w_fp, col_bar = True):
     WMR_vals = get_WMR(FP_vals, FN_vals, N, w_fp)
     ax.set_xlabel('FP', fontsize = 12)
     ax.set_ylabel('FN', fontsize = 12)
-    ax.set_title('$w_{fp}$ = '+ f'{w_fp}', fontsize = 13)
+    ax.set_title('$w_{FP}$ = '+ f'{w_fp}', fontsize = 13)
     sns.despine(ax = ax, top = True, right = True)
     im = ax.imshow(WMR_vals, origin = 'lower', cmap = cmap)
 
