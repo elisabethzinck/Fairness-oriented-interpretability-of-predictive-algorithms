@@ -2,7 +2,7 @@
 This repository contains the fairness analysis toolkit `biasbalancer` and all code needed to reproduce the results in the thesis *Fairness Oriented Interpretability of Predictive Algorithms* by Caroline Amalie Fuglsang-Damgaard and Elisabeth Zinck finalizing their degree *Mathematical Modelling and Computation* at Technical University of Denmark (DTU). 
 
 ## biasbalancer 
-BiasBalancer is a toolkit for fairness analysis of a binary classifier. It facilitates nuanced fairness analyses taking several fairness criteria into account enabling the user to get a fuller overview of the potential interactions between fairness criteria. The tutorial notebook (located in [`src_biasbalancer/biasbalancer_tutorial.ipynb`](https://github.com/elisabethzinck/Fairness-oriented-interpretability-of-predictive-algorithms/blob/main/src_biasbalancer/biasbalancer_tutorial.ipynb)) gives a brief introduction to biasbalancer and showcases the use of the toolkit using the COMPAS dataset. 
+BiasBalancer is a toolkit for fairness analysis of a binary classifier. It facilitates nuanced fairness analyses taking several fairness criteria into account enabling the user to get a fuller overview of the potential interactions between fairness criteria. The tutorial notebook (located in [`src_biasbalancer/biasbalancer_tutorial.ipynb`](https://github.com/elisabethzinck/Fairness-oriented-interpretability-of-predictive-algorithms/blob/main/src_biasbalancer/biasbalancer_tutorial.ipynb)) gives a brief introduction to biasbalancer and showcases the use of the toolkit using the canonical COMPAS dataset. 
 
 BiasBalancer consists of three levels, where each level increasingly nuances the fairness analysis. 
 
@@ -41,7 +41,7 @@ The scripts in the folder `src/data/` pre-processes the datasets, and places the
 ### Models
 All code for creating and training the models for getting predictions for the fairness analysis are located in the folder `src/models/`. To get the predictions for the three example datasets, run the files `catalan_neural_network.py`, `german_neural_network.py`, `taiwanese_neural_network`, and `run_logistic_regressions.py`. The resulting predictions are placed in the folder `data/predictions/`. 
 
-A number of different models were created for the CheXpert case study, which can be seen in the large number of bash scripts used to run the models. To get the predictions from the best, and therefore chosen, model, run the bash script `bash_scripts/cheXpert_experiments/run_adam_dp=2e-1.sh`. 
+A number of different models were created for the CheXpert case study, which can be seen in the large number of bash scripts used to run the models. The best, and therefore chosen, model has been trained by running the bash script `bash_scripts/cheXpert_experiments/run_adam_dp=2e-1.sh`. To get the predictions from this model, first run the bash script to train the model followed by running the script `src/models/cheXpert_make_test_predictions.py`. The latter script will create the predcition on the test set using the model. 
 
 ### Fairness Analyses
 The scripts used to perform the fairness analysis are the scripts `src/visualization_description/evaluater.py` and `src/evaluater_chexpert.py`. Moreover, all figures can be found in the `figures` folder. 
