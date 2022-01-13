@@ -4,7 +4,7 @@ import pandas as pd
 #%% Loading data
 raw_file_path = 'data\\raw\\catalan-juvenile-recidivism\\reincidenciaJusticiaMenors.xlsx'
 processed_file_path = 'data\\processed\\catalan-juvenile-recidivism'
-column_translation_file_path = 'data\\interim\\catalan-juvenile-recidivism\\catalan-juvenile-recidivism-columns.xlsx'
+column_translation_file_path = 'data\\raw\\catalan-juvenile-recidivism\\catalan-juvenile-recidivism-columns.xlsx'
     
 raw = pd.read_excel(raw_file_path)
 columns_translation = pd.read_excel(column_translation_file_path)
@@ -12,21 +12,9 @@ columns_translation = pd.read_excel(column_translation_file_path)
 # Shape of data
 #raw.shape # (4753, 143)
 
-#%% Writing File with NaNs
-# renaming to english columns and writing file with number of NaNs 
-# to investigate how complete each column is 
+# renaming to english columns 
 catalan_names = raw.columns
 raw.columns = columns_translation.translation 
-(pd.DataFrame(
-    raw.isnull().sum(axis= 0)
-                .rename('NaNs'))
-                .assign(**{'n_no_NaNs': lambda x: raw.shape[0]-x.NaNs, 
-                           'catalan_names': catalan_names}) 
-                .reindex(columns = ['catalan_names', 'NaNs', 'n_no_NaNs'])
-                .reset_index()
-                .to_excel("data\\interim\\catalan-juvenile-recidivism\\catalan-juvenile-recidivism-NaNs.xlsx")
-)
-
 #%% Filling or dropping NaNs 
 
 # Dropping columns with only NaN 
