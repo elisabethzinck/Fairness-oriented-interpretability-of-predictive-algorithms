@@ -109,9 +109,9 @@ class BiasBalancer:
         *WMQ* is the *weighted misclassification quotient*. Define :math:`WMR_{min} := \min_{a\in A} WMR` then *WMQ* for group :math:`a` is computed as 
 
         .. math:: 
-            \\textit{WMQ}_a = \\frac{\\textit{WMR}_a - \\textit{WMR}_{min}}{\\textit{WMR}_{min}}\cdot100\%  \quad \\text{for $a \in A$}
+            \\textit{WMQ}_a = \\frac{\\textit{WMR}_a - \\textit{WMR}_{min}}{\\textit{WMR}_{min}+\\varepsilon}\cdot100\%  \quad \\text{for $a \in A$}
 
-        A larger *WMQ* suggests disfavoring between the groups. 
+        A larger *WMQ* suggests disfavoring between the groups. The small number :math:`\\varepsilon` is added to the denominator to ensure that the weighted misclassification qoutient is well-defined if :math:`\\textit{WMR}_{min}=0`.
 
         Args:
             plot (bool): If True, a plot is made visualizing which group has the largest *WMR*
@@ -155,10 +155,10 @@ class BiasBalancer:
         The relative rates are computed for each group and rate. The relative rates for group :math:`a` are computed as
             
         .. math::
-            RR_a(r) &= \\frac{r_{a} - r_{min}}{r_{min}}\cdot100\%, \n
+            RR_a(r) &= \\frac{r_{a} - r_{min}}{r_{min}+\\varepsilon}\cdot100\%, \n
             r_{min} &= \min_{a\in A} r_a,
 
-        for rates :math:`r \in \{\\textit{FPR},~\\textit{FNR},~\\textit{FDR},~\\textit{FOR},~\\textit{WMR}\}`. 
+        for rates :math:`r \in \{\\textit{FPR},~\\textit{FNR},~\\textit{FDR},~\\textit{FOR},~\\textit{WMR}\}`. The small number :math:`\\varepsilon` is added to the denominator to ensure that the relative rate is well-defined if :math:`\\textit{r}_{min}=0`.
 
         The unfairness barometer indicates the level of unfairness present in the predictions according to different fairness criteria. The fairness criteria are summarized in the overview table below. 
 
@@ -437,12 +437,13 @@ class BiasBalancer:
             rates = self.rates[self.rates.rate.isin(rate_names)]
 
         # Calculate relative rates
+        epsilon = np.finfo(float).eps
         rel_rates = (rates
                      .groupby(by='rate')
                      .apply(get_minimum_rate)
                      .assign(
                          relative_rate=lambda x:
-                         (x.rate_val-x.min_rate)/x.min_rate*100)
+                         (x.rate_val-x.min_rate)/(x.min_rate+epsilon)*100)
                      .loc[:, ['rate', 'grp', 'rate_val', 'relative_rate']]
                      .reset_index(drop=True))
 
@@ -712,7 +713,7 @@ if __name__ == "__main__":
     file_path = 'data/processed/anonymous_data.csv'
     df = pd.read_csv(file_path)
     df.head()
-
+    
     fair_anym = BiasBalancer(
         data=df,
         y_name='y',
@@ -747,5 +748,5 @@ if __name__ == "__main__":
     conf_mat = fair_anym.level_3(method='confusion_matrix')
     conf_mat = fair_anym.level_3(
         method='confusion_matrix', **{'cm_print_n': True})
-
+    
 # %%
