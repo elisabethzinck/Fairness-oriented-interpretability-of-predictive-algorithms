@@ -11,10 +11,6 @@ import matplotlib.ticker as mtick
 from sklearn.preprocessing import StandardScaler
 from sklearn.manifold import TSNE
 
-# To do: Clean up in this below to only import relevant things
-#from utils import (
-#    custom_palette, error_bar, 
-#    N_pos, frac_pos, wilson_confint, error_bar, abs_percentage_tick)
 from biasbalancer.utils import *
 from biasbalancer.plots import *
 #%% 

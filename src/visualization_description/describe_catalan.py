@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np 
 
-from src.evaluation_tool.utils import custom_palette
+from biasbalancer.plots import custom_palette
 from src.visualization_description.descriptive_tool import DescribeData
 
 file_path = 'data\\processed\\catalan-juvenile-recidivism\\catalan-juvenile-recidivism-subset.csv'
