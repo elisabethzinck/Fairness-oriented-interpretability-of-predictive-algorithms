@@ -4,7 +4,6 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
-from src.evaluation_tool.layered_tool import FairKit
 input_path = 'data/predictions/german_credit_nn_pred.csv'
 output_path = 'data/processed/anonymous_data.csv'
 
@@ -40,23 +39,3 @@ anym = german_data[name_map.keys()].rename(columns = name_map)
 
 
 anym.to_csv(output_path, index = None)
-
-# %% Show what visualization will look like
-anym_instance = FairKit(
-    y = anym.y, 
-    y_hat = anym.yhat, 
-    a = anym.grp, 
-    r = anym.phat)
-anym_instance.l1_get_data()
-anym_instance.l2_plot()
-# %% Visualization with 2 groups
-df = anym[anym.grp.isin(['A','B'])]
-anym2_instance = FairKit(
-    y = df.y, 
-    y_hat = df.yhat, 
-    a = df.grp, 
-    r = df.phat)
-anym2_instance.l1_get_data()
-anym2_instance.l2_plot()
-
-# %%
