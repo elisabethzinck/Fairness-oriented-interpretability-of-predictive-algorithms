@@ -229,7 +229,7 @@ class CatalanDataModule(pl.LightningDataModule):
 class GermanDataModule(pl.LightningDataModule):
     def __init__(self, fold = None):
         super().__init__()
-        self.file_path = 'data/processed/german_credit.csv'
+        self.file_path = 'data/processed/german_credit_full.csv'
         self.batch_size = 32 
         self.seed = 42
         self.test_size = 0.2

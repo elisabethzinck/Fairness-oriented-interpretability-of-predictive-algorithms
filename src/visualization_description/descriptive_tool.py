@@ -328,7 +328,7 @@ class DescribeData:
 #%%
 if __name__ == "__main__":
     # German
-    file_path = 'data\\processed\\german_credit.csv'
+    file_path = 'data\\processed\\german_credit_full.csv'
 
     data = pd.read_csv(file_path)
 

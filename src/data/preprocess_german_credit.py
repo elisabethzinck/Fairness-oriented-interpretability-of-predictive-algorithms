@@ -1,9 +1,13 @@
 # Preprocess the german credit data to make it easier to work with
+#%%
+remove_singles = False
 #%% Initialization
 import pandas as pd
 input_path = 'data\\raw\\german_credit\\german.data'
-output_path = 'data\\processed\\german_credit.csv'
-
+if remove_singles:
+    output_path = 'data\\processed\\german_credit.csv'
+else:
+    output_path = 'data\\processed\\german_credit_full.csv'
 # The data was downloaded from 
 # https://archive.ics.uci.edu/ml/machine-learning-databases/statlog/german/
 # Link from Fairness definitions explained article
