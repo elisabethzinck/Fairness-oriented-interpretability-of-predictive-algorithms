@@ -129,8 +129,8 @@
 \[c(w_{FP}) = \min\left(\frac{1}{w_{fp}}, \frac{1}{1-w_{fp}}\right).\]</div>
 <p><em>WMQ</em> is the <em>weighted misclassification quotient</em>. Define <span class="math notranslate nohighlight">\(WMR_{min} := \min_{a\in A} WMR\)</span> then <em>WMQ</em> for group <span class="math notranslate nohighlight">\(a\)</span> is computed as</p>
 <div class="math notranslate nohighlight">
-\[\textit{WMQ}_a = \frac{\textit{WMR}_a - \textit{WMR}_{min}}{\textit{WMR}_{min}}\cdot100\%  \quad \text{for $a \in A$}\]</div>
-<p>A larger <em>WMQ</em> suggests disfavoring between the groups.</p>
+\[\textit{WMQ}_a = \frac{\textit{WMR}_a - \textit{WMR}_{min}}{\textit{WMR}_{min}+\varepsilon}\cdot100\%  \quad \text{for $a \in A$}\]</div>
+<p>A larger <em>WMQ</em> suggests disfavoring between the groups. The small number <span class="math notranslate nohighlight">\(\varepsilon\)</span> is added to the denominator to ensure that the weighted misclassification qoutient is well-defined if <span class="math notranslate nohighlight">\(\textit{WMR}_{min}=0\)</span>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -162,8 +162,8 @@
 <p>where <em>FP</em> are false positives, <em>FN</em> are false negatives, <em>N</em> are negatives, <em>P</em> are positives, <em>PN</em> are predicted negatives and <em>PP</em> are predicted positives.</p>
 <p>The relative rates are computed for each group and rate. The relative rates for group <span class="math notranslate nohighlight">\(a\)</span> are computed as</p>
 <div class="math notranslate nohighlight">
-\[ \begin{align}\begin{aligned}RR_a(r) &amp;= \frac{r_{a} - r_{min}}{r_{min}}\cdot100\%,\\r_{min} &amp;= \min_{a\in A} r_a,\end{aligned}\end{align} \]</div>
-<p>for rates <span class="math notranslate nohighlight">\(r \in \{\textit{FPR},~\textit{FNR},~\textit{FDR},~\textit{FOR},~\textit{WMR}\}\)</span>.</p>
+\[ \begin{align}\begin{aligned}RR_a(r) &amp;= \frac{r_{a} - r_{min}}{r_{min}+\varepsilon}\cdot100\%,\\r_{min} &amp;= \min_{a\in A} r_a,\end{aligned}\end{align} \]</div>
+<p>for rates <span class="math notranslate nohighlight">\(r \in \{\textit{FPR},~\textit{FNR},~\textit{FDR},~\textit{FOR},~\textit{WMR}\}\)</span>. The small number <span class="math notranslate nohighlight">\(\varepsilon\)</span> is added to the denominator to ensure that the relative rate is well-defined if <span class="math notranslate nohighlight">\(\textit{r}_{min}=0\)</span>.</p>
 <p>The unfairness barometer indicates the level of unfairness present in the predictions according to different fairness criteria. The fairness criteria are summarized in the overview table below.</p>
 <span id="overview-table-of-fairness-criteria"></span><table class="docutils align-default" id="id10">
 <caption><span class="caption-text">Overview table of Fairness Criteria</span><a class="headerlink" href="#id10" title="Permalink to this table"></a></caption>
