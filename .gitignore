@@ -15,10 +15,4 @@
 *.ckpt
 
 # Data containing sensitive information
-/data/ADNI
 /data/CheXpert
-
-# Temporary files (i.e. delete these in the end and delete these lines)
-/models/CheXpert/lightning_logs/tmp
-data/raw/fairml_traffic_stops/NC_cleaned.csv
-/lightning_logs
