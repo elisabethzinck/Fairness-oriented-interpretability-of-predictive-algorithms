@@ -30,14 +30,13 @@ run_anym_plots = True
 #############################################
 #%% Load data and initialize BiasBalancer
 ##############################################
-def get_BiasBalancerDict(include_anym = True, include_ADNI = False):
+def get_BiasBalancerDict(include_anym = True):
     "Initialize all BiasBalancers and save them in dict"
     BiasBalancerDict = {}
     credit_w_fp = 0.9
     compas_w_fp = 0.9
     catalan_w_fp = 0.9
     anym_w_fp = 0.2
-    adni_w_fp = 0.1
 
     # Anym
     if include_anym:
@@ -127,29 +126,6 @@ def get_BiasBalancerDict(include_anym = True, include_ADNI = False):
         w_fp = credit_w_fp,
         model_name = 'Taiwanese: Neural network')
 
-
-    if include_ADNI:
-        for adni_no in [1,2]:
-            adni = pd.read_csv(f'data/ADNI/predictions/ADNI{adni_no}_log_reg.csv')
-            BiasBalancerDict[f'adni{adni_no}_logreg'] = BiasBalancer(
-                data = adni,
-                y_name = 'y', 
-                y_hat_name = 'log_reg_pred', 
-                a_name = 'sex', 
-                r_name = 'log_reg_prob',
-                w_fp = adni_w_fp,
-                model_name = f'ADNI{adni_no}: Logistic regression')
-            
-            
-            adni = pd.read_csv(f'data/ADNI/predictions/ADNI_{adni_no}_nn_pred.csv')
-            BiasBalancerDict[f'adni{adni_no}_nn'] = BiasBalancer(
-                data = adni,
-                y_name = 'y', 
-                y_hat_name = 'nn_pred', 
-                a_name = 'sex', 
-                r_name = 'nn_prob',
-                w_fp = adni_w_fp,
-                model_name = f'ADNI{adni_no}: Neural network')
     return BiasBalancerDict
             
 def get_l1_overview_table(print_latex = True):

@@ -43,12 +43,6 @@ df = raw_data.copy()
 #%% Create id column to allow for saving predictions without remaining data
 df['person_id'] = range(df.shape[0])
 
-#%% Removing single males and female (because no female singles)
-if remove_singles:
-    df = df[
-        (df.personal_status_sex != 'A93') & \
-        (df.personal_status_sex != 'A95')]
-
 
 #%% Cleaning personal_status_sex
 df.personal_status_sex.unique()

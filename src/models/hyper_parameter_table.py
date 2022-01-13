@@ -2,7 +2,7 @@
 import pandas as pd
 
 from src.models.data_modules import *
-from src.evaluation_tool.utils import label_case
+from biasbalancer.utils import label_case
 
 # %%
 
@@ -52,9 +52,7 @@ def get_hyperparameter_info(dm):
     hyper_paths = {
         'German Credit': 'data/predictions/german_credit_nn_pred_hyperparams',
         'Catalan Recidivism': 'data/predictions/catalan-juvenile-recidivism/catalan_recid_nn_pred_hyperparams',
-        'Taiwanese Credit': 'data/predictions/taiwanese_nn_pred_hyperparams',
-        'ADNI1': 'data/ADNI/predictions/ADNI_1_nn_pred_hyper_params',
-        'ADNI2': 'data/ADNI/predictions/ADNI_2_nn_pred_hyper_params'}
+        'Taiwanese Credit': 'data/predictions/taiwanese_nn_pred_hyperparams'}
     
 
     hyperpath = hyper_paths[dm.dataset_name] + '.csv'

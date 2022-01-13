@@ -54,13 +54,9 @@ def run_logistic_regression_KFold(dm):
 def run_logistic_regression(dm):
     # Prepare for output data
     cols_to_keep = [dm.id_var] + dm.sens_vars +[dm.y_var]
-    if isinstance(dm.raw_data, dict):
-        # When using ADNI data
-        output_data = (dm.processed_data['test_data'])
-    else:
-        # Remaining datasets
-        output_data = (dm.raw_data[cols_to_keep]
-            .iloc[dm.test_idx])
+    # Remaining datasets
+    output_data = (dm.raw_data[cols_to_keep]
+        .iloc[dm.test_idx])
     
     # Prepare data
     X_train = dm.train_data.X_data
@@ -91,7 +87,6 @@ if __name__ == "__main__":
     run_german = False
     run_catalan = False
     run_taiwanese = False
-    run_ADNI = True
 
     if run_german:
         print('Running German Credit Data')
@@ -114,21 +109,5 @@ if __name__ == "__main__":
         output_path = 'data/predictions/taiwanese_log_reg.csv'
         preds.to_csv(output_path, index = False) 
 
-    if run_ADNI:
-        adni_pred_dir = './data/ADNI/predictions'
-        if not os.path.exists(adni_pred_dir):
-            os.makedirs(adni_pred_dir)
-        
-        print('Running ADNI1 Data')
-        dm = ADNIDataModule(dataset = 1)
-        preds = run_logistic_regression(dm)
-        output_path = adni_pred_dir + '/ADNI1_log_reg.csv'
-        preds.to_csv(output_path, index = False) 
-
-        print('Running ADNI2 Data')
-        dm = ADNIDataModule(dataset = 2)
-        preds = run_logistic_regression(dm)
-        output_path = adni_pred_dir + '/ADNI2_log_reg.csv'
-        preds.to_csv(output_path, index = False) 
 
 # %%

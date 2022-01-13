@@ -34,6 +34,5 @@ if __name__ == "__main__":
     
     predictions = predictions.assign(
         pred = (predictions.score_text != 'Low'))
-    print(predictions.columns)
 
     predictions.to_csv(processed_file_path_preds, index=False)   
