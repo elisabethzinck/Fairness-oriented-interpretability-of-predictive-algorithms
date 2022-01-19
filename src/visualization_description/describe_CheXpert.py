@@ -87,59 +87,59 @@ def get_figures_and_tables(
 
 
 #%%
-# Choose dataset: test, train or val
-data_set = "all"
+if __name__ == "__main__":
+    # Choose dataset: test, train or val
+    data_set = "all"
 
-df = get_descriptive_cheXpert_data(data_set)
+    df = get_descriptive_cheXpert_data(data_set)
 
-# Get figures and tables for main report
-get_figures_and_tables(df, a_name = 'sex', orientation = 'v', save_figs = save_figs)
-get_figures_and_tables(df, a_name = 'race', save_figs = save_figs)
-get_figures_and_tables(df, a_name = 'race_sex', save_figs = save_figs)
+    # Get figures and tables for main report
+    get_figures_and_tables(df, a_name = 'sex', orientation = 'v', save_figs = save_figs)
+    get_figures_and_tables(df, a_name = 'race', save_figs = save_figs)
+    get_figures_and_tables(df, a_name = 'race_sex', save_figs = save_figs)
 
-#%% Get prevalences in test/val/training
-# Train
+    #%% Get prevalences in test/val/training
+    # Train
+    tbl_combined = []
 
-tbl_combined = []
+    for data_set in ['train', 'test']:
+        df = get_descriptive_cheXpert_data(data_set = data_set)
+        for attr in ['sex', 'race', 'race_sex']:
+            desc = DescribeData(a_name = attr, 
+                                y_name = "y", 
+                                id_name = 'patient_id', 
+                                data = df,
+                                data_name=f'CheXpert, target: {disease}', 
+                                **{"decimal":4})
+            tbl = desc.descriptive_table.assign(
+                dataset = data_set, 
+                sens_grp = attr)
+            tbl_combined.append(tbl)
+    tbl_combined = pd.concat(tbl_combined)
 
-for data_set in ['train', 'test']:
-    df = get_descriptive_cheXpert_data(data_set = data_set)
-    for attr in ['sex', 'race', 'race_sex']:
-        desc = DescribeData(a_name = attr, 
-                            y_name = "y", 
-                            id_name = 'patient_id', 
-                            data = df,
-                            data_name=f'CheXpert, target: {disease}', 
-                            **{"decimal":4})
-        tbl = desc.descriptive_table.assign(
-            dataset = data_set, 
-            sens_grp = attr)
-        tbl_combined.append(tbl)
-tbl_combined = pd.concat(tbl_combined)
-
-#%%
-tex_pos_rate = (lambda x :
-    [f"{x.N_positive[i]} ({x.positive_frac[i]*100}%)" for i in range(x.shape[0])]
-    )
-tex_conf_int = (lambda x :
-    [f"[{x.conf_lwr[i]*100}%, {x.conf_upr[i]*100}%]" for i in range(x.shape[0])]
-    )
-col_order = [
-    'sens_grp', 'a', 'dataset', 
-    'N', 'N_positive', 'positive_frac','conf_lwr', 'conf_upr']
-tmp = (tbl_combined[col_order]
-            .reset_index(drop = True)
-            .round({'positive_frac': 4, 'conf_lwr': 4, 'conf_upr': 4})
-            .assign(
-                N_positive = tex_pos_rate, 
-                CI = tex_conf_int)
-            .drop(columns = ["conf_lwr", "conf_upr", "positive_frac"])
-            .sort_values(['sens_grp', 'a', 'dataset'])
-            .rename(columns = {
-                "a": 'Group', 
-                "N_positive": 'Has Cardiomegaly',
-                'sens_grp': 'Sensitive Attribute',
-                'dataset': 'Split'}))
-tmp.to_csv('references/split_distribution_for_tablesgenerator.csv')
+    #%%
+    tex_pos_rate = (lambda x :
+        [f"{x.N_positive[i]} ({x.positive_frac[i]*100}%)" for i in range(x.shape[0])]
+        )
+    tex_conf_int = (lambda x :
+        [f"[{x.conf_lwr[i]*100}%, {x.conf_upr[i]*100}%]" for i in range(x.shape[0])]
+        )
+    col_order = [
+        'sens_grp', 'a', 'dataset', 
+        'N', 'N_positive', 'positive_frac','conf_lwr', 'conf_upr']
+    tmp = (tbl_combined[col_order]
+                .reset_index(drop = True)
+                .round({'positive_frac': 4, 'conf_lwr': 4, 'conf_upr': 4})
+                .assign(
+                    N_positive = tex_pos_rate, 
+                    CI = tex_conf_int)
+                .drop(columns = ["conf_lwr", "conf_upr", "positive_frac"])
+                .sort_values(['sens_grp', 'a', 'dataset'])
+                .rename(columns = {
+                    "a": 'Group', 
+                    "N_positive": 'Has Cardiomegaly',
+                    'sens_grp': 'Sensitive Attribute',
+                    'dataset': 'Split'}))
+    tmp.to_csv('references/split_distribution_for_tablesgenerator.csv')
 
 # %%
